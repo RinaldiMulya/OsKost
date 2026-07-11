@@ -1,0 +1,165 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum UserRole {
+  ADMIN
+  TENANT
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum ReportStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+// ============================================
+// Models
+// ============================================
+
+model Property {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  address   String
+  rooms     Room[]
+  createdAt DateTime @default(now())
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String?  @unique
+  phoneNumber  String?  @unique // Login Tenant (No HP = Username)
+  passwordHash String
+  role         UserRole @default(TENANT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenantProfile TenantProfile?
+  leases        Lease[]
+  panoramaImages PanoramaImage[]
+}
+
+model TenantProfile {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName         String
+  ktpNumber        String?
+  ktpPhotoUrl      String?
+  address                String? // Alamat asal sesuai KTP
+  emergencyContactName   String? // Hubungan / Nama kontak darurat
+  emergencyContactNumber String? // Nomor kontak darurat
+}
+
+model Room {
+  id          String     @id @default(cuid())
+  number      String     @unique
+  name        String
+  price       Int
+  status      RoomStatus @default(AVAILABLE)
+  description String?    @db.Text
+  facilities  String[]
+  images      String[]
+  panoramaImages PanoramaImage[]
+  // tokenListrikId String?
+
+  // Relasi ke Property
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  leases Lease[]
+
+  @@unique([number, propertyId]) // Nomor kamar unik di dalam satu properti
+}
+
+model Lease {
+  id        String    @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime?
+  isActive  Boolean   @default(true)
+
+  exitReason String? // Contoh: "Selesai kontrak" atau "Berhenti tengah jalan"
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+
+  invoices Invoice[]
+  reports  Report[]
+}
+
+model Invoice {
+  id      String   @id @default(cuid())
+  dueDate DateTime
+  amount  Int // Total yang harus dibayar
+
+  rentAmount    Int @default(0)
+  utilityAmount Int @default(0) // Listrik/Air
+  otherAmount   Int @default(0) // Sampah/Keamanan
+
+  status    PaymentStatus @default(UNPAID)
+  paidAt    DateTime?
+  proofUrl  String?
+  adminNote String? // Catatan admin jika ada potongan/denda
+
+  leaseId String
+  lease   Lease  @relation(fields: [leaseId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  title       String
+  description String       @db.Text
+  photoUrl    String?
+  status      ReportStatus @default(OPEN)
+
+  leaseId String
+  lease   Lease  @relation(fields: [leaseId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PanoramaImage {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  imageUrl    String   // URL publik dari Supabase (Oskost-Data-Public)
+  storagePath String   // Path spesifik di bucket (untuk keperluan delete)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  roomId      String
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+}
