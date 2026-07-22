@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { getTenantReports } from "@/features/tenant-pwa/tenant-pwa-service";
+import { getTenantReports, getTenantDashboardData } from "@/features/tenant-pwa/tenant-pwa-service";
 import { Card, CardContent } from "@/components/ui/card";
 import { ReportDialogForm } from "@/features/tenant-pwa/components/report-dialog-form";
 import { Wrench, CheckCircle2, Clock, AlertTriangle, Image as ImageIcon } from "lucide-react";
@@ -12,7 +12,12 @@ export default async function TenantReportsPage() {
     redirect("/login");
   }
 
-  const reports = await getTenantReports(session.user.id);
+  const [reports, dashboardData] = await Promise.all([
+    getTenantReports(session.user.id),
+    getTenantDashboardData(session.user.id),
+  ]);
+
+  const hasActiveLease = !!dashboardData?.activeLease;
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString("id-ID", {
@@ -31,8 +36,19 @@ export default async function TenantReportsPage() {
         <p className="text-xs text-zinc-400">Ajukan keluhan kerusakan fasilitas kamar atau area kost.</p>
       </div>
 
-      {/* Button to open Dialog Form */}
-      <ReportDialogForm userId={session.user.id} />
+      {/* Button to open Dialog Form or Inactive Notice */}
+      {hasActiveLease ? (
+        <ReportDialogForm userId={session.user.id} />
+      ) : (
+        <Card className="border-amber-500/20 bg-amber-500/5 backdrop-blur-md">
+          <CardContent className="p-4 text-center space-y-1">
+            <p className="text-xs font-semibold text-amber-400">Kontrak Sewa Tidak Aktif</p>
+            <p className="text-xs text-zinc-400">
+              Anda tidak dapat mengajukan laporan baru karena tidak sedang menyewa kamar aktif.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Reports List */}
       <div className="space-y-3">

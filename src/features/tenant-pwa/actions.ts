@@ -75,6 +75,8 @@ export async function submitMaintenanceReportAction(
     updateTag(CACHE_TAGS.tenantReports(session.user.id));
     // Invalidate dashboard stats (openReports count changes)
     updateTag(CACHE_TAGS.DASHBOARD_STATS);
+    // Invalidate admin reports cache agar laporan baru muncul di dashboard admin
+    updateTag(CACHE_TAGS.REPORTS_ALL);
 
     return { success: true, message: "Laporan kerusakan berhasil dikirim!" };
   } catch (error: any) {

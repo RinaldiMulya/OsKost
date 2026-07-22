@@ -257,26 +257,86 @@ export async function createTenant(data: {
     const hashedPassword = await bcryptjs.hash(DEFAULT_PASSWORD, 10);
 
     return prisma.$transaction(async (tx) => {
-        // 1. Create User & Profile
-        const user = await tx.user.create({
-            data: {
-                phoneNumber: data.phoneNumber,
-                email: data.email || null,
-                passwordHash: hashedPassword,
-                role: "TENANT",
-                tenantProfile: {
-                    create: {
-                        fullName: data.fullName,
-                        ktpNumber: data.ktpNumber || null,
-                        ktpPhotoUrl: data.ktpPhotoUrl || null,
-                        address: data.address || null,
-                        emergencyContactName: data.emergencyContactName || null,
-                        emergencyContactNumber: data.emergencyContactNumber || null,
+        // 1. Check if user already exists (by phoneNumber or email)
+        const OR_conditions = [];
+        if (data.phoneNumber) OR_conditions.push({ phoneNumber: data.phoneNumber });
+        if (data.email) OR_conditions.push({ email: data.email });
+
+        let existingUser = null;
+        if (OR_conditions.length > 0) {
+            existingUser = await tx.user.findFirst({
+                where: { OR: OR_conditions },
+                include: { tenantProfile: true },
+            });
+        }
+
+        let user;
+
+        if (existingUser) {
+            // Check if existing user has an active lease
+            const activeLease = await tx.lease.findFirst({
+                where: { userId: existingUser.id, isActive: true },
+            });
+
+            if (activeLease) {
+                throw new Error("Penyewa ini masih berstatus aktif di kamar lain. Silakan selesaikan sewa sebelumnya terlebih dahulu.");
+            }
+
+            // Update user & tenant profile for returning tenant
+            user = await tx.user.update({
+                where: { id: existingUser.id },
+                data: {
+                    phoneNumber: data.phoneNumber,
+                    ...(data.email !== undefined && { email: data.email || null }),
+                    tenantProfile: {
+                        upsert: {
+                            create: {
+                                fullName: data.fullName,
+                                ktpNumber: data.ktpNumber || null,
+                                ktpPhotoUrl: data.ktpPhotoUrl || null,
+                                address: data.address || null,
+                                emergencyContactName: data.emergencyContactName || null,
+                                emergencyContactNumber: data.emergencyContactNumber || null,
+                            },
+                            update: {
+                                fullName: data.fullName,
+                                ...(data.ktpNumber !== undefined && { ktpNumber: data.ktpNumber || null }),
+                                ...(data.ktpPhotoUrl !== undefined && { ktpPhotoUrl: data.ktpPhotoUrl || null }),
+                                ...(data.address !== undefined && { address: data.address || null }),
+                                ...(data.emergencyContactName !== undefined && {
+                                    emergencyContactName: data.emergencyContactName || null,
+                                }),
+                                ...(data.emergencyContactNumber !== undefined && {
+                                    emergencyContactNumber: data.emergencyContactNumber || null,
+                                }),
+                            },
+                        },
                     },
                 },
-            },
-            include: { tenantProfile: true },
-        });
+                include: { tenantProfile: true },
+            });
+        } else {
+            // Create brand new User & Profile
+            user = await tx.user.create({
+                data: {
+                    phoneNumber: data.phoneNumber,
+                    email: data.email || null,
+                    passwordHash: hashedPassword,
+                    role: "TENANT",
+                    tenantProfile: {
+                        create: {
+                            fullName: data.fullName,
+                            ktpNumber: data.ktpNumber || null,
+                            ktpPhotoUrl: data.ktpPhotoUrl || null,
+                            address: data.address || null,
+                            emergencyContactName: data.emergencyContactName || null,
+                            emergencyContactNumber: data.emergencyContactNumber || null,
+                        },
+                    },
+                },
+                include: { tenantProfile: true },
+            });
+        }
 
         // 2. Create Lease
         const lease = await tx.lease.create({
@@ -460,25 +520,61 @@ export async function resetTenantPassword(userId: string, newPassword: string) {
 // INVOICE ACTIONS
 // ============================================
 
+import { sendNotification } from "@/features/notifications/notification-service";
+
 export async function markInvoicePaid(invoiceId: string) {
-    return prisma.invoice.update({
+    const updatedInvoice = await prisma.invoice.update({
         where: { id: invoiceId },
         data: {
             status: "PAID",
             paidAt: new Date(),
             adminNote: null, // Clear note if paid
         },
+        include: {
+            lease: {
+                select: { userId: true }
+            }
+        }
     });
+
+    if (updatedInvoice?.lease?.userId) {
+        await sendNotification({
+            userId: updatedInvoice.lease.userId,
+            title: "Pembayaran Dikonfirmasi",
+            message: `Tagihan Anda sebesar Rp ${updatedInvoice.amount.toLocaleString("id-ID")} telah dikonfirmasi Lunas oleh Admin.`,
+            type: "BILLING",
+            url: "/dashboard/billing",
+        }).catch(err => console.error("Error sending notification:", err));
+    }
+
+    return updatedInvoice;
 }
 
 export async function rejectInvoicePayment(invoiceId: string, reason: string) {
-    return prisma.invoice.update({
+    const updatedInvoice = await prisma.invoice.update({
         where: { id: invoiceId },
         data: {
             status: "UNPAID",
             proofUrl: null, // Remove rejected proof
             adminNote: reason,
         },
+        include: {
+            lease: {
+                select: { userId: true }
+            }
+        }
     });
+
+    if (updatedInvoice?.lease?.userId) {
+        await sendNotification({
+            userId: updatedInvoice.lease.userId,
+            title: "Pembayaran Perlu Perbaikan",
+            message: `Bukti pembayaran Anda ditolak dengan alasan: ${reason}. Silakan unggah ulang.`,
+            type: "BILLING",
+            url: "/dashboard/billing",
+        }).catch(err => console.error("Error sending notification:", err));
+    }
+
+    return updatedInvoice;
 }
 

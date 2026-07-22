@@ -71,7 +71,7 @@ export function TenantInfoTab({ tenant, signedKtpUrl }: TenantInfoTabProps) {
           <div>
             <p className="text-sm text-zinc-500 mb-1">Nomor KTP (NIK)</p>
             <p className="font-mono text-zinc-200">
-              {tenant.tenantProfile?.ktpNumber || "—"}
+              {maskKtpNumber(tenant.tenantProfile?.ktpNumber)}
             </p>
           </div>
           <div>
@@ -205,4 +205,18 @@ export function TenantInfoTab({ tenant, signedKtpUrl }: TenantInfoTabProps) {
       </Card>
     </div>
   );
+}
+
+// ============================================
+// Helper Functions
+// ============================================
+
+function maskKtpNumber(ktpNumber: string | null | undefined) {
+  if (!ktpNumber) return "—";
+  const trimmed = ktpNumber.trim();
+  if (trimmed.length !== 16) {
+    if (trimmed.length <= 6) return trimmed;
+    return trimmed.slice(0, 4) + "*".repeat(trimmed.length - 8) + trimmed.slice(-4);
+  }
+  return trimmed.slice(0, 6) + "******" + trimmed.slice(12);
 }

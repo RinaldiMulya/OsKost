@@ -239,7 +239,7 @@ export default async function TenantDashboardPage() {
         <h2 className="text-sm font-bold tracking-wide text-zinc-400 uppercase">
           Menu Utama
         </h2>
-        <div className="grid grid-cols-3 gap-3">
+        <div className={`grid ${activeLease ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
           <Link href="/dashboard/billing" className="block">
             <Card className="border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors shadow-md text-center py-4 cursor-pointer">
               <CardContent className="p-0 flex flex-col items-center justify-center gap-2">
@@ -253,16 +253,18 @@ export default async function TenantDashboardPage() {
             </Card>
           </Link>
 
-          <Link href="/dashboard/reports" className="block">
-            <Card className="border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors shadow-md text-center py-4 cursor-pointer">
-              <CardContent className="p-0 flex flex-col items-center justify-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
-                  <AlertTriangle className="h-5 w-5" />
-                </div>
-                <span className="text-xs font-medium text-zinc-200">Lapor</span>
-              </CardContent>
-            </Card>
-          </Link>
+          {activeLease && (
+            <Link href="/dashboard/reports" className="block">
+              <Card className="border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors shadow-md text-center py-4 cursor-pointer">
+                <CardContent className="p-0 flex flex-col items-center justify-center gap-2">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-medium text-zinc-200">Lapor</span>
+                </CardContent>
+              </Card>
+            </Link>
+          )}
 
           <Link href="/dashboard/profile" className="block">
             <Card className="border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors shadow-md text-center py-4 cursor-pointer">

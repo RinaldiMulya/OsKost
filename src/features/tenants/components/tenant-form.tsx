@@ -40,7 +40,6 @@ export function TenantForm({
   // Controlled states for room-based pricing autofill (Check-in Mode)
   const [selectedRoomId, setSelectedRoomId] = useState(initialRoomId);
   const [rentAmount, setRentAmount] = useState<number | "">("");
-  const [deposit, setDeposit] = useState<number | "">("");
   const [ktpUrl, setKtpUrl] = useState(
     tenant?.tenantProfile?.ktpPhotoUrl ?? "",
   );
@@ -53,10 +52,8 @@ export function TenantForm({
     const room = availableRooms.find((r) => r.id === roomId);
     if (room) {
       setRentAmount(room.price);
-      setDeposit(room.price); // Default deposit equals rent price
     } else {
       setRentAmount("");
-      setDeposit("");
     }
   };
 
@@ -299,24 +296,6 @@ export function TenantForm({
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="deposit" className="text-zinc-300">
-                  Uang Jaminan (Deposit)
-                </Label>
-                <Input
-                  id="deposit"
-                  name="deposit"
-                  type="number"
-                  placeholder="0"
-                  value={deposit}
-                  onChange={(e) =>
-                    setDeposit(
-                      e.target.value === "" ? "" : Number(e.target.value),
-                    )
-                  }
-                  className="bg-zinc-950 border-zinc-800 text-zinc-100"
-                />
-              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="utilityAmount" className="text-zinc-300">

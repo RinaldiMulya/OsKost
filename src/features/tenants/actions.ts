@@ -9,7 +9,7 @@ import {
     resetPasswordSchema,
     createTenant,
     updateTenant,
-    deleteTenant,
+    checkoutTenant,
     resetTenantPassword,
     markInvoicePaid,
     rejectInvoicePayment,
@@ -151,10 +151,10 @@ export async function updateTenantAction(
 }
 
 // ============================================
-// DELETE (Soft check-out wrapper)
+// CHECK-OUT (Soft check-out wrapper)
 // ============================================
 
-export async function deleteTenantAction(
+export async function checkoutTenantAction(
     _prevState: ActionResult | null,
     formData: FormData
 ): Promise<ActionResult> {
@@ -165,10 +165,11 @@ export async function deleteTenantAction(
             return { success: false, error: "User ID is required." };
         }
 
-        await deleteTenant(userId);
+        await checkoutTenant(userId, "Checked out via Admin Flow");
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
+        revalidatePath("/dashboard");
         updateTag(CACHE_TAGS.DASHBOARD_STATS);
         updateTag(CACHE_TAGS.ADMIN_TENANTS);
         updateTag(CACHE_TAGS.ADMIN_ROOMS);
@@ -183,7 +184,7 @@ export async function deleteTenantAction(
         if (error instanceof Error) {
             return { success: false, error: error.message };
         }
-        return { success: false, error: "Terjadi kesalahan saat menghapus penghuni." };
+        return { success: false, error: "Terjadi kesalahan saat memproses check-out." };
     }
 }
 

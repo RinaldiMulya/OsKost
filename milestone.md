@@ -49,38 +49,39 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Aksi Tandai Lunas Tagihan dari dashboard tenant
 - [x] Aksi Reset Password Penghuni
 - [x] Aksi Kirim Reminder Tagihan (via notifikasi/WhatsApp — placeholder)
-- [x] Tampilkan status penghuni: Paid / Unpaid / Hampir Habis / Checked-out / No Lease
+- [x] Tampilkan status terpisah: Kolom Sewa & Kontrak (Aktif/Hampir Habis/Habis/Checked-out) + Kolom Pembayaran dinamis bulanan (Paid/Unpaid + nama bulan)
 - [x] Tampilkan Foto KTP penghuni (via Signed URL Supabase)
 - [x] Riwayat semua tagihan/pembayaran per penghuni
-- [ ] Proses Checkout formal (Ubah status Lease ke nonaktif + Proses refund deposit)
-- [ ] Sorting tabel (klik header kolom untuk urutkan)
-- [ ] Pagination tabel penghuni (untuk skalabilitas)
+- [x] Proses Checkout formal (Ubah status Lease ke nonaktif)
+- [-] Sorting tabel (ditunda — jumlah penyewa aktif masih sedikit ~11)
+- [-] Pagination tabel penghuni (ditunda — jumlah penyewa aktif masih sedikit ~11)
 
 
-### 5. Keuangan & Tagihan — ⏸️ DITUNDA (menunggu PWA Tenant selesai)
-- [-] Halaman Daftar Tagihan (Filter: Lunas, Belum Lunas, Tunggakan)
-- [-] Pembuatan Tagihan Bulanan Otomatis (Cron Job / Scheduled Action)
-- [-] Cetak/Download Bukti Pembayaran (Receipt PDF)
-- [-] Laporan Keuangan Bulanan & Tahunan (Ringkasan Pemasukan)
-- [-] Grafik Revenue Trend per bulan/tahun
+### 5. Keuangan & Tagihan
+- [-] Halaman Daftar Tagihan (Filter: Lunas, Belum Lunas, Tunggakan) — ditunda sampai MVP selesai
+- [-] Pembuatan Tagihan Bulanan Otomatis (Cron Job / Scheduled Action) — ditunda
+- [-] Cetak/Download Bukti Pembayaran (Receipt PDF) — ditunda
+- [-] Laporan Keuangan Bulanan & Tahunan (Ringkasan Pemasukan) — ditunda
+- [-] Grafik Revenue Trend per bulan/tahun — ditunda
 
-### 6. Laporan Keluhan & Maintenance — ⏸️ DITUNDA (menunggu PWA Tenant selesai)
-- [-] Schema database Laporan (`Report`, `ReportImage`)
-- [-] Halaman Manajemen Tiket Keluhan (Open, In Progress, Resolved)
-- [-] Form Admin Catat Keluhan/Kerusakan baru
-- [-] Upload Foto Kerusakan ke Supabase Storage
+### 6. Laporan Keluhan & Maintenance
+- [x] Schema database Laporan (`Report`, `ReportImage`) — Model `Report` sudah ada di Prisma schema
+- [x] Halaman Manajemen Tiket Keluhan (Open, In Progress, Resolved)
+- [x] Form Admin Catat Keluhan/Kerusakan baru (dengan pilih tenant aktif)
+- [x] Upload Foto Kerusakan ke Supabase Storage (bucket `Oskost-Data-Public/reports/admin`)
+- [x] Sinkronisasi cache antara Admin Dashboard dan PWA Tenant (dua arah)
 
 ### 7. Pengaturan (Settings)
-- [ ] Halaman Pengaturan Profil Admin
-- [ ] Pengaturan Data Properti/Kost (Nama, Alamat, Lokasi)
-- [ ] Pengaturan Notifikasi (WhatsApp API / Email)
+- [-] Halaman Pengaturan Profil Admin — ditunda sampai OTP terverifikasi
+- [-] Pengaturan Data Properti/Kost (Nama, Alamat, Lokasi) — ditunda
+- [-] Pengaturan Notifikasi (WhatsApp API / Email) — ditunda sampai OTP terverifikasi
 
 ### 8. Synchronize Data
-- [] Data Overview/home harus sudah realtime dan sesuai dari data yg memamng sudah ada dan sudah akurat
-- [] Data Manajement Room harus sudah realtime saat di tambahkan atau di hapus, diubah status.
-- [] Data Manajement Tenant sudah realtime saat di tambahkan atau di hapus, diubah status.
-- [] Data Keunganan harus sudah benar benar akurat dan realtime. 
-- [] Data Laporan harus sudah benar benar akurat dan realtime.
+- [x] Data Overview/home harus sudah realtime dan sesuai dari data yg memang sudah ada dan sudah akurat
+- [x] Data Manajement Room harus sudah realtime saat di tambahkan atau di hapus, diubah status.
+- [x] Data Manajement Tenant sudah realtime saat di tambahkan atau di hapus, diubah status.
+- [-] Data Keuangan harus sudah benar benar akurat dan realtime — ditunda (modul keuangan di-skip)
+- [x] Data Laporan harus sudah benar benar akurat dan realtime.
 
 ---
 
@@ -106,6 +107,7 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Riwayat Tagihan (histori bulan-bulan lalu: Lunas / Tunggak)
 - [x] Upload Bukti Pembayaran (Foto transfer dari kamera/galeri HP via Supabase Storage)
 - [x] Status upload: Menunggu Konfirmasi Admin / Dikonfirmasi (status PENDING/PAID)
+- [] Export history data Pembayaran ke CSV/Excel untuk tenant
 
 ### 11. Modul Laporan Kerusakan (Report — Tenant View)
 - [x] Form Lapor Kerusakan (deskripsi teks + foto dari kamera/galeri via Supabase)
@@ -115,13 +117,15 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 ### 12. Profil & Akun Tenant
 - [x] Halaman Profil Penghuni (tampilkan data diri, nomor kamar, kontak darurat)
 - [x] Fitur Ganti Password sendiri
+- [x] Inactive Dashboard PWA (dukungan login untuk mantan penyewa yang sudah checkout untuk akses riwayat)
+- [x] Flow Returning Tenant pada Check-In Admin (re-use akun lama penyewa tanpa error duplikasi)
 - [ ] Halaman Bantuan / FAQ singkat
 
 ### 13. Notifikasi & Sinkronisasi
-- [ ] Push Notification untuk pengingat tagihan (via Web Push API)
-- [ ] Notifikasi ke Admin saat ada laporan kerusakan baru dari tenant
-- [ ] Notifikasi ke Tenant saat tagihan dibuatkan oleh Admin
-- [ ] Sync real-time status tagihan (setelah Admin tandai lunas)
+- [x] Push Notification untuk pengingat seluruh kegiatan & tagihan tenant (via PWA Web Push API)
+- [x] In-App Notification Bell & Centralized Notification Service (`sendNotification`)
+- [x] Notifikasi otomatis ke Tenant saat pembayaran dikonfirmasi Lunas / Ditolak oleh Admin
+- [-] Sync real-time status tagihan via SSE (ditunda)
 
 ---
 
@@ -180,4 +184,4 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 
 ---
 
-*Diperbarui: 2026-06-29 — Bugfix: KTP upload on Tenant Form uses ImageUploadStandard.*
+*Diperbarui: 2026-07-17 — Pengalihan tombol hapus menjadi Check-out formal, penambahan info kontak utama di tabel penyewa & panel expanded, penambahan tombol check-out cepat, dan update CV Rinaldi Mulya Pratama dengan entri proyek OsKost beserta pembaruan bagian Skills.*

@@ -2,10 +2,9 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/tenant/bottom-nav";
 import { PWARegister } from "@/components/pwa-register";
-import { Home, Signal, LogOut } from "lucide-react";
-import Link from "next/link";
-import { logout } from "@/features/auth/actions";
 import { getTenantDashboardData } from "@/features/tenant-pwa/tenant-pwa-service";
+import { getUserNotifications } from "@/features/notifications/notification-service";
+import { NotificationBell } from "@/components/shared/notification-bell";
 
 export default async function TenantLayout({
   children,
@@ -19,9 +18,13 @@ export default async function TenantLayout({
     redirect("/login");
   }
 
-  // Get tenant data for top header (such as room number)
-  const dashboardData = await getTenantDashboardData(session.user.id);
-  const roomNumber = dashboardData?.activeLease?.room?.number || "No Room";
+  // Get tenant data for top header (such as room number) and notifications
+  const [dashboardData, notifications] = await Promise.all([
+    getTenantDashboardData(session.user.id),
+    getUserNotifications(session.user.id),
+  ]);
+
+  const roomNumber = dashboardData?.activeLease?.room?.number || null;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col max-w-md mx-auto relative pb-16 shadow-2xl border-2 border-red-500">
@@ -38,16 +41,13 @@ export default async function TenantLayout({
             OsKost Tenant
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {roomNumber && (
             <span className="rounded-full bg-zinc-900 px-2.5 py-0.5 text-xs font-semibold text-zinc-400 border border-zinc-800">
               Kamar {roomNumber}
             </span>
           )}
-          <span
-            className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"
-            title="Online"
-          />
+          <NotificationBell notifications={notifications} />
         </div>
       </header>
 

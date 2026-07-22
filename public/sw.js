@@ -85,3 +85,47 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
+
+// ============================================
+// Web Push Notifications Event Listeners
+// ============================================
+
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+    const title = data.title || "OsKost";
+    const options = {
+      body: data.message || "",
+      icon: "/images/pwa-icon.png",
+      badge: "/images/pwa-icon.png",
+      data: {
+        url: data.url || "/dashboard",
+      },
+    };
+
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch (error) {
+    console.error("Error displaying push notification:", error);
+  }
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+
+  const urlToOpen = event.notification.data?.url || "/dashboard";
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes(urlToOpen) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});

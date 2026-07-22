@@ -39,7 +39,13 @@ const getDashboardStatsQuery = unstable_cache(
           by: ["status"],
           _count: { status: true },
         }),
-        prisma.tenantProfile.count(),
+        // Hitung hanya penyewa yang memiliki lease aktif
+        prisma.user.count({
+          where: {
+            role: "TENANT",
+            leases: { some: { isActive: true } },
+          },
+        }),
         prisma.invoice.count({
           where: {
             status: { in: ["UNPAID", "OVERDUE"] },

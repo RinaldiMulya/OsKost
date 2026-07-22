@@ -23,10 +23,16 @@ export const CACHE_TAGS = {
   ADMIN_ROOMS: "admin-rooms",
   ADMIN_ROOM_STATS: "admin-room-stats",
 
+  // ─── Reports ──────────────────────────────────
+  REPORTS_ALL: "reports-all",
+  REPORTS_BY_STATUS: (status: string) => `reports-${status}` as const,
+  REPORT_BY_ID: (id: string) => `report-${id}` as const,
+
   // ─── Tenant PWA (per-user) ────────────────────
   tenantDashboard: (userId: string) => `tenant-dashboard-${userId}` as const,
   tenantInvoices: (userId: string) => `tenant-invoices-${userId}` as const,
   tenantReports: (userId: string) => `tenant-reports-${userId}` as const,
+  userNotifications: (userId: string) => `user-notifications-${userId}` as const,
 
   // ─── Landing / Marketing ──────────────────────
   ROOMS_LANDING: "rooms-landing",

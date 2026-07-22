@@ -102,7 +102,10 @@ Setiap folder di `src/features/<feature>/` mengikuti pola:
 
 ### File Upload
 - Upload ke **Supabase Storage** (bucket public untuk panorama, private untuk KTP).
-- Kompres gambar di client sebelum upload menggunakan `browser-image-compression`.
+- **CRITICAL**: Setiap gambar/foto yang di-upload WAJIB dikompresi di sisi client sebelum di-submit.
+- Gunakan library seperti `browser-image-compression` untuk membatasi ukuran maksimal (misal 300kb - 500kb) dan **WAJIB** dikonversi ke format `.webp`.
+- Jika dibutuhkan versi thumbnail, buat versi terpisahnya di client sebelum di-upload.
+- Untuk merender/menampilkan gambar, gunakan komponen bawaan Next.js (`next/image`) agar image optimizer native berfungsi optimal.
 
 ---
 
@@ -148,8 +151,10 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 
 ## 5. Milestone Tracking
 
-**IMPORTANT**: Proyek ini menggunakan `milestone.md` di root directory untuk memantau progress.
+**IMPORTANT**: 
+1. Proyek ini menggunakan `milestone.md` di root directory untuk memantau progress.
 Setiap kali Anda (AI) menyelesaikan sebuah fitur, tugas, atau update signifikan pada kode, Anda **WAJIB** memperbarui file `milestone.md` (misal: mengubah `[ ]` menjadi `[x]`, mengubah menjadi `[/]`, atau menambah poin milestone baru) untuk mencerminkan status terkini proyek.
+2. Saya ingin semua keputusan AI agent untuk setiap kondisi atau langkah yang akan diambil SETELAH PLAN sudah terpenuhi maka akan di anda simpan di `Docs/Decisions/AI-Decisions.md` (Saya itu ingin ada seperti Log setiap keputusan yg di ambil baik detail ataupun simpel)
 
 ---
 

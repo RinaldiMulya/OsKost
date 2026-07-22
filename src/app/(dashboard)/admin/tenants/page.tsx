@@ -13,15 +13,29 @@ export const metadata: Metadata = {
 export default async function AdminTenantsPage() {
   const tenants = await getAllTenants();
 
-  // Calculate dynamic stats from all seeded and created tenants
-  const totalCount = tenants.length;
+  // Hitung statistik hanya dari penyewa yang memiliki lease aktif
+  let totalCount = 0;
   let paidCount = 0;
   let unpaidCount = 0;
   let warningCount = 0;
+  let newTenantsThisMonth = 0;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const thirtyDaysAgo = new Date(today);
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   tenants.forEach((tenant) => {
     const activeLease = tenant.leases.find((l: any) => l.isActive);
     if (activeLease) {
+      totalCount++;
+
+      // Hitung penyewa baru (check-in dalam 30 hari terakhir)
+      const startDate = new Date(activeLease.startDate);
+      if (startDate >= thirtyDaysAgo) {
+        newTenantsThisMonth++;
+      }
+
       const unpaidInvoices = activeLease.invoices.filter(
         (inv: any) => inv.status === "UNPAID" || inv.status === "OVERDUE",
       );
@@ -33,12 +47,13 @@ export default async function AdminTenantsPage() {
           ? new Date(activeLease.endDate)
           : null;
         if (endDate) {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
+          const todayCheck = new Date();
+          todayCheck.setHours(0, 0, 0, 0);
           endDate.setHours(0, 0, 0, 0);
-          const diffTime = endDate.getTime() - today.getTime();
+          const diffTime = endDate.getTime() - todayCheck.getTime();
           const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          if (daysLeft >= 0 && daysLeft <= 30) {
+          if (daysLeft <= 30) {
+            // Kontrak hampir habis atau sudah habis
             warningCount++;
           } else {
             paidCount++;
@@ -80,6 +95,7 @@ export default async function AdminTenantsPage() {
         paidCount={paidCount}
         unpaidCount={unpaidCount}
         warningCount={warningCount}
+        newTenantsThisMonth={newTenantsThisMonth}
       />
 
       {/* Tenant Table Wrapper */}

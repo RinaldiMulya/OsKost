@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ResetPasswordDialog } from "../reset-password-dialog";
-import { DeleteTenantButton } from "../delete-tenant-button";
+import { CheckoutTenantButton } from "../checkout-tenant-button";
 import { User, Phone, Mail, ArrowLeft, Building } from "lucide-react";
 import type { TenantDetailForAdmin } from "../../tenant-service";
 
@@ -150,7 +150,13 @@ export function TenantHeader({ tenant }: TenantHeaderProps) {
             <Link href={`/admin/tenants/${tenant.id}/edit`}>Edit Data</Link>
           </Button>
           <ResetPasswordDialog userId={tenant.id} tenantName={name} />
-          <DeleteTenantButton userId={tenant.id} tenantName={name} />
+          {hasActiveLease && (
+            <CheckoutTenantButton
+              userId={tenant.id}
+              tenantName={name}
+              variant="icon"
+            />
+          )}
         </div>
       </div>
     </div>

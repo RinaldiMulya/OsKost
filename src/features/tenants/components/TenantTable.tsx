@@ -27,7 +27,7 @@ interface TenantTableProps {
 export function TenantTable({ tenants }: TenantTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ACTIVE");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -54,6 +54,11 @@ export function TenantTable({ tenants }: TenantTableProps) {
       );
       const hasUnpaid = unpaidInvoices.length > 0;
 
+      // Sisa kontrak
+      const daysLeft = activeLease?.endDate
+        ? getDaysRemaining(activeLease.endDate)
+        : 999;
+
       // Search query matches name or room number
       const matchesSearch =
         name.includes(debouncedSearchQuery.toLowerCase()) ||
@@ -61,28 +66,21 @@ export function TenantTable({ tenants }: TenantTableProps) {
 
       // Status Filter Logic
       let matchesStatus = true;
-      if (statusFilter === "PAID") {
-        matchesStatus = hasActiveLease && !hasUnpaid;
-        // Exclude if it's expiring soon to keep PAID distinct
-        if (matchesStatus && activeLease.endDate) {
-          const daysLeft = getDaysRemaining(activeLease.endDate);
-          if (daysLeft >= 0 && daysLeft <= 30) {
-            matchesStatus = false;
-          }
-        }
+      if (statusFilter === "ACTIVE") {
+        // Semua penyewa yang saat ini masih tinggal (lease aktif)
+        matchesStatus = hasActiveLease;
+      } else if (statusFilter === "PAID") {
+        // Lease aktif, lunas, dan kontrak belum habis
+        matchesStatus = hasActiveLease && !hasUnpaid && daysLeft >= 0;
       } else if (statusFilter === "UNPAID") {
         matchesStatus = hasActiveLease && hasUnpaid;
       } else if (statusFilter === "WARNING") {
-        matchesStatus = false;
-        if (hasActiveLease && !hasUnpaid && activeLease.endDate) {
-          const daysLeft = getDaysRemaining(activeLease.endDate);
-          if (daysLeft >= 0 && daysLeft <= 30) {
-            matchesStatus = true;
-          }
-        }
+        // Kontrak hampir habis (<= 30 hari) atau sudah habis (< 0)
+        matchesStatus = hasActiveLease && daysLeft <= 30;
       } else if (statusFilter === "CHECKED_OUT") {
         matchesStatus = !hasActiveLease && tenant.leases.length > 0;
       }
+      // "ALL" => matchesStatus tetap true
 
       return matchesSearch && matchesStatus;
     });
@@ -112,10 +110,11 @@ export function TenantTable({ tenants }: TenantTableProps) {
               <SelectValue placeholder="Pilih Status" />
             </SelectTrigger>
             <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-200">
+              <SelectItem value="ACTIVE">Penghuni Aktif</SelectItem>
               <SelectItem value="ALL">Semua Status</SelectItem>
               <SelectItem value="PAID">Paid</SelectItem>
               <SelectItem value="UNPAID">Unpaid</SelectItem>
-              <SelectItem value="WARNING">Hampir Habis</SelectItem>
+              <SelectItem value="WARNING">Hampir / Habis Kontrak</SelectItem>
               <SelectItem value="CHECKED_OUT">Checked-out</SelectItem>
             </SelectContent>
           </Select>
@@ -138,10 +137,10 @@ export function TenantTable({ tenants }: TenantTableProps) {
                 Check-in
               </TableHead>
               <TableHead className="text-zinc-400 font-semibold text-lg py-4 uppercase tracking-wider">
-                Sisa Kontrak
+                Sewa & Kontrak
               </TableHead>
               <TableHead className="text-zinc-400 font-semibold text-lg py-4 uppercase tracking-wider">
-                Status
+                Pembayaran
               </TableHead>
               <TableHead className="text-zinc-400 font-semibold text-lg py-4 pr-15 uppercase tracking-wider text-right">
                 Aksi

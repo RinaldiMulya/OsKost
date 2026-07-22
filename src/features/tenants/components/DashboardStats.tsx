@@ -14,6 +14,7 @@ interface DashboardStatsProps {
   paidCount: number;
   unpaidCount: number;
   warningCount: number;
+  newTenantsThisMonth?: number;
 }
 
 export function DashboardStats({
@@ -21,6 +22,7 @@ export function DashboardStats({
   paidCount,
   unpaidCount,
   warningCount,
+  newTenantsThisMonth = 0,
 }: DashboardStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -37,7 +39,8 @@ export function DashboardStats({
             {totalCount}
           </span>
           <span className="text-2xl text-emerald-400 bg-emerald-500/10 px-4 py-1 rounded-md flex items-center gap-1">
-            <TrendingUp className="size-6" /> +3 bulan ini
+            <TrendingUp className="size-6" />
+            {newTenantsThisMonth > 0 ? `+${newTenantsThisMonth}` : "0"} bulan ini
           </span>
         </div>
       </Card>

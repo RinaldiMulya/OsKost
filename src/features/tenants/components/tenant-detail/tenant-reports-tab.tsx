@@ -11,12 +11,31 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useState, useTransition } from "react";
+import { deleteReportAction } from "@/features/reports/actions";
+import { toast } from "sonner";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Trash2 } from "lucide-react";
+import { ImageViewer } from "@/components/shared/image-viewer";
 
 interface TenantReportsTabProps {
     tenant: TenantDetailForAdmin;
 }
 
 export function TenantReportsTab({ tenant }: TenantReportsTabProps) {
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [reportToDelete, setReportToDelete] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
+
     // Kumpulkan semua report dari semua lease yang pernah ada, urutkan terbaru
     const allReports = tenant.leases
         .flatMap(l => l.reports)
@@ -32,6 +51,31 @@ export function TenantReportsTab({ tenant }: TenantReportsTabProps) {
             minute: "2-digit"
         }).format(new Date(dateStr));
     }
+
+    const handleDeletePrompt = (reportId: string) => {
+        setReportToDelete(reportId);
+        setDeleteDialogOpen(true);
+    };
+
+    const executeDelete = () => {
+        if (!reportToDelete) return;
+        
+        startTransition(async () => {
+            try {
+                const result = await deleteReportAction(reportToDelete);
+                if (result.success) {
+                    toast.success(result.message);
+                } else {
+                    toast.error(result.error || "Gagal menghapus laporan");
+                }
+            } catch (error) {
+                toast.error("Terjadi kesalahan saat menghapus laporan");
+            } finally {
+                setDeleteDialogOpen(false);
+                setReportToDelete(null);
+            }
+        });
+    };
 
     return (
         <Card className="bg-zinc-900/60 border-zinc-800">
@@ -56,12 +100,23 @@ export function TenantReportsTab({ tenant }: TenantReportsTabProps) {
                                     </Badge>
                                 </div>
                                 
-                                <div className="pr-20 mb-3">
-                                    <h4 className="text-zinc-100 font-semibold text-lg">{report.title}</h4>
-                                    <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1.5">
-                                        <Calendar className="size-3.5" />
-                                        <span>Dilaporkan pada {formatDate(report.createdAt)}</span>
+                                <div className="pr-20 mb-3 flex items-start justify-between">
+                                    <div>
+                                        <h4 className="text-zinc-100 font-semibold text-lg">{report.title}</h4>
+                                        <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1.5">
+                                            <Calendar className="size-3.5" />
+                                            <span>Dilaporkan pada {formatDate(report.createdAt)}</span>
+                                        </div>
                                     </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleDeletePrompt(report.id)}
+                                        className="h-8 w-8 p-0 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 mt-1 mr-[-60px]"
+                                        title="Hapus Laporan"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
                                 </div>
                                 
                                 <div className="flex items-start gap-3 mt-4">
@@ -73,18 +128,12 @@ export function TenantReportsTab({ tenant }: TenantReportsTabProps) {
 
                                 {report.photoUrl && (
                                     <div className="mt-4 pl-7">
-                                        <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm" className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300">
-                                                    Lihat Foto Laporan
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-xl border-zinc-800 bg-zinc-950 p-0 overflow-hidden">
-                                                <div className="relative w-full aspect-video">
-                                                    <Image src={report.photoUrl} alt={report.title} fill className="object-contain bg-black/50" />
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
+                                        <ImageViewer
+                                            src={report.photoUrl}
+                                            alt={report.title}
+                                            className="w-48 h-32 bg-zinc-950/50 rounded-lg border border-zinc-800/50"
+                                            imageClassName="object-cover"
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -97,6 +146,36 @@ export function TenantReportsTab({ tenant }: TenantReportsTabProps) {
                     </div>
                 )}
             </CardContent>
+
+            {/* Alert Dialog: Konfirmasi Hapus */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent className="border-zinc-800 bg-zinc-950 text-white">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Hapus Laporan?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-zinc-400">
+                            Apakah Anda yakin ingin menghapus laporan ini? Tindakan ini tidak dapat dibatalkan.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            disabled={isPending}
+                            className="border-zinc-800 bg-transparent text-zinc-300 hover:bg-zinc-800 hover:text-white"
+                        >
+                            Batal
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                executeDelete();
+                            }}
+                            disabled={isPending}
+                            className="bg-red-500 text-white hover:bg-red-600 focus:ring-red-500"
+                        >
+                            {isPending ? "Menghapus..." : "Ya, Hapus"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     );
 }

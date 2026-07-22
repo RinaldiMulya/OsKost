@@ -18,7 +18,6 @@ import {
   User,
   MapPin,
   Calendar,
-  Coins,
   Check,
   Loader2,
   Clock,
@@ -34,6 +33,7 @@ import { markInvoicePaidAction } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Eye } from "lucide-react";
+import { CheckoutTenantButton } from "./checkout-tenant-button";
 
 interface TenantRowProps {
   tenant: {
@@ -87,37 +87,56 @@ export function TenantRow({ tenant }: TenantRowProps) {
   );
   const hasUnpaid = unpaidInvoices.length > 0;
 
-  // Status Calculations
-  let statusText = "No Lease";
-  let statusColor = "bg-zinc-500 text-zinc-400 border-zinc-500/20";
-  let dotColor = "bg-zinc-500";
+  // === Status Kontrak / Sewa ===
+  const daysLeft = activeLease?.endDate
+    ? getDaysRemaining(activeLease.endDate)
+    : 999;
+
+  let contractBadgeColor = "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+  if (hasActiveLease) {
+    if (daysLeft < 0) {
+      // Kontrak sudah habis tapi belum dicheckout
+      contractBadgeColor = "bg-red-500/10 text-red-400 border-red-500/20";
+    } else if (daysLeft <= 30) {
+      contractBadgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+    } else {
+      contractBadgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+    }
+  }
+
+  // === Status Pembayaran Dinamis (Bulan) ===
+  let paymentText = "—";
+  let paymentColor = "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+  let paymentDotColor = "bg-zinc-500";
 
   if (hasActiveLease) {
     if (hasUnpaid) {
-      statusText = "Unpaid";
-      statusColor = "bg-red-500/10 text-red-400 border-red-500/20";
-      dotColor = "bg-red-400";
+      // Ambil bulan dari tagihan tertunggak paling lama
+      const oldestUnpaid = unpaidInvoices[0];
+      const monthLabel = formatShortMonth(oldestUnpaid.dueDate);
+      paymentText = `Unpaid (${monthLabel})`;
+      paymentColor = "bg-red-500/10 text-red-400 border-red-500/20";
+      paymentDotColor = "bg-red-400";
     } else {
-      // Check if expiring in < 30 days
-      const daysLeft = activeLease.endDate
-        ? getDaysRemaining(activeLease.endDate)
-        : 999;
-
-      if (daysLeft >= 0 && daysLeft <= 30) {
-        statusText = "Hampir Habis";
-        statusColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
-        dotColor = "bg-amber-400";
+      // Cari invoice terakhir yang sudah PAID
+      const paidInvoices = activeInvoices.filter(
+        (inv: any) => inv.status === "PAID",
+      );
+      if (paidInvoices.length > 0) {
+        // Invoice terakhir yang dibayar (sorted asc by dueDate, ambil terakhir)
+        const lastPaid = paidInvoices[paidInvoices.length - 1];
+        const monthLabel = formatShortMonth(lastPaid.dueDate);
+        paymentText = `Paid (${monthLabel})`;
       } else {
-        statusText = "Paid";
-        statusColor =
-          "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-        dotColor = "bg-emerald-400";
+        paymentText = "Paid";
       }
+      paymentColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      paymentDotColor = "bg-emerald-400";
     }
   } else if (tenant.leases.length > 0) {
-    statusText = "Checked-out";
-    statusColor = "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-    dotColor = "bg-zinc-400";
+    paymentText = "—";
+    paymentColor = "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+    paymentDotColor = "bg-zinc-400";
   }
 
   async function handleMarkPaid(invoiceId: string) {
@@ -160,9 +179,20 @@ export function TenantRow({ tenant }: TenantRowProps) {
             </div>
             <div>
               <p className="font-semibold text-lg text-zinc-100">{name}</p>
-              <p className="text-md text-zinc-500 font-mono">
-                T-{tenant.id.slice(-6).toUpperCase()}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5 text-md text-zinc-500">
+                <span className="font-mono">
+                  T-{tenant.id.slice(-6).toUpperCase()}
+                </span>
+                {tenant.phoneNumber && (
+                  <>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Phone className="size-3 text-zinc-500" />
+                      {tenant.phoneNumber}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </TableCell>
@@ -174,13 +204,16 @@ export function TenantRow({ tenant }: TenantRowProps) {
           {hasActiveLease ? (
             <Badge
               variant="outline"
-              className={`font-semibold border-zinc-800/60 text-zinc-300 text-md ${
-                statusText === "Hampir Habis"
-                  ? "text-amber-400 border-amber-500/20 bg-amber-500/5"
-                  : ""
-              }`}
+              className={`font-semibold text-md ${contractBadgeColor}`}
             >
               {remainingContract}
+            </Badge>
+          ) : tenant.leases.length > 0 ? (
+            <Badge
+              variant="outline"
+              className="font-semibold text-md bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+            >
+              Checked-out
             </Badge>
           ) : (
             <span className="text-zinc-600">—</span>
@@ -189,10 +222,10 @@ export function TenantRow({ tenant }: TenantRowProps) {
         <TableCell>
           <Badge
             variant="outline"
-            className={`gap-1.5 px-2.5 py-1 text-md ${statusColor}`}
+            className={`gap-1.5 px-2.5 py-1 text-md ${paymentColor}`}
           >
-            <span className={`size-1.5 rounded-full ${dotColor}`} />
-            {statusText}
+            <span className={`size-1.5 rounded-full ${paymentDotColor}`} />
+            {paymentText}
           </Badge>
         </TableCell>
         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
@@ -214,13 +247,30 @@ export function TenantRow({ tenant }: TenantRowProps) {
         <TableRow className="bg-zinc-950/60 border-zinc-800 hover:bg-transparent">
           <TableCell colSpan={7} className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-zinc-900/40 rounded-xl p-6 border border-zinc-800/60 animate-in fade-in duration-300">
-              {/* Panel 1: Emergency Contact */}
+              {/* Panel 1: Kontak & Asal */}
               <div className="flex flex-col gap-4">
                 <h4 className="font-semibold text-xl text-zinc-400 flex items-center gap-2 border-b border-zinc-400 pb-2">
-                  <Phone className="size-4 text-zinc-500" /> Kontak Darurat &
-                  Asal
+                  <Phone className="size-4 text-zinc-500" /> Kontak & Asal
                 </h4>
-                <div className=" text-lg text-zinc-300 space-y-2">
+                <div className="text-lg text-zinc-300 space-y-2">
+                  <p className="flex items-center justify-between gap-2">
+                    <span className="text-zinc-500 block">
+                      Nomor HP Penghuni
+                    </span>
+                    <span className="font-mono text-zinc-200 font-medium">
+                      {tenant.phoneNumber ?? "—"}
+                    </span>
+                  </p>
+                  {tenant.email && (
+                    <p className="flex items-center justify-between gap-2">
+                      <span className="text-zinc-500 block">
+                        Email
+                      </span>
+                      <span className="text-zinc-200 text-md truncate max-w-[180px]">
+                        {tenant.email}
+                      </span>
+                    </p>
+                  )}
                   <p className="flex items-center justify-between gap-2">
                     <span className="text-zinc-500 block">
                       Nama Kontak Darurat
@@ -265,19 +315,7 @@ export function TenantRow({ tenant }: TenantRowProps) {
                       </span>
                     </span>
                   </p>
-                  <p className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-500 text-lg block">
-                      Uang Jaminan (Deposit)
-                    </span>
-                    <span className="flex items-center gap-1.5 text-zinc-200 mt-0.5">
-                      <Coins className="size-4 text-zinc-500" />
-                      <span className="text-lg">
-                        {activeLease
-                          ? formatRupiah(activeLease.room?.price)
-                          : "—"}
-                      </span>
-                    </span>
-                  </p>
+
                 </div>
                 <div className="flex flex-col gap-3 mt-auto pt-4 border-t border-zinc-400/40">
                   <Button
@@ -290,6 +328,13 @@ export function TenantRow({ tenant }: TenantRowProps) {
                       Edit Data
                     </Link>
                   </Button>
+                  {hasActiveLease && (
+                    <CheckoutTenantButton
+                      userId={tenant.id}
+                      tenantName={name}
+                      variant="full"
+                    />
+                  )}
                   {hasUnpaid && (
                     <Button
                       variant="outline"
@@ -480,7 +525,12 @@ function getRemainingContract(
   if (!isActive || !endDateStr) return "—";
 
   const daysLeft = getDaysRemaining(endDateStr);
-  if (daysLeft < 0) return "Selesai";
+
+  // Kontrak sudah lewat tanggal selesai
+  if (daysLeft < 0) {
+    return `Lewat ${Math.abs(daysLeft)} Hari`;
+  }
+
   if (daysLeft === 0) return "Hari Ini";
 
   if (daysLeft <= 30) {
@@ -489,4 +539,12 @@ function getRemainingContract(
 
   const diffMonths = Math.round(daysLeft / 30);
   return `${diffMonths} Bulan`;
+}
+
+/**
+ * Format nama bulan singkat dari tanggal (misal: "Jul", "Agu", "Sep")
+ */
+function formatShortMonth(dateStr: Date | string) {
+  const date = new Date(dateStr);
+  return new Intl.DateTimeFormat("id-ID", { month: "short" }).format(date);
 }

@@ -102,7 +102,10 @@ Setiap folder di `src/features/<feature>/` mengikuti pola:
 
 ### File Upload
 - Upload ke **Supabase Storage** (bucket public untuk panorama, private untuk KTP).
-- Kompres gambar di client sebelum upload menggunakan `browser-image-compression`.
+- **CRITICAL**: Setiap gambar/foto yang di-upload WAJIB dikompresi di sisi client sebelum di-submit.
+- Gunakan library seperti `browser-image-compression` untuk membatasi ukuran maksimal (misal 300kb - 500kb) dan **WAJIB** dikonversi ke format `.webp`.
+- Jika dibutuhkan versi thumbnail, buat versi terpisahnya di client sebelum di-upload.
+- Untuk merender/menampilkan gambar, gunakan komponen bawaan Next.js (`next/image`) agar image optimizer native berfungsi optimal.
 
 ---
 
@@ -146,7 +149,15 @@ Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
 
 ---
 
-## 5. Milestone Tracking
+## 5. Penggunaan Global Skills & Superpowers
+
+**IMPORTANT**: Proyek ini terintegrasi dengan global skills yang terpasang di folder global `~/.agents/skills/` (seperti `using-superpowers`, `writing-plans`, `executing-plans`, `systematic-debugging`, dll). 
+- AI Agent **WAJIB** secara proaktif memeriksa, mematuhi, dan menerapkan instruksi dari global skills yang relevan dengan tugas yang sedang dikerjakan.
+- Gunakan pola penulisan rencana terstruktur (`writing-plans`), eksekusi terstruktur (`executing-plans`), serta verifikasi menyeluruh (`verification-before-completion`) untuk setiap penulisan kode baru atau modifikasi sistem.
+
+---
+
+## 6. Milestone Tracking
 
 **IMPORTANT**: Proyek ini menggunakan `milestone.md` di root directory untuk memantau progress.
 Setiap kali Anda (AI) menyelesaikan sebuah fitur, tugas, atau update signifikan pada kode, Anda **WAJIB** memperbarui file `milestone.md` (misal: mengubah `[ ]` menjadi `[x]`, mengubah menjadi `[/]`, atau menambah poin milestone baru) untuk mencerminkan status terkini proyek.

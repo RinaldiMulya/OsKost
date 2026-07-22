@@ -62,6 +62,8 @@ model User {
   tenantProfile TenantProfile?
   leases        Lease[]
   panoramaImages PanoramaImage[]
+  notifications Notification[]
+  pushSubscriptions PushSubscription[]
 }
 
 model TenantProfile {
@@ -162,4 +164,31 @@ model PanoramaImage {
   room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
   
   createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String   @db.Text
+  type      String   @default("INFO") // BILLING, MAINTENANCE, SYSTEM, INFO
+  isRead    Boolean  @default(false)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

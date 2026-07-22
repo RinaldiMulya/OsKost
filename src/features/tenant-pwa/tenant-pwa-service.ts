@@ -107,7 +107,7 @@ export const getTenantDashboardData = cache(async (userId: string) => {
       };
     },
     [`tenant-dashboard-${userId}`],
-    { tags: [CACHE_TAGS.tenantDashboard(userId)] }
+    { tags: [CACHE_TAGS.tenantDashboard(userId)], revalidate: 60 }
   )();
 });
 
