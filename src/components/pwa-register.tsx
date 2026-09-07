@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 
 export function PWARegister() {
+  // Activate auto-refresh for PWA tenant
+  useAutoRefresh({ intervalMs: 20000 });
   useEffect(() => {
     if (
       typeof window !== "undefined" &&

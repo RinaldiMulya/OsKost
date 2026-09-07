@@ -7,9 +7,9 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
-    // Strip pgbouncer query params — the pg driver doesn't support them
+    // Strip pgbouncer query params if any
     const cleanUrl = connectionString?.split("?")[0];
 
     const pool = new Pool({ connectionString: cleanUrl, max: 10 });
@@ -22,6 +22,14 @@ function createPrismaClient() {
                 ? ["query", "error", "warn"]
                 : ["error"],
     });
+}
+
+if (
+    process.env.NODE_ENV !== "production" &&
+    globalForPrisma.prisma &&
+    !("discountClaim" in globalForPrisma.prisma)
+) {
+    globalForPrisma.prisma = undefined;
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();

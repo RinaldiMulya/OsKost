@@ -105,7 +105,18 @@ self.addEventListener("push", (event) => {
       },
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    // 1. Tampilkan notifikasi push di layar HP
+    // 2. Broadcast ke semua tab PWA yang terbuka agar otomatis auto-refresh data
+    event.waitUntil(
+      Promise.all([
+        self.registration.showNotification(title, options),
+        self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+          clientList.forEach((client) => {
+            client.postMessage({ type: "PUSH_NOTIFICATION_RECEIVED", data });
+          });
+        }),
+      ])
+    );
   } catch (error) {
     console.error("Error displaying push notification:", error);
   }
@@ -119,8 +130,11 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url.includes(urlToOpen) && "focus" in client) {
-          return client.focus();
+        if ("focus" in client) {
+          client.postMessage({ type: "NOTIFICATION_CLICKED", url: urlToOpen });
+          if (client.url.includes(urlToOpen)) {
+            return client.focus();
+          }
         }
       }
       if (clients.openWindow) {

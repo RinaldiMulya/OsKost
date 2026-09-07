@@ -30,13 +30,6 @@ export async function uploadImageToSupabase(
   const fileName = `${generateUUID()}.${fileExt}`;
   const filePath = `${folderPath}/${fileName}`;
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  console.log("Uploading to Supabase:", {
-    url: supabaseUrl,
-    bucket,
-    filePath,
-    fileSize: file.size,
-  });
 
   const { data, error } = await supabase.storage
     .from(bucket)
