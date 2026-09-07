@@ -132,12 +132,94 @@ async function main() {
   console.log("Start seeding...");
 
   console.log("Cleaning up database...");
+  await prisma.webhookLog.deleteMany({});
+  await prisma.paymentMethod.deleteMany({});
+  await prisma.discountPreset.deleteMany({});
   await prisma.invoice.deleteMany({});
   await prisma.report.deleteMany({});
   await prisma.panoramaImage.deleteMany({});
   await prisma.lease.deleteMany({});
+  await prisma.room.deleteMany({});
   await prisma.tenantProfile.deleteMany({});
   await prisma.user.deleteMany({ where: { role: "TENANT" } });
+
+  // 00. Seed Default Payment Methods & Discount Presets
+  console.log("Seeding Payment Methods & Discount Presets...");
+  const paymentMethods = [
+    {
+      methodCode: "BCA_VA",
+      methodName: "BCA Virtual Account",
+      feeType: "FLAT",
+      feeAmount: 4000,
+      tenantFeePercentage: 50,
+      ownerFeePercentage: 50,
+    },
+    {
+      methodCode: "MANDIRI_VA",
+      methodName: "Mandiri Virtual Account",
+      feeType: "FLAT",
+      feeAmount: 4000,
+      tenantFeePercentage: 50,
+      ownerFeePercentage: 50,
+    },
+    {
+      methodCode: "BNI_VA",
+      methodName: "BNI Virtual Account",
+      feeType: "FLAT",
+      feeAmount: 4000,
+      tenantFeePercentage: 50,
+      ownerFeePercentage: 50,
+    },
+    {
+      methodCode: "BRI_VA",
+      methodName: "BRI Virtual Account",
+      feeType: "FLAT",
+      feeAmount: 4000,
+      tenantFeePercentage: 50,
+      ownerFeePercentage: 50,
+    },
+    {
+      methodCode: "QRIS",
+      methodName: "QRIS (GoPay, ShopeePay, Dana, dll)",
+      feeType: "PERCENTAGE",
+      feeAmount: 30, // 0.3% untuk UMI
+      tenantFeePercentage: 50,
+      ownerFeePercentage: 50,
+    },
+  ];
+
+  for (const pm of paymentMethods) {
+    await prisma.paymentMethod.upsert({
+      where: { methodCode: pm.methodCode },
+      update: pm,
+      create: pm,
+    });
+  }
+
+  const discountPresets = [
+    {
+      code: "GOOGLE_REVIEW",
+      label: "Bebas Biaya Admin (Review Google Maps Bintang 5)",
+      description: "Gratis biaya admin sewa bulan ini setelah memberikan rating Bintang 5 di Google Maps OsKost.",
+      type: "FIXED",
+      amount: 2000,
+    },
+    {
+      code: "EARLY_BIRD",
+      label: "Diskon Bayar Tepat Waktu (H-3)",
+      description: "Potongan Rp 10.000 jika melunasi sewa minimal 3 hari sebelum tanggal jatuh tempo.",
+      type: "FIXED",
+      amount: 10000,
+    },
+  ];
+
+  for (const dp of discountPresets) {
+    await prisma.discountPreset.upsert({
+      where: { code: dp.code },
+      update: dp,
+      create: dp,
+    });
+  }
 
   // 0. Seed Admin User
   const adminPassword = "adminpassword123!"; // Default admin password

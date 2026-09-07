@@ -29,7 +29,21 @@ enum PaymentStatus {
   PENDING
   PAID
   OVERDUE
+  EXPIRED
+  FAILED
   CANCELLED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  MANUAL
+  MIDTRANS
+}
+
+enum ClaimStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum ReportStatus {
@@ -64,6 +78,8 @@ model User {
   panoramaImages PanoramaImage[]
   notifications Notification[]
   pushSubscriptions PushSubscription[]
+  passwordResetTokens PasswordResetToken[]
+  discountClaims DiscountClaim[]
 }
 
 model TenantProfile {
@@ -117,23 +133,45 @@ model Lease {
 }
 
 model Invoice {
-  id      String   @id @default(cuid())
-  dueDate DateTime
-  amount  Int // Total yang harus dibayar
+  id         String   @id @default(cuid())
+  externalId String?  @unique // Kunci idempotensi: "INV-{leaseId}-{periode}" — mencegah invoice ganda
+  dueDate    DateTime
+  amount     Int // Total net yang harus dibayar tenant (dikirim ke Payment Gateway)
 
   rentAmount    Int @default(0)
   utilityAmount Int @default(0) // Listrik/Air
   otherAmount   Int @default(0) // Sampah/Keamanan
 
-  status    PaymentStatus @default(UNPAID)
-  paidAt    DateTime?
-  proofUrl  String?
-  adminNote String? // Catatan admin jika ada potongan/denda
+  // Rincian Biaya Admin Payment Gateway (Split Fee)
+  totalAdminFee  Int @default(0) // Total fee PG (misal Rp 4.000)
+  tenantAdminFee Int @default(0) // Porsi dibayar tenant (misal Rp 2.000)
+  ownerAdminFee  Int @default(0) // Porsi diserap owner (misal Rp 2.000)
+
+  // Diskon / Promo (Google Review, Early Bird, dll)
+  discountAmount Int     @default(0) // Nominal diskon dalam Rupiah
+  discountReason String? // Kode promo: "GOOGLE_REVIEW", "EARLY_BIRD", dll
+
+  status    PaymentStatus   @default(UNPAID)
+  provider  PaymentProvider @default(MANUAL)
+  providerRef String?  // transaction_id dari Midtrans
+  paymentUrl  String?  // Redirect URL Snap
+  snapToken   String?  // Token Midtrans Snap
+  paidAt      DateTime?
+  expiredAt   DateTime?
+  proofUrl    String?  // Bukti transfer manual (mode MANUAL)
+  adminNote   String?  // Catatan admin jika ada potongan/denda
 
   leaseId String
   lease   Lease  @relation(fields: [leaseId], references: [id])
 
+  webhookLogs WebhookLog[]
+  discountClaims DiscountClaim[]
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([status])
+  @@index([leaseId])
 }
 
 model Report {
@@ -191,4 +229,79 @@ model PushSubscription {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ============================================
+// Payment Gateway Models
+// ============================================
+
+// Konfigurasi metode pembayaran (dinamis, bisa diubah Admin via Dashboard)
+model PaymentMethod {
+  id                  String   @id @default(cuid())
+  methodCode          String   @unique // e.g., "QRIS", "BCA_VA", "MANDIRI_VA"
+  methodName          String   // e.g., "QRIS", "BCA Virtual Account"
+  feeType             String   // "PERCENTAGE" atau "FLAT"
+  feeAmount           Int      // Dalam Rupiah (flat) atau basis poin (misal 30 = 0.3%)
+  tenantFeePercentage Int      @default(50) // Porsi beban penyewa (50%)
+  ownerFeePercentage  Int      @default(50) // Porsi beban owner (50%)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Audit trail webhook — bukti forensik saat ada sengketa/investigasi
+model WebhookLog {
+  id             String          @id @default(cuid())
+  invoiceId      String?
+  invoice        Invoice?        @relation(fields: [invoiceId], references: [id])
+  provider       PaymentProvider
+  rawPayload     Json
+  signatureValid Boolean         @default(false)
+  httpStatusSent Int?
+  createdAt      DateTime        @default(now())
+
+  @@index([provider, createdAt])
+}
+
+// Konfigurasi diskon/promo (pilihan dropdown di Admin Dashboard)
+model DiscountPreset {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g., "GOOGLE_REVIEW", "EARLY_BIRD"
+  label       String   // e.g., "Bebas Biaya Admin (Google Review)"
+  description String?  // Keterangan tambahan
+  type        String   // "FIXED" atau "ADMIN_FEE_WAIVER"
+  amount      Int      @default(0) // Nominal diskon (jika FIXED), 0 jika ADMIN_FEE_WAIVER
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Pengajuan klaim diskon/promo oleh tenant (misal screenshot review Google Maps)
+model DiscountClaim {
+  id           String      @id @default(cuid())
+  invoiceId    String
+  invoice      Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  discountCode String      // e.g. "GOOGLE_REVIEW"
+  proofUrl     String      // URL foto screenshot ulasan di Supabase Storage
+  googleName   String?     // Nama akun Google yang memberikan ulasan
+  status       ClaimStatus @default(PENDING)
+  adminNote    String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now()) @updatedAt
+
+  @@index([status])
+  @@index([invoiceId])
+  @@index([userId])
 }

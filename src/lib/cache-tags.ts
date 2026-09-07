@@ -37,4 +37,9 @@ export const CACHE_TAGS = {
   // ─── Landing / Marketing ──────────────────────
   ROOMS_LANDING: "rooms-landing",
   roomDetail: (id: string) => `room-${id}` as const,
+
+  // ─── Payment Gateway ──────────────────────────
+  PAYMENT_METHODS: "payment-methods",
+  DISCOUNT_PRESETS: "discount-presets",
+  invoicePayment: (invoiceId: string) => `invoice-payment-${invoiceId}` as const,
 } as const;
