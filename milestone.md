@@ -28,7 +28,7 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Widget "Aktivitas Terbaru" yang dinamis (check-in/check-out/pembayaran terbaru)
 - [x] Widget "Kamar Akan Habis Kontrak" (< 30 hari)
 - [x] Statistik Occupancy Rate (%) visual progress bar
-- [ ] Export data penghuni ke CSV/Excel
+- [x] Export data penghuni ke CSV/Excel
 
 ### 3. Manajemen Kamar (Room Management)
 - [x] Schema database Kamar (`Room`, `RoomType`, `RoomImage`, `Property`)
@@ -38,7 +38,7 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Halaman Detail Kamar
 - [x] Upload Foto Kamar ke Supabase Storage
 - [x] Integrasi 360° Photo Sphere Viewer
-- [ ] Bulk update status kamar (AVAILABLE / OCCUPIED / MAINTENANCE)
+- [x] Bulk update status kamar (AVAILABLE / OCCUPIED / MAINTENANCE)
 
 ### 4. Manajemen Penghuni (Tenant Management)
 - [x] Schema database (`User`, `TenantProfile`, `Lease`, `Invoice`)
@@ -48,7 +48,7 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Edit Data Penghuni (Form Edit)
 - [x] Aksi Tandai Lunas Tagihan dari dashboard tenant
 - [x] Aksi Reset Password Penghuni
-- [x] Aksi Kirim Reminder Tagihan (via notifikasi/WhatsApp — placeholder)
+- [x] Aksi Kirim Reminder Tagihan (via In-App Notification & Web Push ke Tenant)
 - [x] Tampilkan status terpisah: Kolom Sewa & Kontrak (Aktif/Hampir Habis/Habis/Checked-out) + Kolom Pembayaran dinamis bulanan (Paid/Unpaid + nama bulan)
 - [x] Tampilkan Foto KTP penghuni (via Signed URL Supabase)
 - [x] Riwayat semua tagihan/pembayaran per penghuni
@@ -58,11 +58,11 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 
 
 ### 5. Keuangan & Tagihan
-- [-] Halaman Daftar Tagihan (Filter: Lunas, Belum Lunas, Tunggakan) — ditunda sampai MVP selesai
-- [-] Pembuatan Tagihan Bulanan Otomatis (Cron Job / Scheduled Action) — ditunda
-- [-] Cetak/Download Bukti Pembayaran (Receipt PDF) — ditunda
-- [-] Laporan Keuangan Bulanan & Tahunan (Ringkasan Pemasukan) — ditunda
-- [-] Grafik Revenue Trend per bulan/tahun — ditunda
+- [x] Halaman Daftar Tagihan Admin (`/admin/billing`) dengan filter status (PAID, UNPAID, PENDING, OVERDUE)
+- [x] Integration Midtrans Snap Payment Gateway & Webhook SHA-512 Verification
+- [x] Nightly Cron Reconciliation Job (`/api/cron/reconcile-invoices`) untuk auto-update status tagihan
+- [x] Fitur Klaim Promo Diskon Google Review Bintang 5 di PWA Tenant & Admin Approval
+- [x] Ekspor data histori Pembayaran ke CSV/Excel untuk Admin & Tenant
 
 ### 6. Laporan Keluhan & Maintenance
 - [x] Schema database Laporan (`Report`, `ReportImage`) — Model `Report` sudah ada di Prisma schema
@@ -72,15 +72,16 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Sinkronisasi cache antara Admin Dashboard dan PWA Tenant (dua arah)
 
 ### 7. Pengaturan (Settings)
-- [-] Halaman Pengaturan Profil Admin — ditunda sampai OTP terverifikasi
-- [-] Pengaturan Data Properti/Kost (Nama, Alamat, Lokasi) — ditunda
-- [-] Pengaturan Notifikasi (WhatsApp API / Email) — ditunda sampai OTP terverifikasi
+- [x] Halaman Pengaturan Profil Admin
+- [x] Pengaturan Data Properti/Kost (Nama, Alamat, Lokasi)
+- [x] Pengaturan Notifikasi (Email)
+
 
 ### 8. Synchronize Data
 - [x] Data Overview/home harus sudah realtime dan sesuai dari data yg memang sudah ada dan sudah akurat
 - [x] Data Manajement Room harus sudah realtime saat di tambahkan atau di hapus, diubah status.
 - [x] Data Manajement Tenant sudah realtime saat di tambahkan atau di hapus, diubah status.
-- [-] Data Keuangan harus sudah benar benar akurat dan realtime — ditunda (modul keuangan di-skip)
+- [x] Data Keuangan & Billing sudah akurat dan realtime (Supabase Realtime + Focus Listener pada status PENDING)
 - [x] Data Laporan harus sudah benar benar akurat dan realtime.
 
 ---
@@ -90,11 +91,13 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 > **Konteks:** Target pengguna adalah pekerja pabrik usia 20–30 tahun yang mengakses dari HP Android entry-level. Desain harus **mobile-first**, simpel, dan cepat (FCP < 1.5s).
 
 ### 8. Setup PWA & Infrastruktur Tenant
-- [x] Konfigurasi `manifest.json` (PWA: App Name, Icon, Theme Color via dynamic `manifest.ts`)
-- [x] Setup `next-pwa` atau konfigurasi Service Worker untuk offline support (via manual `sw.js` & offline fallback page)
+- [x] Konfigurasi `manifest.json` (PWA: App Name, Icon, Theme Color — statis terisolasi di route Tenant)
+- [x] Setup `@ducanh2912/next-pwa` dengan Workbox caching strategies (NetworkFirst billing/reports, StaleWhileRevalidate assets, CacheFirst images)
+- [x] Isolasi manifest dari Root Layout (ring-fencing SEO Landing Page)
 - [x] Route Group Tenant `/tenant/*` dengan layout terpisah dari admin (via group `(pwaTenant)` & `/dashboard`)
 - [x] Middleware autentikasi untuk role `TENANT` (berbeda dari ADMIN)
 - [x] Halaman Login khusus Tenant (email/password atau phone number login di `/login`)
+- [x] Cache clearing otomatis saat logout (Service Worker unregister + Workbox cache purge)
 
 ### 9. Halaman Utama Tenant (Home / Dashboard Tenant)
 - [x] Tampilan selamat datang dengan nama penghuni & nomor kamar
@@ -107,24 +110,28 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Riwayat Tagihan (histori bulan-bulan lalu: Lunas / Tunggak)
 - [x] Upload Bukti Pembayaran (Foto transfer dari kamera/galeri HP via Supabase Storage)
 - [x] Status upload: Menunggu Konfirmasi Admin / Dikonfirmasi (status PENDING/PAID)
-- [] Export history data Pembayaran ke CSV/Excel untuk tenant
+- [x] Export history data Pembayaran ke CSV/Excel untuk tenant
 
 ### 11. Modul Laporan Kerusakan (Report — Tenant View)
 - [x] Form Lapor Kerusakan (deskripsi teks + foto dari kamera/galeri via Supabase)
 - [x] Halaman Daftar Laporan Saya (status: Open / In Progress / Resolved)
-- [ ] Notifikasi ketika laporan direspon Admin
+- [x] Notifikasi ketika laporan direspon Admin (via In-App & Web Push API)
 
 ### 12. Profil & Akun Tenant
 - [x] Halaman Profil Penghuni (tampilkan data diri, nomor kamar, kontak darurat)
 - [x] Fitur Ganti Password sendiri
+- [x] Fitur Lupa Password via Resend (Magic link email, token expiry 5 menit, rate limit 2x/hari)
 - [x] Inactive Dashboard PWA (dukungan login untuk mantan penyewa yang sudah checkout untuk akses riwayat)
 - [x] Flow Returning Tenant pada Check-In Admin (re-use akun lama penyewa tanpa error duplikasi)
-- [ ] Halaman Bantuan / FAQ singkat
+- [x] Halaman Bantuan / FAQ singkat
 
 ### 13. Notifikasi & Sinkronisasi
 - [x] Push Notification untuk pengingat seluruh kegiatan & tagihan tenant (via PWA Web Push API)
 - [x] In-App Notification Bell & Centralized Notification Service (`sendNotification`)
 - [x] Notifikasi otomatis ke Tenant saat pembayaran dikonfirmasi Lunas / Ditolak oleh Admin
+- [x] Notifikasi otomatis ke Admin saat ada laporan kerusakan baru dari Tenant (dengan info Nama & Nomor Kamar)
+- [x] Notifikasi otomatis ke Tenant saat status laporan kerusakan diperbarui oleh Admin (Sedang Diproses / Selesai)
+- [x] Notifikasi manual "Kirim Tagihan" dari Admin → In-App + Web Push ke Tenant (dengan detail jumlah & periode)
 - [-] Sync real-time status tagihan via SSE (ditunda)
 
 ---
@@ -138,7 +145,7 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 - [x] Halaman Kontak / WhatsApp CTA untuk calon penghuni
 - [x] SEO Optimization (Metadata, sitemap, robots.txt, JSON-LD)
 - [x] `robots.ts` & `sitemap.ts` dasar
-- [-] impelemtasi ReactTour saat pertama kali di buka website Oskost ini
+- [x] Implementasi OnboardingTour (Framer Motion + LocalStorage persistence) saat pertama kali website/app OsKost ini dibuka
 - [x] Buat Section sebelum footer untuk "tata cara memesan kamar dari website",
 - [x] dibawah section "Tata cara Memesan" ada section Maps yg cukup besar untuk memberitahu lokasi kost kostan nya beserta 11 lokasi kost tersebut(kalau memungkinkan) 
 - [x] Nanti kedepan nya saat sudah lounching dan benar benar ada penghuni saya akan tambahkan section review & testimoni dari pengunjung realtime langsung dari PWA para tenant nya.
@@ -163,12 +170,33 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 ## FASE 5: PWA IMPLEMENTATION & CONFIGURATION (Tahap Akhir)
 
 ### 16. Setup & Registrasi PWA
-- [ ] Konfigurasi `@ducanh2912/next-pwa` di `next.config.ts` (Disable di Dev mode / Turbopack)
-- [ ] Pembuatan `manifest.json` (scope: `/`, start_url: `/dashboard`)
-- [ ] Registrasi metadata PWA eksklusif di `src/app/(pwaTenant)/layout.tsx` (Ring-Fencing)
-- [ ] Setup Workbox Strategies (Network First untuk Billing, Background Sync untuk Reports)
-- [ ] Implementasi script pembersihan cache PWA saat aksi Logout pengguna
-- [ ] untuk Lebih detail mengenai PWA implementasi terbarunya bisa di lihat di @/D:\Local-Project\oskost\PWA_ARCHITECTURE_INSTRUCTIONS.md
+- [x] Konfigurasi `@ducanh2912/next-pwa` di `next.config.ts` (Disable di Dev mode / Turbopack)
+- [x] Pembuatan `manifest.json` (scope: `/`, start_url: `/dashboard`)
+- [x] Registrasi metadata PWA eksklusif di `src/app/(pwaTenant)/layout.tsx` (Ring-Fencing)
+- [x] Setup Workbox Strategies (Network First untuk Billing, StaleWhileRevalidate untuk UI, CacheFirst untuk Images)
+- [x] Implementasi script pembersihan cache PWA saat aksi Logout pengguna
+- [x] Implementasi **Banner Pengumuman & Informasi (Broadcast / Per Tenant)** dari Admin dengan slider/carousel di PWA Tenant (pemisahan logika penutupan banner dari lonceng notifikasi via `localStorage` persistence)
+- [x] Implementasi **Real-Time Auto-Refresh Mulus (Tanpa Refresh Manual)** berbasis momen: Supabase Realtime instan milidetik di layar Pembayaran Pending (`SnapPendingHandler`) & Admin Dashboard (`useAdminRealtime`), dipadukan dengan Window Focus Listener dan Service Worker Push Broadcast.
+
+---
+
+## FASE 6: INTEGRASI PAYMENT GATEWAY (Automated Billing & Midtrans)
+
+### 17. Midtrans Snap & Automated Payment System
+- [x] Konfigurasi environment key Midtrans Sandbox (`MIDTRANS_SERVER_KEY`, `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`, `MIDTRANS_MERCHANT_ID`)
+- [x] Perluasan skema database Prisma (`PaymentStatus` expanded, `PaymentProvider`, `PaymentMethod`, `WebhookLog`, `DiscountPreset`, `Invoice` extended)
+- [x] Seed data otomatis untuk metode pembayaran (BCA VA, Mandiri VA, BNI VA, BRI VA, QRIS) dan preset diskon (Google Review, Early Bird)
+- [x] Service Layer `payment-service.ts` (penghitungan biaya admin split fee server-side, kalkulasi gross amount presisi, request Snap token)
+- [x] Komponen `PaymentSelector` di PWA Tenant dengan validasi Radio Group (1 metode aktif) dan estimasi biaya tembus
+- [x] Script Midtrans Snap SDK client-side loader di `billing/page.tsx`
+- [x] Route Webhook Handler (`/api/webhooks/midtrans`) dengan verifikasi signature SHA-512 & log audit forensik `WebhookLog`
+- [x] Integrasi In-App & Web Push Notification otomatis saat pembayaran sukses (`PAID`) atau kedaluwarsa (`EXPIRED`)
+- [x] Nightly Cron Reconciliation Job (`/api/cron/reconcile-invoices`) sebagai jaring pengaman webhook
+- [x] Komponen `AdminDiscountDialog` di Dashboard Admin untuk penerapan promo bebas biaya admin (Google Review Bintang 5)
+- [x] Halaman **Admin Billing** (`/admin/billing`) fungsional dengan Stat Cards, Filter Status, Tabel Tagihan, Tandai Lunas, & Modal Verifikasi
+- [x] Refactoring **PWA Tenant Billing UX** dengan Toggle Switch antara *Pembayaran Online (Midtrans)* vs *Transfer Manual / Onsite*
+- [x] Model `DiscountClaim` & Alur **Klaim Promo Google Review** (Upload screenshot ulasan di PWA ➔ Review & Approve di Admin Dashboard)
+- [x] Penanganan Transaksi PENDING Tersangkut & Error `order_id sudah digunakan` via Unique Midtrans Order ID (suffix timestamp) & Auto-Parsing Webhook.
 
 ---
 
@@ -176,12 +204,15 @@ Dokumen ini memantau progres pengembangan fitur dan modul di aplikasi OsKost dar
 
 | Fase | Deskripsi | Status |
 |------|-----------|--------|
-| Fase 1 | Admin Dashboard (Web) | [/] In Progress |
-| Fase 2 | PWA Tenant (Mobile) | [/] In Progress |
-| Fase 3 | Landing Page (Marketing) | [/] Sebagian |
+| Fase 1 | Admin Dashboard (Web) | [x] Selesai |
+| Fase 2 | PWA Tenant (Mobile) | [x] Selesai |
+| Fase 3 | Landing Page (Marketing) | [x] Selesai (Katalog, Maps, Detail Kamar, & Optimasi SEO) |
 | Fase 4 | Optimization & Performance | [x] Data Fetching Selesai |
-| Fase 5 | PWA Implementation | [ ] Menunggu Fase 1-4 |
+| Fase 5 | PWA Implementation | [x] Selesai (Arsitektur PWA + Banner Broadcast + Supabase Realtime) |
+| Fase 6 | Payment Gateway Integration | [x] Selesai (Midtrans Snap, Webhook SHA-512, Promo Google Review, Recovery PENDING & Unique Order ID) |
 
 ---
 
-*Diperbarui: 2026-07-17 — Pengalihan tombol hapus menjadi Check-out formal, penambahan info kontak utama di tabel penyewa & panel expanded, penambahan tombol check-out cepat, dan update CV Rinaldi Mulya Pratama dengan entri proyek OsKost beserta pembaruan bagian Skills.*
+*Diperbarui: 2026-08-06 — Arsitektur Ideal Supabase Realtime: Menghapus polling global 20s (hemat baterai), mengintegrasikan Supabase Realtime subscription instan milidetik pada SnapPendingHandler (Invoice) & Admin Dashboard (useAdminRealtime), dipadukan dengan Window Focus Listener.*
+
+
