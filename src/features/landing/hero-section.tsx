@@ -63,12 +63,8 @@ export function HeroSection() {
                     </h1>
 
                     {/* Subtitle */}
-                    <p className="text-white/70 text-lg lg:text-2xl max-w-2xl mb-10">
-                        Upgrade your living game with Smartkost.
-                        <br className="hidden sm:block" />
-                        Fully automated, high-speed, and no BS.
-                        <br className="hidden sm:block" />
-                        Boarding experience.
+                    <p className="text-white/70 text-lg lg:text-2xl max-w-3xl mb-10 leading-relaxed">
+                        Upgrade hidupmu di Smartkost Pulo Jahe, Cakung. Kost modern bulanan dekat PT Yamaha (10 menit jalan kaki lewat jalan pintas warga) dan Stasiun Buaran (10-15 menit berkendara). Lokasi strategis di area pemukiman yang sangat dekat dengan pasar, puskesmas, serta kebutuhan harian Anda.
                     </p>
 
                     {/* 360 Virtual Tour CTA - Glass/Crystal effect with shine on hover */}

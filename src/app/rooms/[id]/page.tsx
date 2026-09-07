@@ -17,18 +17,48 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+    const amenityFeature = room.facilities.map((facility) => ({
+        "@type": "LocationFeatureSpecification",
+        "name": facility,
+        "value": true
+    }));
+
     const jsonLd = {
         "@context": "https://schema.org",
-        "@type": "Product",
-        name: `Kamar ${room.number} ${room.name}`,
-        image: room.images.length > 0 ? room.images[0] : `${baseUrl}/images/hero-bg.webp`,
-        description: room.description ?? `Sewa Kamar ${room.number} di Smartkost Pulo Jahe.`,
-        offers: {
+        "@type": "Room",
+        "name": `Kamar ${room.number} ${room.name}`,
+        "image": room.images.length > 0 ? room.images[0] : `${baseUrl}/images/hero-bg.webp`,
+        "description": room.description ?? `Sewa Kamar ${room.number} di Smartkost Pulo Jahe. Fasilitas: ${room.facilities.join(", ")}.`,
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Jl. Pulo Jahe, RT.03/RW.10, Jatinegara, Kec. Cakung",
+            "addressLocality": "Cakung",
+            "addressRegion": "Jakarta Timur",
+            "postalCode": "13930",
+            "addressCountry": "ID"
+        },
+        "occupancy": {
+            "@type": "QuantitativeValue",
+            "value": 1
+        },
+        "amenityFeature": amenityFeature,
+        "offers": {
             "@type": "Offer",
-            priceCurrency: "IDR",
-            price: room.price,
-            availability: room.status === "AVAILABLE" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-            url: `${baseUrl}/rooms/${room.id}`
+            "priceCurrency": "IDR",
+            "price": room.price,
+            "availability": room.status === "AVAILABLE" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            "url": `${baseUrl}/rooms/${room.id}`,
+            "priceSpecification": {
+                "@type": "UnitPriceSpecification",
+                "price": room.price,
+                "priceCurrency": "IDR",
+                "unitText": "MONTH",
+                "referenceQuantity": {
+                    "@type": "QuantitativeValue",
+                    "value": 1,
+                    "unitText": "MONTH"
+                }
+            }
         }
     };
 
@@ -36,7 +66,7 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
             />
             <RoomDetailView room={room} />
         </>

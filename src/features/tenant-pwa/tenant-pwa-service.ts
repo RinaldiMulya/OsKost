@@ -5,6 +5,9 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import bcryptjs from "bcryptjs";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "tenant-pwa-service" });
 
 // ============================================
 // Schemas
@@ -37,7 +40,12 @@ export const getTenantDashboardData = cache(async (userId: string) => {
     async () => {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        include: {
+        select: {
+          id: true,
+          email: true,
+          phoneNumber: true,
+          role: true,
+          createdAt: true,
           tenantProfile: true,
         },
       });
@@ -192,6 +200,8 @@ export async function uploadPaymentProof(invoiceId: string, proofUrl: string) {
   });
 }
 
+import { sendNotification } from "@/features/notifications/notification-service";
+
 /**
  * Create a new maintenance report linked to the tenant's active lease.
  */
@@ -203,13 +213,25 @@ export async function createMaintenanceReport(
 ) {
   const activeLease = await prisma.lease.findFirst({
     where: { userId, isActive: true },
+    include: {
+      room: {
+        select: { number: true },
+      },
+      user: {
+        select: {
+          tenantProfile: {
+            select: { fullName: true },
+          },
+        },
+      },
+    },
   });
 
   if (!activeLease) {
     throw new Error("Anda tidak memiliki sewa aktif untuk melaporkan kerusakan");
   }
 
-  return prisma.report.create({
+  const report = await prisma.report.create({
     data: {
       leaseId: activeLease.id,
       title,
@@ -218,6 +240,29 @@ export async function createMaintenanceReport(
       status: "OPEN",
     },
   });
+
+  // Send notification to all Admin users
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN" },
+    select: { id: true },
+  });
+
+  const tenantName = activeLease.user.tenantProfile?.fullName || "Penghuni";
+  const roomNumber = activeLease.room.number;
+
+  const notifyPromises = admins.map((admin) =>
+    sendNotification({
+      userId: admin.id,
+      title: "Laporan Kerusakan Baru",
+      message: `Laporan '${title}' diajukan oleh ${tenantName} (Kamar ${roomNumber}).`,
+      type: "MAINTENANCE",
+      url: "/admin/reports",
+    }).catch((err) => log.error({ err }, "Gagal kirim notifikasi laporan ke admin"))
+  );
+
+  await Promise.all(notifyPromises);
+
+  return report;
 }
 
 /**
@@ -245,7 +290,7 @@ export async function changeTenantPassword(
     throw new Error("Password saat ini salah");
   }
 
-  const newHash = await bcryptjs.hash(newPassword, 10);
+  const newHash = await bcryptjs.hash(newPassword, 12);
 
   return prisma.user.update({
     where: { id: userId },

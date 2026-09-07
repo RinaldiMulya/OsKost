@@ -24,7 +24,7 @@ export function ChangePasswordForm() {
       }
       return await changePasswordAction(prevState, formData);
     },
-    undefined
+    undefined,
   );
 
   useEffect(() => {
@@ -32,7 +32,9 @@ export function ChangePasswordForm() {
       toast.success(state.message || "Password berhasil diubah!");
       setConfirmPassword("");
       // Clear inputs manually by resetting form
-      const form = document.getElementById("change-password-form") as HTMLFormElement;
+      const form = document.getElementById(
+        "change-password-form",
+      ) as HTMLFormElement;
       form?.reset();
     } else if (state?.error) {
       toast.error(state.error);
@@ -66,7 +68,11 @@ export function ChangePasswordForm() {
           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
           className="absolute right-3 bottom-2 text-zinc-500 hover:text-zinc-300"
         >
-          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {showCurrentPassword ? (
+            <EyeOff className="h-4 w-4 mb-2" />
+          ) : (
+            <Eye className="h-4 w-4 mb-2" />
+          )}
         </button>
       </div>
 
@@ -86,7 +92,11 @@ export function ChangePasswordForm() {
           onClick={() => setShowNewPassword(!showNewPassword)}
           className="absolute right-3 bottom-2 text-zinc-500 hover:text-zinc-300"
         >
-          {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {showNewPassword ? (
+            <EyeOff className="h-4 w-4 mb-2" />
+          ) : (
+            <Eye className="h-4 w-4 mb-2" />
+          )}
         </button>
       </div>
 

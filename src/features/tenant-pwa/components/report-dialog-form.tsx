@@ -62,15 +62,15 @@ export function ReportDialogForm({ userId }: ReportDialogFormProps) {
           Lapor Kerusakan Baru
         </Button>
       </DialogTrigger>
-      <DialogContent className="border-zinc-800 bg-zinc-950 text-white max-w-sm rounded-2xl p-5">
-        <DialogHeader className="text-left space-y-1">
+      <DialogContent className="border-zinc-800 bg-zinc-950 text-white sm:max-w-sm rounded-2xl p-5 min-w-0 w-full overflow-hidden">
+        <DialogHeader className="text-left space-y-1 min-w-0 w-full">
           <DialogTitle className="text-lg font-bold text-white">Lapor Kerusakan</DialogTitle>
           <DialogDescription className="text-xs text-zinc-400">
             Jelaskan kerusakan fasilitas di kamar atau area kost Anda.
           </DialogDescription>
         </DialogHeader>
 
-        <form action={formAction} className="space-y-4 pt-2">
+        <form action={formAction} className="space-y-4 pt-2 w-full min-w-0 overflow-hidden">
           <div className="space-y-1.5">
             <Label htmlFor="title" className="text-xs text-zinc-300">
               Judul Laporan / Kerusakan

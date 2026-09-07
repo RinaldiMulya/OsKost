@@ -59,9 +59,9 @@ export default async function TenantReportsPage() {
             {reports.map((rep) => (
               <Card key={rep.id} className="border-zinc-900 bg-zinc-900/10 shadow-sm">
                 <CardContent className="p-4 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-sm font-bold text-white leading-tight">{rep.title}</h3>
-                    <div>
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="text-sm font-bold text-white leading-tight break-words min-w-0 flex-1">{rep.title}</h3>
+                    <div className="shrink-0">
                       {rep.status === "OPEN" && (
                         <span className="text-[9px] bg-zinc-800 text-zinc-400 border border-zinc-700 px-2 py-0.5 rounded-full font-semibold flex items-center gap-0.5">
                           <Clock className="h-2.5 w-2.5" /> Terbuka
@@ -80,18 +80,18 @@ export default async function TenantReportsPage() {
                     </div>
                   </div>
 
-                  <p className="text-xs text-zinc-450 leading-relaxed whitespace-pre-line">
+                  <p className="text-xs text-zinc-450 leading-relaxed whitespace-pre-line break-words">
                     {rep.description}
                   </p>
 
                   {/* Photo attachment preview if any */}
                   {rep.photoUrl && (
                     <div className="relative aspect-video w-full max-h-36 rounded-lg overflow-hidden border border-zinc-800 bg-zinc-950 flex items-center justify-center">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
+                      <Image
                         src={rep.photoUrl}
                         alt={rep.title}
-                        className="object-cover w-full h-full"
+                        fill
+                        className="object-cover"
                       />
                     </div>
                   )}

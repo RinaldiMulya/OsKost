@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { OnboardingTour } from "@/components/shared/onboarding-tour";
 
 export default async function TenantDashboardPage() {
   const session = await auth();
@@ -63,6 +64,31 @@ export default async function TenantDashboardPage() {
 
   return (
     <div className="space-y-5 pb-6">
+      <OnboardingTour
+        storageKey="oskost_pwa_tenant_tour_completed"
+        steps={[
+          {
+            title: "Selamat Datang di PWA Tenant OsKost!",
+            description: "Aplikasi khusus penghuni untuk kemudahan mengecek status sewa, tagihan bulanan, dan laporan keluhan langsung dari HP Anda.",
+            badge: "Panduan Tenant (1/4)"
+          },
+          {
+            title: "Informasi Sewa & Sisa Kontrak",
+            description: "Pantau nomor kamar aktif dan sisa hari masa sewa Anda yang diperbarui secara otomatis.",
+            badge: "Panduan Tenant (2/4)"
+          },
+          {
+            title: "Pembayaran Online Midtrans & Promo Google Review",
+            description: "Bayar sewa via Transfer VA / QRIS otomatis, serta klaim promo bebas biaya admin dengan mengulas Google Review Bintang 5.",
+            badge: "Panduan Tenant (3/4)"
+          },
+          {
+            title: "Laporan Kerusakan & Profil",
+            description: "Ajukan laporan jika ada fasilitas kamar yang rusak dan pantau status perbaikannya secara real-time.",
+            badge: "Panduan Tenant (4/4)"
+          }
+        ]}
+      />
       {/* Welcome Message */}
       <div className="space-y-1">
         <p className="text-sm text-zinc-400 font-medium">{getGreeting()},</p>
@@ -81,6 +107,7 @@ export default async function TenantDashboardPage() {
               </div>
               <div>
                 <p className="text-xs text-zinc-400">Kamar Anda</p>
+
                 <p className="text-sm font-semibold text-white">
                   Kamar {activeLease.room.number} — {activeLease.room.name}
                 </p>
@@ -239,7 +266,9 @@ export default async function TenantDashboardPage() {
         <h2 className="text-sm font-bold tracking-wide text-zinc-400 uppercase">
           Menu Utama
         </h2>
-        <div className={`grid ${activeLease ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
+        <div
+          className={`grid ${activeLease ? "grid-cols-3" : "grid-cols-2"} gap-3`}
+        >
           <Link href="/dashboard/billing" className="block">
             <Card className="border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 transition-colors shadow-md text-center py-4 cursor-pointer">
               <CardContent className="p-0 flex flex-col items-center justify-center gap-2">
@@ -260,7 +289,9 @@ export default async function TenantDashboardPage() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
                     <AlertTriangle className="h-5 w-5" />
                   </div>
-                  <span className="text-xs font-medium text-zinc-200">Lapor</span>
+                  <span className="text-xs font-medium text-zinc-200">
+                    Lapor
+                  </span>
                 </CardContent>
               </Card>
             </Link>

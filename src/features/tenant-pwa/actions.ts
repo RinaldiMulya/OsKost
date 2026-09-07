@@ -1,7 +1,10 @@
 "use server";
 
 import { auth } from "@/auth";
-import { updateTag } from "next/cache";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "tenant-pwa-actions" });
+import { revalidatePath, updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import {
   uploadPaymentProof,
@@ -35,7 +38,7 @@ export async function uploadPaymentProofAction(
 
     return { success: true, data: result };
   } catch (error: any) {
-    console.error("Action error uploadPaymentProofAction:", error);
+    log.error({ err: error, invoiceId }, "Gagal upload bukti pembayaran");
     return { success: false, error: error.message || "Gagal mengunggah bukti pembayaran" };
   }
 }
@@ -77,10 +80,13 @@ export async function submitMaintenanceReportAction(
     updateTag(CACHE_TAGS.DASHBOARD_STATS);
     // Invalidate admin reports cache agar laporan baru muncul di dashboard admin
     updateTag(CACHE_TAGS.REPORTS_ALL);
+    updateTag(CACHE_TAGS.REPORTS_BY_STATUS("OPEN"));
+    revalidatePath("/admin/reports");
+    revalidatePath("/dashboard/reports");
 
     return { success: true, message: "Laporan kerusakan berhasil dikirim!" };
   } catch (error: any) {
-    console.error("Action error submitMaintenanceReportAction:", error);
+    log.error({ err: error, userId: session.user.id }, "Gagal submit laporan kerusakan");
     return { success: false, error: error.message || "Gagal mengirimkan laporan kerusakan" };
   }
 }
@@ -115,7 +121,7 @@ export async function changePasswordAction(
     );
     return { success: true, message: "Password berhasil diubah!" };
   } catch (error: any) {
-    console.error("Action error changePasswordAction:", error);
+    log.error({ err: error, userId: session.user.id }, "Gagal mengubah password tenant");
     return { success: false, error: error.message || "Gagal mengubah password" };
   }
 }

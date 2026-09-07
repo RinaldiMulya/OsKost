@@ -3,9 +3,10 @@ import { getTenantDashboardData } from "@/features/tenant-pwa/tenant-pwa-service
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChangePasswordForm } from "@/features/tenant-pwa/components/change-password-form";
-import { logout } from "@/features/auth/actions";
-import { User, Phone, Mail, MapPin, ShieldAlert, LogOut, FileText } from "lucide-react";
+import { LogoutButton } from "@/components/tenant/logout-button";
+import { User, Phone, Mail, MapPin, ShieldAlert, FileText, HelpCircle } from "lucide-react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export default async function TenantProfilePage() {
   const session = await auth();
@@ -102,20 +103,33 @@ export default async function TenantProfilePage() {
         </Card>
       )}
 
+      {/* Help & FAQ Section */}
+      <Card className="border-zinc-900 bg-zinc-900/10 shadow-sm">
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-2 text-white font-bold text-sm">
+            <HelpCircle className="h-4 w-4 text-secondary" />
+            <span>Butuh Bantuan?</span>
+          </div>
+          <p className="text-xs text-zinc-400">
+            Lihat panduan pembayaran, laporan keluhan, dan aturan umum kost.
+          </p>
+          <Button
+            asChild
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2 border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:bg-zinc-900/20 hover:text-white py-2.5 font-semibold text-xs transition-all rounded-xl"
+          >
+            <Link href="/dashboard/help">
+              Buka Panduan & FAQ
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Change Password Form */}
       <ChangePasswordForm />
 
-      {/* Logout Action */}
-      <form action={logout}>
-        <Button
-          type="submit"
-          variant="destructive"
-          className="w-full flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 py-2.5 font-bold text-xs transition-all rounded-xl"
-        >
-          <LogOut className="h-4 w-4" />
-          Keluar dari Aplikasi
-        </Button>
-      </form>
+      {/* Logout Action — membersihkan cache PWA sebelum sign out */}
+      <LogoutButton />
     </div>
   );
 }
