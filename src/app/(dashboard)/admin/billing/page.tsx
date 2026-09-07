@@ -1,20 +1,27 @@
-import { Receipt } from "lucide-react";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { getAdminBillingOverview } from "@/features/tenants/admin-billing-service";
+import { AdminBillingView } from "@/features/tenants/components/admin-billing-view";
 
 export const metadata = {
-    title: "Tagihan | Admin Smartkost",
+  title: "Tagihan & Keuangan | Admin Smartkost",
 };
 
-export default function AdminBillingPage() {
-    return (
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary/10 mb-6">
-                <Receipt className="h-8 w-8 text-secondary" />
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Tagihan</h2>
-            <p className="text-muted-foreground max-w-md">
-                Fitur ini sedang dalam pengembangan. Anda akan bisa membuat,
-                mengelola, dan melacak pembayaran tagihan penghuni.
-            </p>
-        </div>
-    );
+export default async function AdminBillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string; status?: string }>;
+}) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "ADMIN") {
+    redirect("/login");
+  }
+
+  const resolvedParams = await searchParams;
+  const data = await getAdminBillingOverview(
+    resolvedParams.query,
+    resolvedParams.status
+  );
+
+  return <AdminBillingView data={data} />;
 }

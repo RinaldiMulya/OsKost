@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "cron-cleanup-reports" });
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +49,7 @@ export async function GET(request: Request) {
             timestamp: new Date().toISOString(),
         });
     } catch (error) {
-        console.error("Cron Job Error - Cleanup Reports:", error);
+        log.error({ err: error }, "Cron job error: Cleanup Reports");
         return NextResponse.json(
             { success: false, error: "Internal Server Error" },
             { status: 500 }

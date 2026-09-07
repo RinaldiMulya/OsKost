@@ -3,8 +3,17 @@ import {
   getTenantDashboardData,
   getTenantInvoices,
 } from "@/features/tenant-pwa/tenant-pwa-service";
+import { getActivePaymentMethods } from "@/features/payment/payment-service";
+import { getTenantDiscountClaims } from "@/features/payment/promo-service";
+import {
+  PaymentSelector,
+  BillingPaymentToggle,
+  PromoClaimDialog,
+  SnapPendingHandler,
+} from "@/features/payment";
 import { Card, CardContent } from "@/components/ui/card";
 import { PaymentUploadForm } from "@/features/tenant-pwa/components/payment-upload-form";
+import Script from "next/script";
 import {
   CreditCard,
   Calendar,
@@ -14,6 +23,7 @@ import {
   Landmark,
 } from "lucide-react";
 import { redirect } from "next/navigation";
+import { ExportBillingButton } from "@/features/tenant-pwa/components/export-billing-button";
 
 export default async function TenantBillingPage() {
   const session = await auth();
@@ -22,7 +32,11 @@ export default async function TenantBillingPage() {
   }
 
   const dashboardData = await getTenantDashboardData(session.user.id);
-  const invoices = await getTenantInvoices(session.user.id);
+  const [invoices, paymentMethods, tenantDiscountClaims] = await Promise.all([
+    getTenantInvoices(session.user.id),
+    getActivePaymentMethods(),
+    getTenantDiscountClaims(session.user.id),
+  ]);
 
   if (!dashboardData) {
     return (
@@ -48,8 +62,22 @@ export default async function TenantBillingPage() {
     });
   };
 
+  // URL Midtrans Snap SDK (Sandbox atau Production)
+  const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+  const midtransSnapUrl = process.env.MIDTRANS_IS_PRODUCTION === "true"
+    ? "https://app.midtrans.com/snap/snap.js"
+    : "https://app.sandbox.midtrans.com/snap/snap.js";
+
   return (
     <div className="space-y-6 pb-6">
+      {/* Midtrans Snap SDK */}
+      {midtransClientKey && (
+        <Script
+          src={midtransSnapUrl}
+          data-client-key={midtransClientKey}
+          strategy="lazyOnload"
+        />
+      )}
       <div className="space-y-1">
         <h1 className="text-xl font-bold text-white tracking-tight">
           Tagihan & Pembayaran
@@ -140,36 +168,8 @@ export default async function TenantBillingPage() {
             </CardContent>
           </Card>
 
-          {/* Instruksi Transfer Bank */}
-          {currentInvoice.status !== "PENDING" && (
-            <Card className="border-zinc-800 bg-zinc-900/30 shadow-md">
-              <CardContent className="p-4 space-y-3">
-                <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Landmark className="h-4 w-4 text-secondary" />
-                  <span>Petunjuk Transfer Bank</span>
-                </div>
-                <div className="rounded-xl bg-zinc-950/60 p-3 text-xs space-y-1.5 border border-zinc-900">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Nama Bank</span>
-                    <span className="font-bold text-zinc-350">Mandiri</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Nomor Rekening</span>
-                    <span className="font-bold text-white font-mono">
-                      8690-1234-5678
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-500">Atas Nama</span>
-                    <span className="font-bold text-zinc-350">Rinaldi</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Form Upload Bukti */}
-          {currentInvoice.status !== "PENDING" ? (
+          {/* Form Pembayaran & Promo */}
+          {currentInvoice.status === "UNPAID" || currentInvoice.status === "OVERDUE" ? (
             <div className="space-y-4">
               {currentInvoice.adminNote && (
                 <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
@@ -180,17 +180,85 @@ export default async function TenantBillingPage() {
                   {currentInvoice.adminNote}
                 </div>
               )}
-              <PaymentUploadForm
+
+              {/* Banner Klaim Promo Google Review */}
+              <PromoClaimDialog
                 invoiceId={currentInvoice.id}
                 userId={session.user.id}
+                hasPendingClaim={tenantDiscountClaims.some(
+                  (c: any) => c.invoiceId === currentInvoice.id && c.status === "PENDING"
+                )}
+              />
+
+              {/* Toggle Switch Mode Pembayaran */}
+              <BillingPaymentToggle
+                onlinePaymentContent={
+                  paymentMethods.length > 0 ? (
+                    <PaymentSelector
+                      invoiceId={currentInvoice.id}
+                      baseAmount={
+                        currentInvoice.rentAmount +
+                        currentInvoice.utilityAmount +
+                        currentInvoice.otherAmount
+                      }
+                      paymentMethods={paymentMethods}
+                    />
+                  ) : (
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 p-4 text-center text-xs text-zinc-500">
+                      Metode pembayaran online belum tersedia.
+                    </div>
+                  )
+                }
+                manualPaymentContent={
+                  <div className="space-y-4">
+                    {/* Petunjuk Rekening */}
+                    <Card className="border-zinc-800 bg-zinc-900/30 shadow-md">
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-center gap-2 text-white font-bold text-sm">
+                          <Landmark className="h-4 w-4 text-secondary" />
+                          <span>Petunjuk Transfer Bank</span>
+                        </div>
+                        <div className="rounded-xl bg-zinc-950/60 p-3 text-xs space-y-1.5 border border-zinc-900">
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">Nama Bank</span>
+                            <span className="font-bold text-zinc-350">Mandiri</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">Nomor Rekening</span>
+                            <span className="font-bold text-white font-mono">
+                              8690-1234-5678
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-zinc-500">Atas Nama</span>
+                            <span className="font-bold text-zinc-350">Rinaldi</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Upload Bukti Transfer Manual */}
+                    <PaymentUploadForm
+                      invoiceId={currentInvoice.id}
+                      userId={session.user.id}
+                    />
+                  </div>
+                }
               />
             </div>
-          ) : (
-            <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-center text-xs text-zinc-400">
-              Bukti pembayaran Anda sudah diterima. Kami sedang melakukan
-              verifikasi data secepatnya.
-            </div>
-          )}
+          ) : currentInvoice.status === "PENDING" ? (
+            currentInvoice.provider === "MIDTRANS" && currentInvoice.snapToken && currentInvoice.paymentUrl ? (
+              <SnapPendingHandler
+                invoiceId={currentInvoice.id}
+                snapToken={currentInvoice.snapToken}
+                paymentUrl={currentInvoice.paymentUrl}
+              />
+            ) : (
+              <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-center text-xs text-zinc-400">
+                Bukti pembayaran Anda sudah diterima. Kami sedang melakukan verifikasi data secepatnya.
+              </div>
+            )
+          ) : null}
         </div>
       ) : (
         <Card className="border-zinc-800 bg-zinc-900/40 shadow-lg py-6 text-center">
@@ -209,12 +277,19 @@ export default async function TenantBillingPage() {
 
       {/* 2. Invoice History */}
       <div className="space-y-3">
-        <h2 className="text-sm font-bold tracking-wide text-zinc-400 uppercase">
-          Riwayat Pembayaran
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-bold tracking-wide text-zinc-400 uppercase">
+            Riwayat Pembayaran
+          </h2>
+          <ExportBillingButton invoices={invoices.map((inv: any) => ({
+            ...inv,
+            dueDate: new Date(inv.dueDate).toISOString(),
+            paidAt: inv.paidAt ? new Date(inv.paidAt).toISOString() : null,
+          }))} />
+        </div>
         {invoices.length > 0 ? (
           <div className="space-y-2">
-            {invoices.map((inv) => {
+            {invoices.map((inv: any) => {
               const formattedMonth = new Date(inv.dueDate).toLocaleDateString(
                 "id-ID",
                 {
@@ -259,6 +334,16 @@ export default async function TenantBillingPage() {
                       {inv.status === "OVERDUE" && (
                         <span className="text-[9px] bg-red-500/10 text-red-500 px-2 py-0.5 rounded-full font-semibold">
                           Terlambat
+                        </span>
+                      )}
+                      {inv.status === "EXPIRED" && (
+                        <span className="text-[9px] bg-zinc-500/10 text-zinc-400 px-2 py-0.5 rounded-full font-semibold">
+                          Kedaluwarsa
+                        </span>
+                      )}
+                      {inv.status === "FAILED" && (
+                        <span className="text-[9px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded-full font-semibold">
+                          Gagal
                         </span>
                       )}
                     </div>
