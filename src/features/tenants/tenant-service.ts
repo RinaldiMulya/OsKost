@@ -7,6 +7,9 @@ import { z } from "zod";
 import bcryptjs from "bcryptjs";
 import { Room, Lease, Invoice, Report } from "@prisma/client";
 import { createClient as createSupabaseServer } from "@/lib/supabase/server";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "tenant-service" });
 
 // ============================================
 // Types
@@ -75,12 +78,18 @@ export const resetPasswordSchema = z.object({
 // ============================================
 
 export const getAllTenants = cache(async (): Promise<TenantForAdmin[]> => {
+    const parsedId = "all"; // Static identifier for global list cache
     return unstable_cache(
         async () => {
             const users = await prisma.user.findMany({
                 where: { role: "TENANT" },
                 orderBy: { createdAt: "desc" },
-                include: {
+                select: {
+                    id: true,
+                    email: true,
+                    phoneNumber: true,
+                    role: true,
+                    createdAt: true,
                     tenantProfile: true,
                     leases: {
                         include: {
@@ -111,7 +120,12 @@ export const getTenantById = cache(async (id: string): Promise<TenantForAdmin | 
         async () => {
             const user = await prisma.user.findUnique({
                 where: { id: parsedId, role: "TENANT" },
-                include: {
+                select: {
+                    id: true,
+                    email: true,
+                    phoneNumber: true,
+                    role: true,
+                    createdAt: true,
                     tenantProfile: true,
                     leases: {
                         include: {
@@ -166,7 +180,12 @@ export const getTenantDetailById = cache(async (id: string): Promise<TenantDetai
         async () => {
             const user = await prisma.user.findUnique({
                 where: { id: parsedId, role: "TENANT" },
-                include: {
+                select: {
+                    id: true,
+                    email: true,
+                    phoneNumber: true,
+                    role: true,
+                    createdAt: true,
                     tenantProfile: true,
                     leases: {
                         orderBy: { startDate: "desc" },
@@ -219,13 +238,13 @@ export async function getSignedKtpUrl(ktpPhotoUrl: string): Promise<string | nul
             .createSignedUrl(storagePath, 300); // 5 menit
 
         if (error || !data?.signedUrl) {
-            console.error("Gagal generate signed URL KTP:", error);
+            log.error({ err: error }, "Gagal generate signed URL KTP");
             return null;
         }
 
         return data.signedUrl;
     } catch (error) {
-        console.error("Error saat generate signed URL KTP:", error);
+        log.error({ err: error }, "Error saat generate signed URL KTP");
         return null;
     }
 }
@@ -233,8 +252,6 @@ export async function getSignedKtpUrl(ktpPhotoUrl: string): Promise<string | nul
 // ============================================
 // CREATE — User + TenantProfile + Lease + Invoice in transaction
 // ============================================
-
-const DEFAULT_PASSWORD = "oskost123";
 
 export async function createTenant(data: {
     fullName: string;
@@ -254,7 +271,9 @@ export async function createTenant(data: {
     utilityAmount?: number;
     otherAmount?: number;
 }) {
-    const hashedPassword = await bcryptjs.hash(DEFAULT_PASSWORD, 10);
+    const cleanPhone = data.phoneNumber.replace(/\D/g, "");
+    const tempPassword = "oskost" + (cleanPhone.length >= 4 ? cleanPhone.slice(-4) : "123");
+    const hashedPassword = await bcryptjs.hash(tempPassword, 12);
 
     return prisma.$transaction(async (tx) => {
         // 1. Check if user already exists (by phoneNumber or email)
@@ -424,7 +443,7 @@ export async function updateTenant(
             },
         });
 
-        // Handle Room Reassignment
+        // Handle Room Reassignment (Pindah Kamar)
         if (data.roomId !== undefined && data.roomId !== "") {
             // Find active lease
             const activeLease = await tx.lease.findFirst({
@@ -434,13 +453,22 @@ export async function updateTenant(
             if (activeLease && activeLease.roomId !== data.roomId) {
                 const oldRoomId = activeLease.roomId;
 
-                // Move lease to new room
-                await tx.lease.update({
-                    where: { id: activeLease.id },
-                    data: { roomId: data.roomId },
+                // Ambil harga kamar baru
+                const newRoom = await tx.room.findUnique({
+                    where: { id: data.roomId },
+                    select: { id: true, price: true },
                 });
 
-                // Update old room status back to AVAILABLE (if no other active lease occupies it)
+                // Update lease dengan roomId baru & rentAmount kamar baru
+                await tx.lease.update({
+                    where: { id: activeLease.id },
+                    data: {
+                        roomId: data.roomId,
+                        ...(newRoom?.price ? { rentAmount: newRoom.price } : {}),
+                    },
+                });
+
+                // Update status kamar lama menjadi AVAILABLE (jika tidak ada lease lain)
                 const otherLeaseOnOldRoom = await tx.lease.findFirst({
                     where: { roomId: oldRoomId, isActive: true, NOT: { userId: parsedId } },
                 });
@@ -451,7 +479,7 @@ export async function updateTenant(
                     });
                 }
 
-                // Update new room status to OCCUPIED
+                // Update status kamar baru menjadi OCCUPIED
                 await tx.room.update({
                     where: { id: data.roomId },
                     data: { status: "OCCUPIED" },
@@ -508,7 +536,7 @@ export async function deleteTenant(id: string) {
 
 export async function resetTenantPassword(userId: string, newPassword: string) {
     const parsedId = idSchema.parse(userId);
-    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+    const hashedPassword = await bcryptjs.hash(newPassword, 12);
 
     return prisma.user.update({
         where: { id: parsedId },
@@ -544,7 +572,7 @@ export async function markInvoicePaid(invoiceId: string) {
             message: `Tagihan Anda sebesar Rp ${updatedInvoice.amount.toLocaleString("id-ID")} telah dikonfirmasi Lunas oleh Admin.`,
             type: "BILLING",
             url: "/dashboard/billing",
-        }).catch(err => console.error("Error sending notification:", err));
+        }).catch(err => log.error({ err }, "Gagal kirim notifikasi konfirmasi bayar"));
     }
 
     return updatedInvoice;
@@ -572,9 +600,74 @@ export async function rejectInvoicePayment(invoiceId: string, reason: string) {
             message: `Bukti pembayaran Anda ditolak dengan alasan: ${reason}. Silakan unggah ulang.`,
             type: "BILLING",
             url: "/dashboard/billing",
-        }).catch(err => console.error("Error sending notification:", err));
+        }).catch(err => log.error({ err }, "Gagal kirim notifikasi tolak bayar"));
     }
 
     return updatedInvoice;
+}
+
+// ============================================
+// BILLING REMINDER (Kirim Tagihan / Notifikasi)
+// ============================================
+
+export async function sendBillingReminder(userId: string) {
+    // Cari data tenant dan invoice yang belum lunas
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            tenantProfile: {
+                select: { fullName: true }
+            },
+            leases: {
+                where: { isActive: true },
+                select: {
+                    invoices: {
+                        where: {
+                            status: { in: ["UNPAID", "OVERDUE"] }
+                        },
+                        select: {
+                            amount: true,
+                            dueDate: true,
+                        },
+                        orderBy: { dueDate: "asc" },
+                    },
+                },
+            },
+        },
+    });
+
+    if (!user) {
+        throw new Error("Penghuni tidak ditemukan.");
+    }
+
+    const unpaidInvoices = user.leases.flatMap((l) => l.invoices);
+
+    if (unpaidInvoices.length === 0) {
+        throw new Error("Tidak ada tagihan yang belum dibayar untuk penghuni ini.");
+    }
+
+    const totalAmount = unpaidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const formattedAmount = new Intl.NumberFormat("id-ID").format(totalAmount);
+
+    // Format periode tagihan
+    const periodLabel = new Intl.DateTimeFormat("id-ID", {
+        month: "long",
+        year: "numeric",
+    }).format(new Date(unpaidInvoices[0].dueDate));
+
+    await sendNotification({
+        userId: user.id,
+        title: "Pengingat Tagihan Kost",
+        message: `Hai ${user.tenantProfile?.fullName ?? "Penghuni"}, tagihan kost Anda sebesar Rp ${formattedAmount} untuk periode ${periodLabel} belum dibayar. Segera lakukan pembayaran ya!`,
+        type: "BILLING",
+        url: "/dashboard/billing",
+    });
+
+    return {
+        tenantName: user.tenantProfile?.fullName ?? "Penghuni",
+        totalAmount,
+        invoiceCount: unpaidInvoices.length,
+    };
 }
 

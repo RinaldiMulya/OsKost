@@ -4,6 +4,10 @@ import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { sendNotification } from "@/features/notifications/notification-service";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "report-service" });
 
 // ============================================
 // Zod Schemas untuk validasi
@@ -286,18 +290,18 @@ export const getActiveLeases = cache(
 // ============================================
 
 /**
- * Perbarui status laporan. Mengembalikan userId dari lease
- * agar bisa invalidate cache tenant yang bersangkutan.
+ * Perbarui status laporan dan kirim notifikasi ke tenant.
  */
 export async function updateReportStatus(
   id: string,
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED"
 ) {
-  return prisma.report.update({
+  const updatedReport = await prisma.report.update({
     where: { id },
     data: { status },
     select: {
       id: true,
+      title: true,
       status: true,
       lease: {
         select: {
@@ -306,6 +310,26 @@ export async function updateReportStatus(
       },
     },
   });
+
+  if (updatedReport?.lease?.userId) {
+    const statusLabels: Record<string, string> = {
+      OPEN: "Terbuka",
+      IN_PROGRESS: "Sedang Diproses",
+      RESOLVED: "Selesai",
+    };
+
+    const statusText = statusLabels[status] || status;
+
+    await sendNotification({
+      userId: updatedReport.lease.userId,
+      title: "Status Laporan Diperbarui",
+      message: `Laporan '${updatedReport.title}' Anda telah diubah statusnya menjadi ${statusText}.`,
+      type: "MAINTENANCE",
+      url: "/dashboard/reports",
+    }).catch((err: unknown) => log.error({ err }, "Gagal kirim notifikasi laporan ke tenant"));
+  }
+
+  return updatedReport;
 }
 
 /**
@@ -351,10 +375,10 @@ export async function updateReportPhoto(reportId: string, photoUrl: string) {
 }
 
 /**
- * Hapus laporan beserta fotonya dari database (hard delete).
+ * Hapus laporan beserta fotonya dari database (safe delete, no crash if missing).
  */
 export async function deleteReport(reportId: string) {
-  return prisma.report.delete({
+  return prisma.report.deleteMany({
     where: { id: reportId },
   });
 }

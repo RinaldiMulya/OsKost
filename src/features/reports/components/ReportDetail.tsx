@@ -77,26 +77,28 @@ export function ReportDetail({
   isUpdating,
 }: ReportDetailProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 min-w-0 w-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1 min-w-0">
-          <h3 className="text-lg font-bold text-white leading-tight truncate">
+      <div className="flex items-start justify-between gap-3 min-w-0 w-full">
+        <div className="space-y-1 min-w-0 flex-1">
+          <h3 className="text-lg font-bold text-white leading-tight break-words">
             {report.title}
           </h3>
           <p className="text-xs text-zinc-500">
             ID: #{report.id.slice(-8).toUpperCase()}
           </p>
         </div>
-        <StatusBadge status={report.status} />
+        <div className="shrink-0">
+          <StatusBadge status={report.status} />
+        </div>
       </div>
 
       {/* Deskripsi */}
-      <div className="space-y-1.5">
+      <div className="space-y-1.5 min-w-0 w-full">
         <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
           Deskripsi Masalah
         </h4>
-        <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line bg-zinc-900/50 rounded-lg p-3 border border-zinc-800">
+        <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line break-words bg-zinc-900/50 rounded-lg p-3 border border-zinc-800">
           {report.description}
         </p>
       </div>

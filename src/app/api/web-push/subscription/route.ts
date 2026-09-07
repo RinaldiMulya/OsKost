@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "web-push-api" });
 
 const subscriptionSchema = z.object({
   endpoint: z.string().url(),
@@ -48,7 +51,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, subscription });
   } catch (error) {
-    console.error("Error saving push subscription:", error);
+    log.error({ err: error }, "Gagal menyimpan push subscription");
     return NextResponse.json(
       { error: "Failed to save subscription" },
       { status: 500 }
@@ -82,7 +85,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error deleting push subscription:", error);
+    log.error({ err: error }, "Gagal menghapus push subscription");
     return NextResponse.json(
       { error: "Failed to delete subscription" },
       { status: 500 }

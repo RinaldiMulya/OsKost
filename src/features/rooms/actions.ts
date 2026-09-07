@@ -3,6 +3,10 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "room-actions" });
 import {
     roomFormSchema,
     createRoom,
@@ -48,6 +52,11 @@ export async function createRoomAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         const raw = Object.fromEntries(formData);
         const parsed = roomFormSchema.safeParse(raw);
 
@@ -91,6 +100,11 @@ export async function updateRoomAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         const raw = Object.fromEntries(formData);
         const roomId = raw.id as string;
 
@@ -136,6 +150,11 @@ export async function deleteRoomAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         const roomId = formData.get("id") as string;
 
         if (!roomId) {
@@ -173,6 +192,11 @@ export async function addPanoramaAction(data: {
     storagePath: string;
 }) {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            throw new Error("Akses ditolak: Memerlukan hak akses Admin.");
+        }
+
         const { addPanoramaToRoom } = await import("./room-service");
         await addPanoramaToRoom(data);
 
@@ -187,13 +211,18 @@ export async function addPanoramaAction(data: {
 
         return { success: true };
     } catch (error) {
-        console.error("Error adding panorama:", error);
+        log.error({ err: error, roomId: data.roomId }, "Gagal menambah panorama");
         throw error;
     }
 }
 
 export async function deletePanoramaAction(panoramaId: string, roomId: string) {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            throw new Error("Akses ditolak: Memerlukan hak akses Admin.");
+        }
+
         const { deletePanoramaFromRoom } = await import("./room-service");
         await deletePanoramaFromRoom(panoramaId);
 
@@ -208,8 +237,52 @@ export async function deletePanoramaAction(panoramaId: string, roomId: string) {
 
         return { success: true };
     } catch (error) {
-        console.error("Error deleting panorama:", error);
+        log.error({ err: error, panoramaId, roomId }, "Gagal menghapus panorama");
         throw error;
     }
 }
+
+// ============================================
+// BULK UPDATE ROOM STATUS
+// ============================================
+
+export async function bulkUpdateRoomStatusAction(
+    roomIds: string[],
+    status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE"
+): Promise<ActionResult> {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
+        if (!roomIds || roomIds.length === 0) {
+            return { success: false, error: "Pilih minimal satu kamar." };
+        }
+
+        const { bulkUpdateRoomStatus } = await import("./room-service");
+        await bulkUpdateRoomStatus(roomIds, status);
+
+        revalidatePath("/admin/rooms");
+        revalidatePath("/"); // Landing page cache
+        updateTag(CACHE_TAGS.ROOMS_LANDING);
+        
+        // Invalidate specific room detail caches
+        for (const id of roomIds) {
+            updateTag(CACHE_TAGS.roomDetail(id));
+        }
+
+        updateTag(CACHE_TAGS.ADMIN_ROOMS);
+        updateTag(CACHE_TAGS.ADMIN_ROOM_STATS);
+        updateTag(CACHE_TAGS.DASHBOARD_STATS);
+
+        return { success: true };
+    } catch (error) {
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: "Terjadi kesalahan saat memperbarui status kamar." };
+    }
+}
+
 

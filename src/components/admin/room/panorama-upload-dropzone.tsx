@@ -10,6 +10,7 @@ import { Loader2, UploadCloud, X, CheckCircle } from "lucide-react";
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
 import { uploadImageToSupabase } from "@/lib/supabase/storage-client";
 import { addPanoramaAction } from "@/features/rooms/actions";
+import { compressImage } from "@/lib/utils/image-compression";
 import { useRouter } from "next/navigation";
 
 interface PanoramaUploadDropzoneProps {
@@ -91,10 +92,17 @@ export function PanoramaUploadDropzone({
     try {
       setUploadState("UPLOADING");
 
+      // Compress 360 panorama image client-side to webp (high quality)
+      const compressedFile = await compressImage(file, {
+        maxSizeMB: 3,
+        maxWidthOrHeight: 4096,
+        fileType: "image/webp",
+      });
+
       // 1. Upload file fisik ke Supabase Storage (Oskost-Data-Public)
       const folderPath = `panoramas/${userId}`;
       const { imageUrl, storagePath } = await uploadImageToSupabase(
-        file,
+        compressedFile,
         "Oskost-Data-Public",
         folderPath,
       );

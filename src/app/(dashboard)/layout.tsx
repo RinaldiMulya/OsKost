@@ -4,6 +4,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AdminSidebar } from "@/features/dashboard/admin-sidebar";
 import { AdminHeader } from "@/features/dashboard/admin-header";
+import { getUserNotifications } from "@/features/notifications/notification-service";
 
 export default async function DashboardLayout({
   children,
@@ -17,6 +18,8 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
+  const notifications = await getUserNotifications(session.user.id);
+
   return (
     <TooltipProvider>
       <SidebarProvider>
@@ -25,7 +28,7 @@ export default async function DashboardLayout({
 
           {/* Main content area */}
           <div className="flex flex-1 flex-col min-w-0 overflow-y-auto">
-            <AdminHeader />
+            <AdminHeader notifications={notifications} />
             <main className="flex-1 overflow-y-auto p-6">{children}</main>
           </div>
         </div>

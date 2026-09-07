@@ -3,6 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import {
     tenantFormSchema,
     checkInFormSchema,
@@ -13,6 +14,7 @@ import {
     resetTenantPassword,
     markInvoicePaid,
     rejectInvoicePayment,
+    sendBillingReminder,
 } from "./tenant-service";
 import { z } from "zod";
 
@@ -34,6 +36,11 @@ export async function createTenantAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         const raw = Object.fromEntries(formData);
         const parsed = checkInFormSchema.safeParse(raw);
 
@@ -97,6 +104,11 @@ export async function updateTenantAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         const raw = Object.fromEntries(formData);
         const userId = raw.id as string;
 
@@ -126,14 +138,15 @@ export async function updateTenantAction(
         });
 
         revalidatePath("/admin/tenants");
+        revalidatePath("/admin/rooms");
+        revalidatePath("/admin");
+        revalidatePath(`/admin/tenants/${userId}`);
         updateTag(CACHE_TAGS.ADMIN_TENANTS);
-        // Also invalidate the specific tenant detail cache
-        const tenantId = raw.id as string;
-        if (tenantId) {
-            updateTag(CACHE_TAGS.adminTenantDetail(tenantId));
-            // Invalidate PWA cache so tenant sees updated data
-            updateTag(CACHE_TAGS.tenantDashboard(tenantId));
-        }
+        updateTag(CACHE_TAGS.ADMIN_ROOMS);
+        updateTag(CACHE_TAGS.ADMIN_ROOM_STATS);
+        updateTag(CACHE_TAGS.DASHBOARD_STATS);
+        updateTag(CACHE_TAGS.adminTenantDetail(userId));
+        updateTag(CACHE_TAGS.tenantDashboard(userId));
     } catch (error) {
         if (error instanceof Error) {
             if (error.message.includes("Unique constraint")) {
@@ -159,6 +172,11 @@ export async function checkoutTenantAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         const userId = formData.get("id") as string;
 
         if (!userId) {
@@ -197,6 +215,11 @@ export async function resetTenantPasswordAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         const raw = Object.fromEntries(formData);
         const parsed = resetPasswordSchema.safeParse(raw);
 
@@ -224,20 +247,28 @@ export async function resetTenantPasswordAction(
 
 export async function markInvoicePaidAction(invoiceId: string): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         if (!invoiceId) {
             return { success: false, error: "Invoice ID is required" };
         }
 
-        await markInvoicePaid(invoiceId);
+        const result = await markInvoicePaid(invoiceId);
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
         updateTag(CACHE_TAGS.DASHBOARD_STATS);
         updateTag(CACHE_TAGS.ADMIN_TENANTS);
+        
         // Also invalidate tenant-specific caches
-        if (invoiceId) {
-            // We need to find the tenant userId from the invoice
-            // For now, invalidate all tenant invoice caches via admin tenants tag
+        const userId = result?.lease?.userId;
+        if (userId) {
+            revalidatePath("/dashboard");
+            updateTag(CACHE_TAGS.tenantDashboard(userId));
+            updateTag(CACHE_TAGS.tenantInvoices(userId));
         }
 
         return { success: true };
@@ -251,6 +282,11 @@ export async function markInvoicePaidAction(invoiceId: string): Promise<ActionRe
 
 export async function rejectInvoicePaymentAction(invoiceId: string, reason: string): Promise<ActionResult> {
     try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
         if (!invoiceId) {
             return { success: false, error: "Invoice ID is required" };
         }
@@ -258,12 +294,20 @@ export async function rejectInvoicePaymentAction(invoiceId: string, reason: stri
             return { success: false, error: "Alasan penolakan wajib diisi" };
         }
 
-        await rejectInvoicePayment(invoiceId, reason);
+        const result = await rejectInvoicePayment(invoiceId, reason);
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
         updateTag(CACHE_TAGS.DASHBOARD_STATS);
         updateTag(CACHE_TAGS.ADMIN_TENANTS);
+
+        // Also invalidate tenant-specific caches
+        const userId = result?.lease?.userId;
+        if (userId) {
+            revalidatePath("/dashboard");
+            updateTag(CACHE_TAGS.tenantDashboard(userId));
+            updateTag(CACHE_TAGS.tenantInvoices(userId));
+        }
 
         return { success: true };
     } catch (error) {
@@ -271,5 +315,34 @@ export async function rejectInvoicePaymentAction(invoiceId: string, reason: stri
             return { success: false, error: error.message };
         }
         return { success: false, error: "Terjadi kesalahan saat menolak pembayaran." };
+    }
+}
+
+// ============================================
+// BILLING REMINDER (Kirim Tagihan ke Tenant)
+// ============================================
+
+export async function sendBillingReminderAction(userId: string): Promise<ActionResult & { tenantName?: string }> {
+    try {
+        const session = await auth();
+        if (!session?.user || session.user.role !== "ADMIN") {
+            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+        }
+
+        if (!userId) {
+            return { success: false, error: "User ID is required" };
+        }
+
+        const result = await sendBillingReminder(userId);
+
+        return {
+            success: true,
+            tenantName: result.tenantName,
+        };
+    } catch (error) {
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return { success: false, error: "Terjadi kesalahan saat mengirim reminder tagihan." };
     }
 }

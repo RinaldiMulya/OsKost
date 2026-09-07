@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { markInvoicePaidAction } from "../actions";
+import { markInvoicePaidAction, sendBillingReminderAction } from "../actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import { Eye } from "lucide-react";
@@ -56,6 +56,7 @@ interface TenantRowProps {
 export function TenantRow({ tenant }: TenantRowProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [loadingInvoiceId, setLoadingInvoiceId] = useState<string | null>(null);
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
 
   const name = tenant.tenantProfile?.fullName ?? "—";
   const initials = name
@@ -150,10 +151,17 @@ export function TenantRow({ tenant }: TenantRowProps) {
     }
   }
 
-  function handleSendReminder() {
-    toast.success(
-      `Reminder pembayaran berhasil dikirim ke ${name} (WhatsApp)!`,
-    );
+  async function handleSendReminder() {
+    setIsSendingReminder(true);
+    const result = await sendBillingReminderAction(tenant.id);
+    setIsSendingReminder(false);
+    if (result.success) {
+      toast.success(
+        `Reminder tagihan berhasil dikirim ke ${result.tenantName ?? name}!`,
+      );
+    } else {
+      toast.error(result.error ?? "Gagal mengirim reminder tagihan.");
+    }
   }
 
   return (
@@ -340,9 +348,15 @@ export function TenantRow({ tenant }: TenantRowProps) {
                       variant="outline"
                       size="sm"
                       onClick={handleSendReminder}
+                      disabled={isSendingReminder}
                       className="h-8 border-amber-500/20 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 bg-transparent text-xs w-full gap-1"
                     >
-                      <Bell className="size-3.5" /> Kirim Tagihan
+                      {isSendingReminder ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Bell className="size-3.5" />
+                      )}
+                      {isSendingReminder ? "Mengirim..." : "Kirim Tagihan"}
                     </Button>
                   )}
                 </div>

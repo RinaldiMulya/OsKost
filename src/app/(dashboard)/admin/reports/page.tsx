@@ -290,7 +290,7 @@ export default function AdminReportsPage() {
 
       {/* Dialog: Tambah Laporan Baru */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="border-zinc-800 bg-zinc-950 text-white max-w-md sm:max-w-lg rounded-2xl p-6">
+        <DialogContent className="border-zinc-800 bg-zinc-950 text-white sm:max-w-md md:max-w-lg rounded-2xl p-6">
           <DialogHeader className="text-left space-y-1">
             <DialogTitle className="text-lg font-bold text-white">
               Tambah Laporan Baru
@@ -309,7 +309,7 @@ export default function AdminReportsPage() {
 
       {/* Dialog: Detail Laporan */}
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="border-zinc-800 bg-zinc-950 text-white max-w-md sm:max-w-lg rounded-2xl p-6">
+        <DialogContent className="border-zinc-800 bg-zinc-950 text-white sm:max-w-md md:max-w-lg rounded-2xl p-6">
           <DialogHeader className="sr-only">
             <DialogTitle>Detail Laporan</DialogTitle>
             <DialogDescription>

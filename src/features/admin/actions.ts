@@ -104,3 +104,45 @@ export async function changePasswordAction(
         };
     }
 }
+
+// ============================================
+// UPDATE PROPERTY PROFILE
+// ============================================
+
+export async function updatePropertyProfileAction(
+    _prevState: ActionResult | null,
+    formData: FormData
+): Promise<ActionResult> {
+    try {
+        const id = formData.get("id") as string;
+        const name = formData.get("name") as string;
+        const address = formData.get("address") as string;
+
+        if (!id || !name || !address) {
+            return { success: false, error: "Semua data wajib diisi." };
+        }
+
+        const { updatePropertyProfile } = await import("./admin-service");
+        await updatePropertyProfile(id, name, address);
+
+        const { revalidatePath, updateTag } = await import("next/cache");
+        const { CACHE_TAGS } = await import("@/lib/cache-tags");
+
+        revalidatePath("/admin/settings");
+        revalidatePath("/"); // Landing page
+        updateTag(CACHE_TAGS.ROOMS_LANDING);
+        updateTag(CACHE_TAGS.ADMIN_ROOMS);
+        updateTag(CACHE_TAGS.DASHBOARD_STATS);
+
+        return { success: true, message: "Profil properti berhasil diperbarui." };
+    } catch (error) {
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return {
+            success: false,
+            error: "Terjadi kesalahan saat memperbarui profil properti.",
+        };
+    }
+}
+

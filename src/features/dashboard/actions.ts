@@ -2,6 +2,9 @@
 
 import { updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "dashboard-actions" });
 
 export async function syncAllCachesAction() {
     try {
@@ -15,7 +18,7 @@ export async function syncAllCachesAction() {
         // Return a success object that can be used by the client
         return { success: true };
     } catch (error) {
-        console.error("Failed to sync caches:", error);
+        log.error({ err: error }, "Gagal sinkronisasi cache");
         return { success: false, error: "Gagal mensinkronisasi data" };
     }
 }

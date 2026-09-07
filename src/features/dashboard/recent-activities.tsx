@@ -19,7 +19,13 @@ export function RecentActivities({ activities }: { activities: RecentActivity[] 
     }
 
     return (
-        <div className="space-y-6">
+        <div
+            className="max-h-[400px] overflow-y-auto space-y-6 pr-2"
+            style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "#3f3f46 transparent",
+            }}
+        >
             {activities.map((activity) => {
                 let Icon = Clock;
                 let iconColor = "text-zinc-500 bg-zinc-800/50";

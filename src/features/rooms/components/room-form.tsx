@@ -18,6 +18,7 @@ import type { RoomForAdmin } from "../room-service";
 import type { ActionResult } from "../actions";
 import { ImageUploadStandard } from "@/components/ui/image-upload-standard";
 import { PanoramaUploadDropzone } from "@/components/admin/room/panorama-upload-dropzone";
+import Image from "next/image";
 import { useState } from "react";
 
 interface RoomFormProps {
@@ -154,13 +155,13 @@ export function RoomForm({ room, action, submitLabel, userId }: RoomFormProps) {
                   name="status"
                   defaultValue={room?.status ?? "AVAILABLE"}
                 >
-                  <SelectTrigger id="status" className="rounded-sm w-1/2">
+                  <SelectTrigger id="status" className="rounded-xl w-1/2 bg-zinc-950/40 border-zinc-800 text-white">
                     <SelectValue placeholder="Pilih status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="AVAILABLE">Tersedia</SelectItem>
-                    <SelectItem value="OCCUPIED">Terisi</SelectItem>
-                    <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
+                  <SelectContent className="bg-zinc-950 border-zinc-800 text-white rounded-xl">
+                    <SelectItem value="AVAILABLE" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Tersedia</SelectItem>
+                    <SelectItem value="OCCUPIED" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Terisi</SelectItem>
+                    <SelectItem value="MAINTENANCE" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Maintenance</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -247,11 +248,11 @@ export function RoomForm({ room, action, submitLabel, userId }: RoomFormProps) {
 
               {images.length > 0 ? (
                 <div className="relative group rounded-md border border-zinc-800 overflow-hidden aspect-video max-w-md bg-black/50">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={images[0]}
                     alt="Room thumbnail"
-                    className="object-cover w-full h-full opacity-80"
+                    fill
+                    className="object-cover opacity-80"
                   />
                   <button
                     type="button"

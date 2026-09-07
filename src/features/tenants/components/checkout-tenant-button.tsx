@@ -55,7 +55,7 @@ export function CheckoutTenantButton({
           </Button>
         )}
       </AlertDialogTrigger>
-      <AlertDialogContent className="w-[800px] border-zinc-800 bg-zinc-900">
+      <AlertDialogContent className="w-[calc(100%-2rem)] max-w-2xl border-zinc-800 bg-zinc-900">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white">
             Check-out Penghuni &quot;{tenantName}&quot;?

@@ -24,6 +24,7 @@ import {
   FileWarning,
   Eye,
 } from "lucide-react";
+import { AdminDiscountDialog } from "@/features/payment";
 import {
   Table,
   TableBody,
@@ -40,7 +41,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { TenantDetailForAdmin } from "../../tenant-service";
-import { rejectInvoicePaymentAction } from "../../actions";
+import { rejectInvoicePaymentAction, sendBillingReminderAction } from "../../actions";
 
 interface TenantBillingTabProps {
   tenant: TenantDetailForAdmin;
@@ -51,6 +52,7 @@ export function TenantBillingTab({ tenant }: TenantBillingTabProps) {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
 
   // Ambil semua invoice dari lease aktif
   const activeLease = tenant.leases.find((l) => l.isActive);
@@ -123,8 +125,19 @@ export function TenantBillingTab({ tenant }: TenantBillingTabProps) {
     }
   }
 
-  function handleSendReminder() {
-    toast.success(`Reminder pembayaran berhasil dikirim ke WhatsApp!`);
+  async function handleSendReminder() {
+    setIsSendingReminder(true);
+    // Ambil userId dari tenant (user yang terhubung dengan lease)
+    const userId = tenant.id;
+    const result = await sendBillingReminderAction(userId);
+    setIsSendingReminder(false);
+    if (result.success) {
+      toast.success(
+        `Reminder tagihan berhasil dikirim ke ${result.tenantName ?? "penghuni"}!`,
+      );
+    } else {
+      toast.error(result.error ?? "Gagal mengirim reminder tagihan.");
+    }
   }
 
   return (
@@ -182,11 +195,28 @@ export function TenantBillingTab({ tenant }: TenantBillingTabProps) {
                           </span>
                         </div>
                       )}
+                      {invoice.discountAmount > 0 && (
+                        <div className="flex justify-between text-purple-400">
+                          <span>Diskon ({invoice.discountReason || "Promo"})</span>
+                          <span>-{formatRupiah(invoice.discountAmount)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-semibold pt-2 mt-2 border-t border-zinc-700/50 text-red-400">
                         <span>Total Tagihan</span>
                         <span>{formatRupiah(invoice.amount)}</span>
                       </div>
                     </div>
+
+                    {/* Admin Discount Controls */}
+                    {(invoice.status === "UNPAID" || invoice.status === "OVERDUE") && (
+                      <div className="mb-4">
+                        <AdminDiscountDialog
+                          invoiceId={invoice.id}
+                          currentDiscountAmount={invoice.discountAmount}
+                          currentDiscountReason={invoice.discountReason}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 mt-2 pt-4 border-t border-zinc-800">
@@ -222,7 +252,7 @@ export function TenantBillingTab({ tenant }: TenantBillingTabProps) {
                             <ImageIcon className="size-4" /> Lihat Bukti SS
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-md border-zinc-800 bg-zinc-950 p-0 overflow-hidden">
+                        <DialogContent className="border-zinc-800 bg-zinc-950 p-0 overflow-hidden sm:max-w-md">
                           <DialogHeader className="p-4 pb-0 bg-zinc-900 border-b border-zinc-800">
                             <DialogTitle className="text-zinc-100 flex items-center gap-2">
                               <Receipt className="size-4" /> Bukti Pembayaran
@@ -308,10 +338,16 @@ export function TenantBillingTab({ tenant }: TenantBillingTabProps) {
                     ) : (
                       <Button
                         onClick={handleSendReminder}
+                        disabled={isSendingReminder}
                         variant="outline"
                         className="flex-1 border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300 gap-2"
                       >
-                        <Bell className="size-4" /> Kirim Reminder
+                        {isSendingReminder ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <Bell className="size-4" />
+                        )}
+                        {isSendingReminder ? "Mengirim..." : "Kirim Reminder"}
                       </Button>
                     )}
                   </div>
@@ -410,7 +446,8 @@ export function TenantBillingTab({ tenant }: TenantBillingTabProps) {
                                 <Eye className="size-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-md border-zinc-800 bg-zinc-950 p-0 overflow-hidden">
+                            <DialogContent className="border-zinc-800 bg-zinc-950 p-0 overflow-hidden sm:max-w-md">
+                              <DialogTitle className="sr-only">Bukti Transfer</DialogTitle>
                               <div className="relative w-full aspect-[9/16] max-h-[70vh]">
                                 <Image
                                   src={invoice.proofUrl}

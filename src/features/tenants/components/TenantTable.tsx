@@ -106,16 +106,16 @@ export function TenantTable({ tenants }: TenantTableProps) {
             Filter Status:
           </span>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] bg-zinc-950 border-zinc-800 text-zinc-200 text-sm">
+            <SelectTrigger className="w-[180px] bg-zinc-950/40 border-zinc-800 text-white text-sm rounded-xl">
               <SelectValue placeholder="Pilih Status" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-200">
-              <SelectItem value="ACTIVE">Penghuni Aktif</SelectItem>
-              <SelectItem value="ALL">Semua Status</SelectItem>
-              <SelectItem value="PAID">Paid</SelectItem>
-              <SelectItem value="UNPAID">Unpaid</SelectItem>
-              <SelectItem value="WARNING">Hampir / Habis Kontrak</SelectItem>
-              <SelectItem value="CHECKED_OUT">Checked-out</SelectItem>
+            <SelectContent className="bg-zinc-950 border-zinc-800 text-white rounded-xl">
+              <SelectItem value="ACTIVE" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Penghuni Aktif</SelectItem>
+              <SelectItem value="ALL" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Semua Status</SelectItem>
+              <SelectItem value="PAID" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Paid</SelectItem>
+              <SelectItem value="UNPAID" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Unpaid</SelectItem>
+              <SelectItem value="WARNING" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Hampir / Habis Kontrak</SelectItem>
+              <SelectItem value="CHECKED_OUT" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Checked-out</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { getAllTenants } from "@/features/tenants/tenant-service";
 import { DashboardStats } from "@/features/tenants/components/DashboardStats";
 import { TenantTable } from "@/features/tenants/components/TenantTable";
+import { ExportTenantsButton } from "@/features/tenants/components/export-tenants-button";
+import { SendAnnouncementDialog } from "@/features/tenants/components/send-announcement-dialog";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -78,15 +80,19 @@ export default async function AdminTenantsPage() {
             digital.
           </p>
         </div>
-        <Button
-          asChild
-          className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700 transition-all hover:shadow-[0_4px_12px_rgba(16,185,129,0.15)] active:scale-95 text-lg font-semibold h-10 px-5"
-        >
-          <Link href="/admin/tenants/create">
-            <Plus className="size-6" />
-            Check-in Tenant
-          </Link>
-        </Button>
+        <div className="w-full flex items-center justify-end gap-2 flex-wrap">
+          <Button
+            asChild
+            className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700 transition-all hover:shadow-[0_4px_12px_rgba(16,185,129,0.15)] active:scale-95 text-lg font-semibold h-10 px-5"
+          >
+            <Link href="/admin/tenants/create">
+              <Plus className="size-6" />
+              Check-in Tenant
+            </Link>
+          </Button>
+          <SendAnnouncementDialog tenants={tenants} />
+          <ExportTenantsButton />
+        </div>
       </div>
 
       {/* Stats Bento Grid */}

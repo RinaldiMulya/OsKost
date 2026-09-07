@@ -91,9 +91,69 @@ export async function updateAdminPassword(
     }
 
     // Hash and save new password
-    const hashedPassword = await bcryptjs.hash(newPassword, 10);
+    const hashedPassword = await bcryptjs.hash(newPassword, 12);
     return prisma.user.update({
         where: { id: userId },
         data: { passwordHash: hashedPassword },
     });
 }
+
+// ============================================
+// PROPERTY PROFILE MANAGEMENT
+// ============================================
+
+export interface PropertyProfile {
+    id: string;
+    name: string;
+    address: string;
+}
+
+export async function getPropertyProfile(): Promise<PropertyProfile | null> {
+    const property = await prisma.property.findFirst({
+        select: {
+            id: true,
+            name: true,
+            address: true,
+        },
+    });
+    return property;
+}
+
+export async function updatePropertyProfile(
+    id: string,
+    name: string,
+    address: string
+) {
+    return prisma.property.update({
+        where: { id },
+        data: {
+            name,
+            address,
+        },
+    });
+}
+
+// ============================================
+// NOTIFICATION & SYSTEM STATS
+// ============================================
+
+export interface NotificationSystemStats {
+    totalSent: number;
+    totalUnread: number;
+    totalPushSubscriptions: number;
+}
+
+export async function getNotificationStats(): Promise<NotificationSystemStats> {
+    const [totalSent, totalUnread, totalPushSubscriptions] = await Promise.all([
+        prisma.notification.count(),
+        prisma.notification.count({ where: { isRead: false } }),
+        prisma.pushSubscription.count(),
+    ]);
+
+    return {
+        totalSent,
+        totalUnread,
+        totalPushSubscriptions,
+    };
+}
+

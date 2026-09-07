@@ -4,25 +4,61 @@ import {
     Receipt,
     AlertCircle,
     CheckCircle2,
-    Wrench,
     TrendingUp,
 } from "lucide-react";
-import { getDashboardStats, getRecentActivities, getExpiringLeases } from "@/features/dashboard/dashboard-service";
+import { Suspense } from "react";
+import {
+    getDashboardStats,
+    getRecentActivities,
+    getExpiringLeases,
+    getRevenueChartData,
+    getOccupancyChartData,
+    getPaymentStatusChartData,
+    getMaintenanceChartData,
+} from "@/features/dashboard/dashboard-service";
 import { StatCard } from "@/features/dashboard/stat-card";
 import { SyncButton } from "@/features/dashboard/sync-button";
 import { RecentActivities } from "@/features/dashboard/recent-activities";
 import { ExpiringLeases } from "@/features/dashboard/expiring-leases";
+import { ExportDashboardButton } from "@/features/dashboard/export-dashboard-button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Chart components (sudah "use client" — Next.js auto code-split di boundary ini)
+import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
+import { OccupancyChart } from "@/features/dashboard/components/occupancy-chart";
+import { PaymentStatusChart } from "@/features/dashboard/components/payment-status-chart";
+import { MaintenanceChart } from "@/features/dashboard/components/maintenance-chart";
+
+function ChartSkeleton() {
+    return (
+        <div className="flex items-center justify-center h-[280px] w-full">
+            <Skeleton className="h-[240px] w-full rounded-lg" />
+        </div>
+    );
+}
 
 export const metadata = {
     title: "Overview | Admin Smartkost",
 };
 
 export default async function AdminOverviewPage() {
-    // Fetch all data in parallel
-    const [stats, activities, expiringLeases] = await Promise.all([
+    // Fetch semua data secara paralel (termasuk chart data)
+    const [
+        stats,
+        activities,
+        expiringLeases,
+        revenueData,
+        occupancyData,
+        paymentStatusData,
+        maintenanceData,
+    ] = await Promise.all([
         getDashboardStats(),
         getRecentActivities(),
-        getExpiringLeases()
+        getExpiringLeases(),
+        getRevenueChartData(),
+        getOccupancyChartData(),
+        getPaymentStatusChartData(),
+        getMaintenanceChartData(),
     ]);
 
     return (
@@ -37,7 +73,10 @@ export default async function AdminOverviewPage() {
                         Berikut ringkasan kondisi kost Anda hari ini.
                     </p>
                 </div>
-                <SyncButton />
+                <div className="flex items-center gap-2">
+                    <ExportDashboardButton />
+                    <SyncButton />
+                </div>
             </div>
 
             {/* Stat Cards Grid */}
@@ -88,13 +127,82 @@ export default async function AdminOverviewPage() {
                 />
             </div>
 
+            {/* Charts Row 1 — Pendapatan & Okupansi */}
+            <div className="grid gap-4 lg:grid-cols-5">
+                {/* Pendapatan — lebih lebar (3/5) */}
+                <div className="lg:col-span-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
+                    <div className="mb-4">
+                        <h3 className="text-base font-semibold text-white">
+                            Tren Pendapatan
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                            6 bulan terakhir — invoice lunas
+                        </p>
+                    </div>
+                    <Suspense fallback={<ChartSkeleton />}>
+                        <RevenueChart data={revenueData} />
+                    </Suspense>
+                </div>
+
+                {/* Okupansi — lebih kecil (2/5) */}
+                <div className="lg:col-span-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
+                    <div className="mb-4">
+                        <h3 className="text-base font-semibold text-white">
+                            Okupansi Kamar
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                            Distribusi status kamar saat ini
+                        </p>
+                    </div>
+                    <Suspense fallback={<ChartSkeleton />}>
+                        <OccupancyChart data={occupancyData} />
+                    </Suspense>
+                </div>
+            </div>
+
+            {/* Charts Row 2 — Status Tagihan & Laporan Kerusakan */}
+            <div className="grid gap-4 lg:grid-cols-5">
+                {/* Status Tagihan — lebih kecil (2/5) */}
+                <div className="lg:col-span-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
+                    <div className="mb-4">
+                        <h3 className="text-base font-semibold text-white">
+                            Status Tagihan
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                            Bulan berjalan
+                        </p>
+                    </div>
+                    <Suspense fallback={<ChartSkeleton />}>
+                        <PaymentStatusChart data={paymentStatusData} />
+                    </Suspense>
+                </div>
+
+                {/* Laporan Kerusakan — lebih lebar (3/5) */}
+                <div className="lg:col-span-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
+                    <div className="mb-4">
+                        <h3 className="text-base font-semibold text-white">
+                            Tren Laporan Kerusakan
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">
+                            6 bulan terakhir — per status
+                        </p>
+                    </div>
+                    <Suspense fallback={<ChartSkeleton />}>
+                        <MaintenanceChart data={maintenanceData} />
+                    </Suspense>
+                </div>
+            </div>
+
             {/* Third Row — Widgets */}
             <div className="grid gap-4 lg:grid-cols-2">
                 {/* Aktivitas Terbaru */}
                 <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 flex flex-col h-full">
-                    <h3 className="text-base font-semibold text-white mb-6">
-                        Aktivitas Terbaru
-                    </h3>
+                    <div className="mb-6">
+                        <h3 className="text-base font-semibold text-white">
+                            Aktivitas Terbaru
+                        </h3>
+                        <p className="text-xs text-zinc-500 mt-0.5">3 hari terakhir</p>
+                    </div>
                     <div className="flex-1">
                         <RecentActivities activities={activities} />
                     </div>

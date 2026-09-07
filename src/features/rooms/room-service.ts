@@ -316,6 +316,26 @@ export async function deleteRoom(id: string) {
 }
 
 // ============================================
+// BULK UPDATE STATUS
+// ============================================
+
+export async function bulkUpdateRoomStatus(ids: string[], status: RoomStatus) {
+    if (!ids || ids.length === 0) return;
+
+    return prisma.room.updateMany({
+        where: {
+            id: {
+                in: ids,
+            },
+        },
+        data: {
+            status,
+        },
+    });
+}
+
+
+// ============================================
 // PANORAMA 360° ACTIONS
 // ============================================
 

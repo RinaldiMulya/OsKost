@@ -333,7 +333,7 @@ export function TenantForm({
                 💡 **Akun & Invoice**: Mendaftarkan tenant akan secara otomatis
                 membuat akun login dengan **password default:**{" "}
                 <code className="rounded bg-blue-500/10 px-1.5 font-mono text-zinc-200">
-                  oskost123
+                  oskost + 4 digit terakhir No. HP (misal: oskost7890)
                 </code>{" "}
                 dan melampirkan invoice tagihan **belum lunas** pertamanya di
                 sistem.

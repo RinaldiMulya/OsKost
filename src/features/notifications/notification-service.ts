@@ -4,6 +4,9 @@ import { unstable_cache, updateTag } from "next/cache";
 import { prisma } from "@/lib/db";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import webpush from "web-push";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "notification-service" });
 
 // Setup VAPID details if env vars are present
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
@@ -18,8 +21,24 @@ export interface NotificationPayload {
   userId: string;
   title: string;
   message: string;
-  type?: "BILLING" | "MAINTENANCE" | "SYSTEM" | "INFO";
+  type?: "BILLING" | "MAINTENANCE" | "SYSTEM" | "INFO" | "ANNOUNCEMENT";
   url?: string;
+}
+
+// ============================================
+// CLEANUP - Expired Announcements (> 3 days)
+// ============================================
+
+export async function deleteExpiredAnnouncements() {
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+  return prisma.notification.deleteMany({
+    where: {
+      type: "ANNOUNCEMENT",
+      createdAt: { lt: threeDaysAgo },
+    },
+  });
 }
 
 // ============================================
@@ -29,8 +48,17 @@ export interface NotificationPayload {
 export const getUserNotifications = cache(async (userId: string) => {
   return unstable_cache(
     async () => {
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
       return prisma.notification.findMany({
-        where: { userId },
+        where: {
+          userId,
+          NOT: {
+            type: "ANNOUNCEMENT",
+            createdAt: { lt: threeDaysAgo },
+          },
+        },
         orderBy: { createdAt: "desc" },
         take: 30, // Get last 30 notifications
       });
@@ -77,6 +105,11 @@ export async function markAllNotificationsAsRead(userId: string) {
 export async function sendNotification(payload: NotificationPayload) {
   const { userId, title, message, type = "INFO", url = "/dashboard" } = payload;
 
+  // 0. Bersihkan pengumuman kadaluarsa (> 3 hari) secara pasif jika ada
+  if (type === "ANNOUNCEMENT") {
+    deleteExpiredAnnouncements().catch(() => {});
+  }
+
   // 1. Create In-App Notification record in DB
   const notification = await prisma.notification.create({
     data: {
@@ -120,12 +153,12 @@ export async function sendNotification(payload: NotificationPayload) {
         } catch (error: any) {
           // If subscription has expired or is invalid (404/410), delete it from DB
           if (error.statusCode === 404 || error.statusCode === 410) {
-            console.log(`Deleting stale push subscription: ${sub.endpoint}`);
+            log.info({ endpoint: sub.endpoint }, "Menghapus push subscription kadaluarsa");
             await prisma.pushSubscription.delete({
               where: { id: sub.id },
             }).catch(() => {});
           } else {
-            console.error(`Failed to send web push to ${sub.endpoint}:`, error);
+            log.error({ err: error, endpoint: sub.endpoint }, "Gagal mengirim web push");
           }
         }
       });

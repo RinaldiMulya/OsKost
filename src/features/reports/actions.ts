@@ -1,8 +1,9 @@
 "use server";
 
 import { auth } from "@/auth";
-import { updateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { prisma } from "@/lib/db";
 import {
   adminReportFormSchema,
   updateReportStatusSchema,
@@ -26,6 +27,26 @@ async function requireAdmin() {
     throw new Error("Akses ditolak: hanya Admin yang diizinkan");
   }
   return session;
+}
+
+/**
+ * Helper untuk memusnahkan seluruh cache laporan (Admin & Tenant)
+ */
+function invalidateAllReportCaches(userId?: string, reportId?: string) {
+  updateTag(CACHE_TAGS.REPORTS_ALL);
+  updateTag(CACHE_TAGS.REPORTS_BY_STATUS("OPEN"));
+  updateTag(CACHE_TAGS.REPORTS_BY_STATUS("IN_PROGRESS"));
+  updateTag(CACHE_TAGS.REPORTS_BY_STATUS("RESOLVED"));
+  updateTag(CACHE_TAGS.DASHBOARD_STATS);
+  if (reportId) {
+    updateTag(CACHE_TAGS.REPORT_BY_ID(reportId));
+  }
+  if (userId) {
+    updateTag(CACHE_TAGS.tenantReports(userId));
+  }
+  revalidatePath("/admin/reports");
+  revalidatePath("/admin");
+  revalidatePath("/dashboard/reports");
 }
 
 // ============================================
@@ -116,13 +137,8 @@ export async function updateReportStatusAction(
 
     const updatedReport = await updateReportStatus(parsed.data.id, parsed.data.status);
 
-    // Invalidate cache
-    updateTag(CACHE_TAGS.REPORTS_ALL);
-    updateTag(CACHE_TAGS.REPORTS_BY_STATUS(parsed.data.status));
-    updateTag(CACHE_TAGS.REPORT_BY_ID(parsed.data.id));
-    updateTag(CACHE_TAGS.DASHBOARD_STATS);
-    // Invalidate cache tenant terkait agar perubahan status terlihat di PWA
-    updateTag(CACHE_TAGS.tenantReports(updatedReport.lease.userId));
+    // Invalidate cache secara menyeluruh
+    invalidateAllReportCaches(updatedReport.lease.userId, parsed.data.id);
 
     return {
       success: true as const,
@@ -164,7 +180,7 @@ export async function createAdminReportAction(
       };
     }
 
-    await createAdminReport({
+    const newReport = await createAdminReport({
       title: parsed.data.title,
       description: parsed.data.description,
       photoUrl: parsed.data.photoUrl || undefined,
@@ -173,8 +189,7 @@ export async function createAdminReportAction(
     });
 
     // Invalidate cache
-    updateTag(CACHE_TAGS.REPORTS_ALL);
-    updateTag(CACHE_TAGS.DASHBOARD_STATS);
+    invalidateAllReportCaches(undefined, newReport.id);
 
     return {
       success: true as const,
@@ -207,8 +222,7 @@ export async function updateReportPhotoAction(
     await updateReportPhoto(reportId, photoUrl);
 
     // Invalidate cache
-    updateTag(CACHE_TAGS.REPORT_BY_ID(reportId));
-    updateTag(CACHE_TAGS.REPORTS_ALL);
+    invalidateAllReportCaches(undefined, reportId);
 
     return {
       success: true as const,
@@ -224,24 +238,39 @@ export async function updateReportPhotoAction(
 }
 
 /**
- * Hapus laporan.
+ * Hapus laporan (dengan pengecekan DB langsung untuk menghindari error jika sudah terhapus di DB).
  */
 export async function deleteReportAction(reportId: string) {
   try {
     await requireAdmin();
     
-    // Check if report exists and get lease info for tenant cache invalidation
-    const report = await getReportById(reportId);
-    if (!report) {
-      return { success: false as const, error: "Laporan tidak ditemukan" };
+    // Cek langsung ke database (tanpa cache) untuk mendapatkan info lease/user
+    const existingReport = await prisma.report.findUnique({
+      where: { id: reportId },
+      select: {
+        id: true,
+        lease: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!existingReport) {
+      // Jika data sudah tidak ada di DB (misal terhapus sebelumnya),
+      // tetap bersihkan cache agar UI otomatis ter-update dan tidak menampilkan data hantu.
+      invalidateAllReportCaches(undefined, reportId);
+      return {
+        success: true as const,
+        message: "Laporan sudah tidak ada di database dan telah dibersihkan dari tampilan",
+      };
     }
 
     await deleteReport(reportId);
 
-    // Invalidate cache
-    updateTag(CACHE_TAGS.REPORTS_ALL);
-    updateTag(CACHE_TAGS.DASHBOARD_STATS);
-    updateTag(CACHE_TAGS.tenantReports(report.lease.user.id));
+    // Invalidate cache seluruhnya
+    invalidateAllReportCaches(existingReport.lease.userId, reportId);
 
     return {
       success: true as const,

@@ -1,22 +1,12 @@
 import Link from "next/link";
 import { Plus, Pencil, BedDouble, Key, Wrench, Lock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   getRoomsForAdmin,
   getAdminRoomStats,
 } from "@/features/rooms/room-service";
-import { DeleteRoomButton } from "@/features/rooms/components/delete-room-button";
 import { RoomsFilterHeader } from "@/features/rooms/components/rooms-filter-header";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { RoomsTable } from "@/features/rooms/components/rooms-table";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -182,128 +172,14 @@ export default async function AdminRoomsPage({ searchParams }: PageProps) {
         />
       </div>
 
-      {/* Table Card Container */}
-      <div className="rounded-2xl border border-zinc-800/85 bg-zinc-950/40 backdrop-blur-md shadow-xl relative">
-        {/* Custom scrollbar for horizontal overflow */}
-        <div className="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700 transition-all pb-2">
-          <Table className="min-w-[700px] border-collapse">
-            <TableHeader>
-              <TableRow className="border-zinc-800 hover:bg-transparent bg-zinc-900/30">
-                <TableHead className="text-zinc-400 pl-6 h-12 sticky left-0 z-20 bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800/50 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
-                  No. Kamar
-                </TableHead>
-                <TableHead className="text-zinc-400 h-12">Tipe</TableHead>
-                <TableHead className="text-zinc-400 h-12">
-                  Harga Bulanan
-                </TableHead>
-                <TableHead className="text-zinc-400 h-12">Status</TableHead>
-                <TableHead className="text-zinc-400 h-12 hidden md:table-cell">
-                  Fasilitas
-                </TableHead>
-                <TableHead className="text-zinc-400 text-right pr-6 h-12">
-                  Aksi
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rooms.length === 0 ? (
-                <TableRow className="border-zinc-800/60">
-                  <TableCell
-                    colSpan={6}
-                    className="h-44 text-center text-muted-foreground"
-                  >
-                    <div className="flex flex-col items-center justify-center gap-2 py-8">
-                      <p className="text-base font-semibold text-zinc-300">
-                        Tidak ada kamar ditemukan
-                      </p>
-                      <p className="text-sm text-zinc-500">
-                        Coba ubah kata kunci pencarian atau filter Anda.
-                      </p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rooms.map((room) => {
-                  const statusInfo = statusStyles[room.status];
-                  return (
-                    <TableRow
-                      key={room.id}
-                      className="border-zinc-800/60 hover:bg-zinc-900/40 transition-colors group relative"
-                    >
-                      <TableCell className="font-mono font-bold text-white pl-6 relative py-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800/50 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] group-hover:bg-zinc-900/90 transition-colors">
-                        {/* Interactive hover row-indicator strip */}
-                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-transparent group-hover:bg-primary transition-all duration-300" />
-                        {room.number}
-                      </TableCell>
-                      <TableCell className="text-white py-4 font-medium">
-                        {room.name}
-                      </TableCell>
-                      <TableCell className="text-white py-4">
-                        {formatCurrency(room.price)}
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <Badge
-                          variant="outline"
-                          className={statusInfo?.className}
-                        >
-                          {statusInfo?.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[240px] py-4 hidden md:table-cell">
-                        <div className="flex flex-wrap gap-1.5">
-                          {room.facilities.slice(0, 3).map((f, i) => (
-                            <Badge
-                              key={i}
-                              variant="outline"
-                              className="text-[10px] font-medium border-zinc-800 text-zinc-400 bg-zinc-900/40 rounded-md px-1.5 py-0.5"
-                            >
-                              {f}
-                            </Badge>
-                          ))}
-                          {room.facilities.length > 3 && (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] font-medium border-zinc-800 text-zinc-500 bg-zinc-900/10 rounded-md px-1.5 py-0.5"
-                            >
-                              +{room.facilities.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right pr-6 py-4">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            asChild
-                            className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800/60 rounded-lg transition-all"
-                          >
-                            <Link href={`/admin/rooms/${room.id}/edit`}>
-                              <Pencil className="size-4" />
-                            </Link>
-                          </Button>
-                          <DeleteRoomButton
-                            roomId={room.id}
-                            roomNumber={room.number}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Pagination */}
-        <PaginationControls
-          currentPage={page}
-          totalPages={totalPages}
-          totalCount={totalCount}
-          limit={limit}
-        />
-      </div>
+      {/* Rooms Table Component with Bulk Status Update */}
+      <RoomsTable
+        rooms={rooms}
+        page={page}
+        limit={limit}
+        totalCount={totalCount}
+        totalPages={totalPages}
+      />
     </div>
   );
 }
