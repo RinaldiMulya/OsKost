@@ -4,6 +4,9 @@ import bcryptjs from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { authConfig } from "./auth.config";
+import logger from "@/lib/logger";
+
+const log = logger.child({ module: "auth" });
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
@@ -39,7 +42,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                     }
                 }
 
-                console.log("Invalid credentials");
+                log.warn({ identifier: credentials?.identifier }, "Login gagal: kredensial tidak valid");
                 return null;
             },
         }),

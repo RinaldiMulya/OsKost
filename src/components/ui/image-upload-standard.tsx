@@ -10,6 +10,7 @@ import {
   CompressionOptions,
 } from "@/lib/utils/image-compression";
 import { uploadImageToSupabase } from "@/lib/supabase/storage-client";
+import Image from "next/image";
 
 interface ImageUploadStandardProps {
   bucket?: string;
@@ -91,11 +92,11 @@ export function ImageUploadStandard({
 
       {previewUrl ? (
         <div className="relative w-40 h-40 rounded-lg border overflow-hidden group">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={previewUrl}
             alt="Preview"
-            className="object-cover w-full h-full"
+            fill
+            className="object-cover"
           />
           {!isUploading && (
             <button

@@ -1,83 +1,203 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, useCallback } from "react";
 import { authenticate } from "./actions";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { AlertCircle, LockKeyhole, ArrowRight, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  AlertCircle,
+  Check,
+  ShieldCheck,
+} from "lucide-react";
+import Link from "next/link";
+
+// Konten kontekstual berdasarkan role — hanya cosmetic
+const roleContent = {
+  admin: {
+    eyebrow: "Akses Pemilik / Admin",
+    title: "Selamat Datang Kembali",
+    sub: "Masuk untuk mengelola kamar, tagihan, dan laporan kost Anda.",
+    idLabel: "Email atau No. HP",
+    idPlaceholder: "admin@oskost.com / 08123...",
+    btn: "Masuk ke Dashboard",
+  },
+  tenant: {
+    eyebrow: "Akses Penghuni Kost",
+    title: "Selamat Datang!",
+    sub: "Masuk untuk cek tagihan, riwayat bayar, dan lapor kerusakan kamar.",
+    idLabel: "No. HP atau Email",
+    idPlaceholder: "08123... / nama@email.com",
+    btn: "Masuk ke Akun Saya",
+  },
+} as const;
+
+type Role = keyof typeof roleContent;
 
 export function LoginForm() {
-    // useActionState per React 19 / Next.js 15
-    const [errorMessage, formAction, isPending] = useActionState(
-        authenticate,
-        undefined
-    );
-    const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, formAction, isPending] = useActionState(
+    authenticate,
+    undefined
+  );
+  const [showPassword, setShowPassword] = useState(false);
+  const [role, setRole] = useState<Role>("admin");
+  const [rememberMe, setRememberMe] = useState(false);
 
-    return (
-        <Card className="border-zinc-800 bg-zinc-950/80 shadow-2xl backdrop-blur-xl">
-            <CardHeader className="space-y-1 pb-6 text-center">
-                <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-secondary/10">
-                    <LockKeyhole className="h-6 w-6 text-secondary" />
-                </div>
-                <CardTitle className="text-2xl font-bold tracking-tight text-white">
-                    Masuk ke Sistem
-                </CardTitle>
-                <CardDescription className="text-zinc-400">
-                    Gunakan kredensial Anda untuk mengakses panel manajemen.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <form action={formAction} className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="identifier" className="text-zinc-300 mb-3">Email atau No. HP</Label>
-                        <Input
-                            id="identifier"
-                            name="identifier"
-                            type="text"
-                            placeholder="admin@oskost.com / 081234..."
-                            required
-                            className="bg-zinc-900 border-zinc-700 text-white placeholder:text-zinc-600 focus-visible:ring-secondary"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="password" className="text-zinc-300 mb-3">Password</Label>
-                        <Input
-                            id="password"
-                            name="password"
-                            type={showPassword ? "text" : "password"}
-                            required
-                            className="bg-zinc-900 border-zinc-700 text-white focus-visible:ring-secondary"
-                        />
-                        <Button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-10 bottom-20.5 -translate-y-1/2"
-                        >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                    </div>
+  const content = roleContent[role];
 
-                    {errorMessage && (
-                        <div className="flex items-center gap-2 rounded-lg bg-red-500/10 p-3 text-sm text-red-400 border border-red-500/20">
-                            <AlertCircle className="h-4 w-4 shrink-0" />
-                            <p>{errorMessage}</p>
-                        </div>
-                    )}
+  const handleRoleSwitch = useCallback((newRole: Role) => {
+    setRole(newRole);
+  }, []);
 
-                    <Button
-                        type="submit"
-                        disabled={isPending}
-                        className="w-full bg-secondary text-black hover:bg-secondary/90 font-bold transition-all mt-4"
-                    >
-                        {isPending ? "MEMPROSES..." : "MASUK"}
-                        {!isPending && <ArrowRight className="ml-2 h-4 w-4" />}
-                    </Button>
-                </form>
-            </CardContent>
-        </Card>
-    );
+  return (
+    <>
+      {/* Status chip — pojok kanan atas panel form */}
+      <div className="login-status-chip">
+        <span className="login-status-dot" />
+        SISTEM AKTIF
+      </div>
+
+      <div className="login-card">
+        {/* === Role Switch === */}
+        <div className="login-role-switch">
+          <motion.div
+            className="login-role-indicator"
+            animate={{ left: role === "admin" ? 4 : "calc(50%)" }}
+            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          />
+          <button
+            type="button"
+            className={`login-role-btn ${role === "admin" ? "active" : ""}`}
+            onClick={() => handleRoleSwitch("admin")}
+            aria-selected={role === "admin"}
+          >
+            Admin
+          </button>
+          <button
+            type="button"
+            className={`login-role-btn ${role === "tenant" ? "active" : ""}`}
+            onClick={() => handleRoleSwitch("tenant")}
+            aria-selected={role === "tenant"}
+          >
+            Penghuni Kost
+          </button>
+        </div>
+
+        {/* === Eyebrow + Title + Subtitle === */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={role}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18 }}
+          >
+            <div className="login-eyebrow">{content.eyebrow}</div>
+            <h1 className="login-title">{content.title}</h1>
+            <p className="login-subtitle">{content.sub}</p>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* === Form === */}
+        <form action={formAction} autoComplete="off">
+          {/* Identity field */}
+          <div className="login-field">
+            <label htmlFor="identifier" className="login-field-label">
+              {content.idLabel}
+            </label>
+            <div className="login-input-group">
+              <Mail size={18} className="login-input-icon" />
+              <input
+                id="identifier"
+                name="identifier"
+                type="text"
+                placeholder={content.idPlaceholder}
+                required
+                autoComplete="username"
+              />
+            </div>
+          </div>
+
+          {/* Password field */}
+          <div className="login-field">
+            <div className="login-label-row">
+              <label htmlFor="password" className="login-field-label">
+                Kata Sandi
+              </label>
+              <Link href="/forgot-password" className="login-forgot-link">
+                Lupa kata sandi?
+              </Link>
+            </div>
+            <div className="login-input-group">
+              <Lock size={18} className="login-input-icon" />
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Masukkan kata sandi"
+                required
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                className="login-toggle-eye"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={
+                  showPassword
+                    ? "Sembunyikan kata sandi"
+                    : "Tampilkan kata sandi"
+                }
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          {/* Remember me */}
+          <div
+            className="login-remember-row"
+            onClick={() => setRememberMe(!rememberMe)}
+          >
+            <div className={`login-checkbox ${rememberMe ? "checked" : ""}`}>
+              <Check size={11} strokeWidth={3} />
+            </div>
+            <span>Ingat saya di perangkat ini</span>
+          </div>
+
+          {/* Error message */}
+          {errorMessage && (
+            <div className="login-error">
+              <AlertCircle size={16} className="shrink-0" />
+              <p>{errorMessage}</p>
+            </div>
+          )}
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            className="login-btn-submit"
+            disabled={isPending}
+          >
+            {isPending ? (
+              <div className="login-spinner" />
+            ) : (
+              <>
+                <span>{content.btn}</span>
+                <ArrowRight size={16} />
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* Trust line */}
+        <p className="login-trust-line">
+          <ShieldCheck size={13} />
+          Koneksi aman &amp; data terenkripsi
+        </p>
+      </div>
+    </>
+  );
 }
