@@ -7,12 +7,12 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-    const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
+    const connectionString = process.env.DATABASE_URL || process.env.DIRECT_URL;
 
     // Strip pgbouncer query params if any
     const cleanUrl = connectionString?.split("?")[0];
 
-    const pool = new Pool({ connectionString: cleanUrl, max: 10 });
+    const pool = new Pool({ connectionString: cleanUrl, max: 1 });
     const adapter = new PrismaPg(pool);
 
     return new PrismaClient({
