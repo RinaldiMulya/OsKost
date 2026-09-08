@@ -449,3 +449,110 @@ export async function reconcilePendingInvoices() {
 
   return { checked: pendingInvoices.length, reconciled };
 }
+
+// ============================================
+// Cron: Generate invoice bulanan
+// ============================================
+
+/**
+ * Generate invoice bulanan untuk semua lease aktif.
+ * Idempoten via externalId = INV-{leaseId}-{YYYY-MM}.
+ * Backfill otomatis: jika ada bulan terlewat, dibuat sekaligus.
+ */
+export async function generateMonthlyInvoices() {
+  const now = new Date();
+  const toPeriod = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const addMonths = (d: Date, m: number) => {
+    const nd = new Date(d);
+    nd.setMonth(nd.getMonth() + m);
+    return nd;
+  };
+
+  const leases = await prisma.lease.findMany({
+    where: { isActive: true },
+    include: {
+      room: { select: { price: true } },
+      invoices: {
+        select: { id: true, externalId: true, dueDate: true, rentAmount: true, utilityAmount: true, otherAmount: true, amount: true },
+      },
+    },
+  });
+
+  let created = 0;
+  let skipped = 0;
+  let backfilled = 0;
+
+  for (const lease of leases) {
+    const start = new Date(lease.startDate);
+    const end = lease.endDate ? new Date(lease.endDate) : now;
+    const effectiveEnd = end < now ? end : now;
+
+    const lastInv = lease.invoices[lease.invoices.length - 1];
+    const rentAmt = lastInv?.rentAmount ?? lease.room.price ?? 0;
+    const utilAmt = lastInv?.utilityAmount ?? 0;
+    const otherAmt = lastInv?.otherAmount ?? 0;
+    const totalAmount = lastInv?.amount ?? rentAmt + utilAmt + otherAmt;
+
+    const existingIds = new Set(lease.invoices.map((i) => i.externalId).filter(Boolean) as string[]);
+    // Map periode YYYY-MM -> invoice (untuk backfill externalId null)
+    const periodToInvoice = new Map<string, (typeof lease.invoices)[number]>();
+    for (const inv of lease.invoices) {
+      const p = toPeriod(new Date(inv.dueDate));
+      if (!periodToInvoice.has(p)) periodToInvoice.set(p, inv);
+      if (inv.externalId) existingIds.add(inv.externalId);
+    }
+
+    let idx = 0;
+    let cur = new Date(start);
+    while (cur <= effectiveEnd) {
+      const period = toPeriod(cur);
+      const externalId = `INV-${lease.id}-${period}`;
+      const existingByPeriod = periodToInvoice.get(period);
+
+      if (existingByPeriod && !existingByPeriod.externalId) {
+        // Backfill externalId untuk invoice lama yang belum punya
+        try {
+          await prisma.invoice.update({
+            where: { id: existingByPeriod.id },
+            data: { externalId },
+          });
+          backfilled++;
+          existingIds.add(externalId);
+          periodToInvoice.set(period, { ...existingByPeriod, externalId });
+          log.info({ leaseId: lease.id, period, externalId }, "Backfill externalId invoice lama");
+        } catch (e: unknown) {
+          log.error({ err: e, leaseId: lease.id, period }, "Gagal backfill externalId");
+        }
+      } else if (!existingIds.has(externalId) && !existingByPeriod) {
+        try {
+          await prisma.invoice.create({
+            data: {
+              leaseId: lease.id,
+              dueDate: new Date(cur),
+              amount: totalAmount,
+              rentAmount: rentAmt,
+              utilityAmount: utilAmt,
+              otherAmount: otherAmt,
+              status: "UNPAID",
+              externalId,
+            },
+          });
+          created++;
+          existingIds.add(externalId);
+          log.info({ leaseId: lease.id, period, externalId }, "Invoice bulanan dibuat");
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : String(e);
+          if (msg.includes("Unique") || msg.includes("unique")) skipped++;
+          else log.error({ err: e, leaseId: lease.id, period }, "Gagal buat invoice bulanan");
+        }
+      } else {
+        skipped++;
+      }
+      idx++;
+      cur = addMonths(start, idx);
+      if (idx > 36) break;
+    }
+  }
+
+  return { checked: leases.length, created, skipped, backfilled };
+}

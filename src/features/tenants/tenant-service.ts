@@ -374,23 +374,70 @@ export async function createTenant(data: {
             data: { status: "OCCUPIED" },
         });
 
-        // 4. Generate Initial Invoice automatically
+        // 4. Generate Monthly Invoices — loop per bulan dari startDate sampai endDate
+        // ponytail: generate all upfront jika endDate bounded (max 36 bulan), else 1 invoice + cron handle bulan berikutnya
         const rentAmt = data.rentAmount;
         const utilAmt = data.utilityAmount || 0;
         const otherAmt = data.otherAmount || 0;
         const totalAmount = rentAmt + utilAmt + otherAmt;
 
-        await tx.invoice.create({
-            data: {
+        const addMonths = (d: Date, m: number) => {
+            const nd = new Date(d);
+            nd.setMonth(nd.getMonth() + m);
+            return nd;
+        };
+        const toPeriod = (d: Date) =>
+            `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+        const start = new Date(data.startDate);
+        const end = data.endDate ? new Date(data.endDate) : null;
+        const invoicesToCreate: {
+            leaseId: string;
+            dueDate: Date;
+            amount: number;
+            rentAmount: number;
+            utilityAmount: number;
+            otherAmount: number;
+            status: "UNPAID";
+            externalId: string;
+        }[] = [];
+
+        if (end) {
+            let idx = 0;
+            let cur = new Date(start);
+            while (cur <= end) {
+                const period = toPeriod(cur);
+                invoicesToCreate.push({
+                    leaseId: lease.id,
+                    dueDate: new Date(cur),
+                    amount: totalAmount,
+                    rentAmount: rentAmt,
+                    utilityAmount: utilAmt,
+                    otherAmount: otherAmt,
+                    status: "UNPAID",
+                    externalId: `INV-${lease.id}-${period}`,
+                });
+                idx++;
+                cur = addMonths(start, idx);
+                if (idx > 36) break; // safety cap 3 tahun
+            }
+        } else {
+            const period = toPeriod(start);
+            invoicesToCreate.push({
                 leaseId: lease.id,
-                dueDate: data.startDate,
+                dueDate: new Date(start),
                 amount: totalAmount,
                 rentAmount: rentAmt,
                 utilityAmount: utilAmt,
                 otherAmount: otherAmt,
                 status: "UNPAID",
-            },
-        });
+                externalId: `INV-${lease.id}-${period}`,
+            });
+        }
+
+        for (const inv of invoicesToCreate) {
+            await tx.invoice.create({ data: inv });
+        }
 
         return user;
     });
@@ -459,13 +506,10 @@ export async function updateTenant(
                     select: { id: true, price: true },
                 });
 
-                // Update lease dengan roomId baru & rentAmount kamar baru
+                // Update lease dengan roomId baru
                 await tx.lease.update({
                     where: { id: activeLease.id },
-                    data: {
-                        roomId: data.roomId,
-                        ...(newRoom?.price ? { rentAmount: newRoom.price } : {}),
-                    },
+                    data: { roomId: data.roomId },
                 });
 
                 // Update status kamar lama menjadi AVAILABLE (jika tidak ada lease lain)

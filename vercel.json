@@ -4,6 +4,14 @@
     {
       "path": "/api/cron/cleanup-reports",
       "schedule": "0 0 1,15 * *"
+    },
+    {
+      "path": "/api/cron/generate-invoices",
+      "schedule": "0 2 1 * *"
+    },
+    {
+      "path": "/api/cron/reconcile-invoices",
+      "schedule": "0 3 * * *"
     }
   ]
 }
