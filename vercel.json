@@ -1,8 +1,9 @@
 {
-    "crons": [
-      {
-        "path": "/api/cron/cleanup-reports",
-        "schedule": "0 0 1,15 * *"
-      }
-    ]
-  }
+  "buildCommand": "prisma generate && next build",
+  "crons": [
+    {
+      "path": "/api/cron/cleanup-reports",
+      "schedule": "0 0 1,15 * *"
+    }
+  ]
+}
