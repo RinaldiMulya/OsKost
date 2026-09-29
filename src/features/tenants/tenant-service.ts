@@ -357,21 +357,23 @@ export async function createTenant(data: {
             });
         }
 
-        // 2. Create Lease
+        // 2. Fetch Room to get propertyId and update Room status
+        const targetRoom = await tx.room.update({
+            where: { id: data.roomId },
+            data: { status: "OCCUPIED" },
+            select: { id: true, propertyId: true },
+        });
+
+        // 3. Create Lease with propertyId
         const lease = await tx.lease.create({
             data: {
                 userId: user.id,
                 roomId: data.roomId,
+                propertyId: targetRoom.propertyId,
                 startDate: data.startDate,
                 endDate: data.endDate || null,
                 isActive: true,
             },
-        });
-
-        // 3. Update Room status to OCCUPIED
-        await tx.room.update({
-            where: { id: data.roomId },
-            data: { status: "OCCUPIED" },
         });
 
         // 4. Generate Monthly Invoices — loop per bulan dari startDate sampai endDate
@@ -393,6 +395,7 @@ export async function createTenant(data: {
         const end = data.endDate ? new Date(data.endDate) : null;
         const invoicesToCreate: {
             leaseId: string;
+            propertyId: string;
             dueDate: Date;
             amount: number;
             rentAmount: number;
@@ -409,6 +412,7 @@ export async function createTenant(data: {
                 const period = toPeriod(cur);
                 invoicesToCreate.push({
                     leaseId: lease.id,
+                    propertyId: targetRoom.propertyId,
                     dueDate: new Date(cur),
                     amount: totalAmount,
                     rentAmount: rentAmt,
@@ -425,6 +429,7 @@ export async function createTenant(data: {
             const period = toPeriod(start);
             invoicesToCreate.push({
                 leaseId: lease.id,
+                propertyId: targetRoom.propertyId,
                 dueDate: new Date(start),
                 amount: totalAmount,
                 rentAmount: rentAmt,

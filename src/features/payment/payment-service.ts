@@ -471,9 +471,9 @@ export async function generateMonthlyInvoices() {
   const leases = await prisma.lease.findMany({
     where: { isActive: true },
     include: {
-      room: { select: { price: true } },
+      room: { select: { price: true, propertyId: true } },
       invoices: {
-        select: { id: true, externalId: true, dueDate: true, rentAmount: true, utilityAmount: true, otherAmount: true, amount: true },
+        select: { id: true, externalId: true, propertyId: true, dueDate: true, rentAmount: true, utilityAmount: true, otherAmount: true, amount: true },
       },
     },
   });
@@ -486,6 +486,8 @@ export async function generateMonthlyInvoices() {
     const start = new Date(lease.startDate);
     const end = lease.endDate ? new Date(lease.endDate) : now;
     const effectiveEnd = end < now ? end : now;
+
+    const targetPropertyId = lease.propertyId || lease.room.propertyId;
 
     const lastInv = lease.invoices[lease.invoices.length - 1];
     const rentAmt = lastInv?.rentAmount ?? lease.room.price ?? 0;
@@ -509,25 +511,29 @@ export async function generateMonthlyInvoices() {
       const externalId = `INV-${lease.id}-${period}`;
       const existingByPeriod = periodToInvoice.get(period);
 
-      if (existingByPeriod && !existingByPeriod.externalId) {
-        // Backfill externalId untuk invoice lama yang belum punya
+      if (existingByPeriod && (!existingByPeriod.externalId || !existingByPeriod.propertyId)) {
+        // Backfill externalId dan propertyId untuk invoice lama yang belum punya
         try {
           await prisma.invoice.update({
             where: { id: existingByPeriod.id },
-            data: { externalId },
+            data: {
+              ...(existingByPeriod.externalId ? {} : { externalId }),
+              propertyId: targetPropertyId,
+            },
           });
           backfilled++;
           existingIds.add(externalId);
-          periodToInvoice.set(period, { ...existingByPeriod, externalId });
-          log.info({ leaseId: lease.id, period, externalId }, "Backfill externalId invoice lama");
+          periodToInvoice.set(period, { ...existingByPeriod, externalId, propertyId: targetPropertyId });
+          log.info({ leaseId: lease.id, period, externalId, propertyId: targetPropertyId }, "Backfill externalId/propertyId invoice lama");
         } catch (e: unknown) {
-          log.error({ err: e, leaseId: lease.id, period }, "Gagal backfill externalId");
+          log.error({ err: e, leaseId: lease.id, period }, "Gagal backfill externalId/propertyId");
         }
       } else if (!existingIds.has(externalId) && !existingByPeriod) {
         try {
           await prisma.invoice.create({
             data: {
               leaseId: lease.id,
+              propertyId: targetPropertyId,
               dueDate: new Date(cur),
               amount: totalAmount,
               rentAmount: rentAmt,
@@ -539,7 +545,7 @@ export async function generateMonthlyInvoices() {
           });
           created++;
           existingIds.add(externalId);
-          log.info({ leaseId: lease.id, period, externalId }, "Invoice bulanan dibuat");
+          log.info({ leaseId: lease.id, period, externalId, propertyId: targetPropertyId }, "Invoice bulanan dibuat");
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : String(e);
           if (msg.includes("Unique") || msg.includes("unique")) skipped++;
