@@ -33,6 +33,34 @@ OsKost adalah aplikasi manajemen kost berbasis web dengan Admin Dashboard dan PW
 
 Buka [http://localhost:3000](http://localhost:3000) di browser untuk melihat hasilnya.
 
+## 🏗️ Alur Arsitektur Sistem (Data Flow Architecture)
+
+Platform OsKost menggunakan **1 Database PostgreSQL Prisma (Single Source of Truth)** yang melayani 2 akses utama:
+
+```
+                          ┌────────────────────────────────────────┐
+                          │     DATABASE (PostgreSQL Prisma)       │
+                          │   (Multi-Tenant Isolation propertyId)  │
+                          └───────────┬────────────────┬───────────┘
+                                      │                │
+                                      ▼                ▼
+                   ┌──────────────────────┐        ┌──────────────────────┐
+                   │ NEXT.JS SERVER SRV   │        │ STANDALONE REST API  │
+                   │ (Direct DB Query)    │        │     (/api/v1/*)      │
+                   └──────────┬───────────┘        └──────────┬───────────┘
+                              │                               │
+                              ▼                               ▼
+                   ┌──────────────────────┐        ┌──────────────────────┐
+                   │ WEB ADMIN DASHBOARD  │        │ FLUTTER MOBILE APP   │
+                   │ & LANDING PAGE       │        │  (Android / iOS /    │
+                   │ (app.oskost.id)      │        │   Mobile PWA Tenant) │
+                   └──────────────────────┘        └──────────────────────┘
+```
+
+1. **Web Admin Dashboard & Landing Page**: Membaca/menulis data secara langsung ke database melalui **Server Components & Server Services (`src/features/*/*-service.ts`)** tanpa beban latensi HTTP internal.
+2. **Flutter Mobile App**: Membaca/menulis data menggunakan HTTP Bearer JWT ke **Centralized REST API (`/api/v1/*`)**.
+3. **Dokumentasi Lengkap API v1**: Lihat spesifikasi API di [`d:\Local-Project\Docs\API_DOCUMENTATION_V1.md`](file:///d:/Local-Project/Docs/API_DOCUMENTATION_V1.md).
+
 ## 🤖 Panduan Penggunaan AI Agent
 
 Proyek ini sangat disarankan untuk dikembangkan (diteruskan) menggunakan bantuan AI Agent (seperti **Gemini** atau AI Agent lain yang mendukung sistem Rules/Skills).
@@ -48,5 +76,6 @@ Untuk menjaga konsistensi arsitektur dan standar kualitas kode, semua AI Agent y
 - **`AGENTS.md`** / **`GEMINI.md`**: Berisi aturan spesifik untuk arsitektur, konvensi penamaan, dan pembagian *Feature-Sliced Design* dari proyek ini. (File ini tidak di-commit ke repositori utama, harap konfigurasikan Agent Anda agar menyertakan file rules tersebut secara lokal).
 - **`milestone.md`**: Digunakan untuk memonitor progres kerja. Setiap Agent **wajib** memperbarui file ini setelah menyelesaikan sebuah task.
 - **`Docs/Decisions/AI-Decisions.md`**: Digunakan sebagai log/catatan semua keputusan teknis dan arsitektural yang diambil oleh AI selama proses *development*.
+- **`Docs/API_DOCUMENTATION_V1.md`**: Referensi standar spesifikasi REST API v1.
 
 Dengan mematuhi rules di atas, AI Agent dapat menghasilkan kode yang rapi, terstruktur, dan terintegrasi baik dengan keseluruhan sistem OsKost.
