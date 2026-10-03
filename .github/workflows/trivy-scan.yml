@@ -1,0 +1,25 @@
+name: Trivy Security Scan
+
+on:
+  push:
+    branches: ["main"] # Sesuaikan dengan nama branch utama kamu (main/master)
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  scan:
+    name: Trivy Vulnerability Scanner
+    runs-on: ubuntu-latest # Ini server GitHub, tidak ada hubungannya dengan OS lokal kamu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          ignore-unfixed: true
+          format: "table"
+          exit-code: "1"
+          severity: "CRITICAL,HIGH"

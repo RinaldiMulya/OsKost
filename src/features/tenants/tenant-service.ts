@@ -235,13 +235,14 @@ export async function getSignedKtpUrl(ktpPhotoUrl: string): Promise<string | nul
         const supabase = await createSupabaseServer();
         const { data, error } = await supabase.storage
             .from(bucketName)
-            .createSignedUrl(storagePath, 300); // 5 menit
+            .createSignedUrl(storagePath, 60); // 60 detik (UU PDP Security Best Practice)
 
         if (error || !data?.signedUrl) {
             log.error({ err: error }, "Gagal generate signed URL KTP");
             return null;
         }
 
+        log.info({ storagePath }, "[AUDIT_LOG_UU_PDP] Akses dokumen KTP privat (signed URL 60s) berhasil dibuat untuk Admin");
         return data.signedUrl;
     } catch (error) {
         log.error({ err: error }, "Error saat generate signed URL KTP");

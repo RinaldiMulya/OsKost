@@ -11,7 +11,7 @@ const createReportSchema = z.object({
     category: z.string().default("Kamar Mandi"),
     location: z.string().max(100).optional().nullable(),
     preferredTime: z.string().max(50).optional().nullable(),
-    photos: z.array(z.string().url()).max(3, "Maksimal 3 foto pendukung").default([]),
+    photos: z.array(z.string()).max(3, "Maksimal 3 foto pendukung").default([]),
 });
 
 export async function GET(req: NextRequest) {

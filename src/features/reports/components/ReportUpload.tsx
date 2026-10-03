@@ -1,19 +1,17 @@
 "use client";
 
-import { useState } from "react";
-import { ImageUploadStandard } from "@/components/ui/image-upload-standard";
+import { ImageUploadCloudinary } from "@/components/ui/image-upload-cloudinary";
 
 interface ReportUploadProps {
   onUploadComplete: (url: string, storagePath: string) => void;
-  userId: string; // For folder path, e.g., reports/{userId}
+  userId: string; // Folder prefix
 }
 
 export function ReportUpload({ onUploadComplete, userId }: ReportUploadProps) {
   return (
-    <ImageUploadStandard
-      bucket="Oskost-Data-Public"
-      folderPath={`reports/${userId}`}
-      onUploadComplete={onUploadComplete}
+    <ImageUploadCloudinary
+      folder={`oskost/reports/${userId}`}
+      onUploadComplete={(url, publicId) => onUploadComplete(url, publicId)}
       label=""
       className="w-full"
     />

@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Save, Trash2, X } from "lucide-react";
 import type { RoomForAdmin } from "../room-service";
 import type { ActionResult } from "../actions";
-import { ImageUploadStandard } from "@/components/ui/image-upload-standard";
+import { ImageUploadCloudinary } from "@/components/ui/image-upload-cloudinary";
 import { PanoramaUploadDropzone } from "@/components/admin/room/panorama-upload-dropzone";
 import Image from "next/image";
 import { useState } from "react";
@@ -264,9 +264,8 @@ export function RoomForm({ room, action, submitLabel, userId }: RoomFormProps) {
                   </button>
                 </div>
               ) : (
-                <ImageUploadStandard
-                  bucket="Oskost-Data-Public"
-                  folderPath="rooms/standard"
+                <ImageUploadCloudinary
+                  folder="oskost/rooms"
                   onUploadComplete={handleStandardUpload}
                   label="Upload Gambar Thumbnail"
                   compressionOptions={{

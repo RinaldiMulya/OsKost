@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Plus, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
-import { ImageUploadStandard } from "@/components/ui/image-upload-standard";
+import { ImageUploadCloudinary } from "@/components/ui/image-upload-cloudinary";
 import { submitMaintenanceReportAction } from "../actions";
 import { toast } from "sonner";
 
@@ -100,9 +100,8 @@ export function ReportDialogForm({ userId }: ReportDialogFormProps) {
 
           <div className="space-y-1.5">
             <Label className="text-xs text-zinc-300">Foto Kerusakan (Opsional)</Label>
-            <ImageUploadStandard
-              bucket="Oskost-Data-Public"
-              folderPath={`reports/${userId}`}
+            <ImageUploadCloudinary
+              folder={`oskost/reports/${userId}`}
               onUploadComplete={handleUploadComplete}
               label=""
               className="w-full"
