@@ -56,6 +56,61 @@ export async function GET(req: NextRequest) {
             prisma.invoice.count({ where: whereClause }),
         ]);
 
+        let accumulation = null;
+        if (authUser.role === "TENANT") {
+            const unpaidInvoices = await prisma.invoice.findMany({
+                where: {
+                    lease: { userId: authUser.id },
+                    status: { in: [PaymentStatus.UNPAID, PaymentStatus.OVERDUE] },
+                },
+                orderBy: { dueDate: "asc" },
+            });
+
+            if (unpaidInvoices.length > 0) {
+                const totalRentAmount = unpaidInvoices.reduce((acc, curr) => acc + (curr.rentAmount || 0), 0);
+                const totalUtilityAmount = unpaidInvoices.reduce((acc, curr) => acc + (curr.utilityAmount || 0), 0);
+                const totalOtherAmount = unpaidInvoices.reduce((acc, curr) => acc + (curr.otherAmount || 0), 0);
+                const totalAdminFee = unpaidInvoices.reduce((acc, curr) => acc + (curr.tenantAdminFee || 0), 0);
+                const totalDiscountAmount = unpaidInvoices.reduce((acc, curr) => acc + (curr.discountAmount || 0), 0);
+                const totalUnpaidAmount = unpaidInvoices.reduce(
+                    (acc, curr) => acc + (curr.amount > 0 ? curr.amount : (curr.rentAmount + curr.utilityAmount + curr.otherAmount)),
+                    0
+                );
+
+                const periods = unpaidInvoices.map((inv) =>
+                    new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(inv.dueDate))
+                );
+
+                accumulation = {
+                    unpaidCount: unpaidInvoices.length,
+                    totalUnpaidAmount,
+                    totalRentAmount,
+                    totalUtilityAmount,
+                    totalOtherAmount,
+                    totalAdminFee,
+                    totalDiscountAmount,
+                    periods,
+                    periodsSummary: periods.length > 1 ? `${periods[0]} - ${periods[periods.length - 1]}` : periods[0],
+                    unpaidInvoiceIds: unpaidInvoices.map((inv) => inv.id),
+                    oldestDueDate: unpaidInvoices[0]?.dueDate,
+                };
+            } else {
+                accumulation = {
+                    unpaidCount: 0,
+                    totalUnpaidAmount: 0,
+                    totalRentAmount: 0,
+                    totalUtilityAmount: 0,
+                    totalOtherAmount: 0,
+                    totalAdminFee: 0,
+                    totalDiscountAmount: 0,
+                    periods: [],
+                    periodsSummary: "",
+                    unpaidInvoiceIds: [],
+                    oldestDueDate: null,
+                };
+            }
+        }
+
         return apiSuccess(
             invoices.map((inv) => ({
                 id: inv.id,
@@ -84,6 +139,7 @@ export async function GET(req: NextRequest) {
                 total,
                 limit,
                 offset,
+                accumulation,
             }
         );
     } catch (error) {

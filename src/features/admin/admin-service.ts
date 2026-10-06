@@ -106,6 +106,7 @@ export interface PropertyProfile {
     id: string;
     name: string;
     address: string;
+    features?: Record<string, unknown> | null;
 }
 
 export async function getPropertyProfile(): Promise<PropertyProfile | null> {
@@ -114,21 +115,24 @@ export async function getPropertyProfile(): Promise<PropertyProfile | null> {
             id: true,
             name: true,
             address: true,
+            features: true,
         },
     });
-    return property;
+    return property as PropertyProfile | null;
 }
 
 export async function updatePropertyProfile(
     id: string,
     name: string,
-    address: string
+    address: string,
+    features?: Record<string, unknown>
 ) {
     return prisma.property.update({
         where: { id },
         data: {
             name,
             address,
+            ...(features !== undefined ? { features: features as object } : {}),
         },
     });
 }

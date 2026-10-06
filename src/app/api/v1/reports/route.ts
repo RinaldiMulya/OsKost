@@ -1,8 +1,10 @@
 import { NextRequest } from "next/server";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { getAuthenticatedUser } from "@/lib/api-auth";
+import { CACHE_TAGS } from "@/lib/cache-tags";
 import { ReportStatus } from "@prisma/client";
 
 const createReportSchema = z.object({
@@ -145,6 +147,19 @@ export async function POST(req: NextRequest) {
                 propertyId: activeLease.propertyId,
             },
         });
+
+        // Invalidate Next.js cache so Admin & Tenant dashboards update immediately
+        try {
+            updateTag(CACHE_TAGS.REPORTS_ALL);
+            updateTag(CACHE_TAGS.REPORTS_BY_STATUS("OPEN"));
+            updateTag(CACHE_TAGS.DASHBOARD_STATS);
+            updateTag(CACHE_TAGS.tenantReports(authUser.id));
+            revalidatePath("/admin/reports");
+            revalidatePath("/admin");
+            revalidatePath("/dashboard/reports");
+        } catch (cacheErr) {
+            console.warn("[CACHE_INVALIDATION_WARN]", cacheErr);
+        }
 
         return apiSuccess(
             {

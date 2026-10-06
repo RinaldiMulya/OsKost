@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { getAuthenticatedUser } from "@/lib/api-auth";
-import { createMidtransTransaction } from "@/features/payment/payment-service";
+import { createMidtransTransaction, createAccumulatedMidtransTransaction } from "@/features/payment/payment-service";
 
 interface RouteParams {
     params: Promise<{ id: string }>;
@@ -11,6 +11,7 @@ interface RouteParams {
 
 const snapSchema = z.object({
     paymentMethodCode: z.string().default("QRIS"),
+    payAllUnpaid: z.boolean().default(false),
 });
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
@@ -26,6 +27,22 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
         if (!parsed.success) {
             return apiError("VALIDATION_ERROR", "Data pembayaran tidak valid", 400);
+        }
+
+        // Jika diminta bayar seluruh akumulasi tunggakan atau ID adalah 'accumulated'
+        if (invoiceId === "accumulated" || parsed.data.payAllUnpaid) {
+            const transaction = await createAccumulatedMidtransTransaction(
+                authUser.id,
+                parsed.data.paymentMethodCode
+            );
+            return apiSuccess({
+                snapToken: transaction.snapToken,
+                paymentUrl: transaction.paymentUrl,
+                orderId: transaction.orderId,
+                isAccumulated: true,
+                invoicesCount: transaction.invoicesCount,
+                grossAmount: transaction.grossAmount,
+            });
         }
 
         const invoice = await prisma.invoice.findUnique({

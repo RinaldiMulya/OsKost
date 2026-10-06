@@ -15,6 +15,7 @@ interface SettingsTabsProps {
     id: string;
     name: string;
     address: string;
+    features?: Record<string, unknown> | null;
   } | null;
   notificationStats: {
     totalSent: number;

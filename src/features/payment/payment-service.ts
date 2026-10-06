@@ -562,3 +562,195 @@ export async function generateMonthlyInvoices() {
 
   return { checked: leases.length, created, skipped, backfilled };
 }
+
+/**
+ * Membuat transaksi pembayaran Midtrans untuk seluruh tagihan akumulasi yang belum lunas.
+ */
+export async function createAccumulatedMidtransTransaction(
+  userId: string,
+  paymentMethodCode: string = "QRIS"
+) {
+  // 1. Ambil seluruh invoice UNPAID / OVERDUE dari tenant
+  const invoices = await prisma.invoice.findMany({
+    where: {
+      lease: { userId },
+      status: { in: ["UNPAID", "OVERDUE"] },
+    },
+    include: {
+      lease: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              phoneNumber: true,
+              tenantProfile: { select: { fullName: true } },
+            },
+          },
+          room: { select: { number: true } },
+        },
+      },
+    },
+    orderBy: { dueDate: "asc" },
+  });
+
+  if (invoices.length === 0) {
+    throw new Error("Tidak ada tagihan tertunggak yang perlu dibayar.");
+  }
+
+  // Cek apakah sudah ada transaksi aktif (PENDING) dengan token aktif di semua invoice
+  const pendingInvoices = invoices.filter(
+    (inv) => inv.status === "PENDING" && inv.snapToken && inv.provider === "MIDTRANS"
+  );
+  if (pendingInvoices.length > 0 && pendingInvoices[0].snapToken) {
+    const existingToken = pendingInvoices[0].snapToken;
+    log.info({ userId, count: invoices.length }, "Mengembalikan transaksi akumulasi PENDING yang sudah ada");
+    return {
+      snapToken: existingToken,
+      paymentUrl: pendingInvoices[0].paymentUrl,
+      invoiceIds: invoices.map((inv) => inv.id),
+      isAccumulated: true,
+      invoicesCount: invoices.length,
+    };
+  }
+
+  // 2. Ambil metode pembayaran
+  let paymentMethod = await prisma.paymentMethod.findUnique({
+    where: { methodCode: paymentMethodCode },
+  });
+
+  if (!paymentMethod || !paymentMethod.isActive) {
+    paymentMethod = await prisma.paymentMethod.findFirst({
+      where: { isActive: true },
+    });
+  }
+
+  // 3. Hitung akumulasi
+  const totalRent = invoices.reduce((sum, inv) => sum + inv.rentAmount, 0);
+  const totalUtility = invoices.reduce((sum, inv) => sum + inv.utilityAmount, 0);
+  const totalOther = invoices.reduce((sum, inv) => sum + inv.otherAmount, 0);
+  const totalDiscounts = invoices.reduce((sum, inv) => sum + (inv.discountAmount || 0), 0);
+  const baseAmount = totalRent + totalUtility + totalOther;
+
+  let totalAdminFee = 0;
+  let tenantAdminFee = 0;
+  let ownerAdminFee = 0;
+
+  if (paymentMethod) {
+    if (paymentMethod.feeType === "FLAT") {
+      totalAdminFee = paymentMethod.feeAmount;
+    } else if (paymentMethod.feeType === "PERCENTAGE") {
+      totalAdminFee = Math.ceil((baseAmount * paymentMethod.feeAmount) / 10000);
+    }
+    tenantAdminFee = Math.ceil((totalAdminFee * paymentMethod.tenantFeePercentage) / 100);
+    ownerAdminFee = totalAdminFee - tenantAdminFee;
+  }
+
+  const grossAmount = Math.max(0, baseAmount + tenantAdminFee - totalDiscounts);
+  if (grossAmount <= 0) {
+    throw new Error("Total tagihan setelah diskon tidak valid (Rp 0 atau negatif).");
+  }
+
+  const firstInvoice = invoices[0];
+  const lastInvoice = invoices[invoices.length - 1];
+  const firstPeriod = new Date(firstInvoice.dueDate).toISOString().slice(0, 7);
+  const lastPeriod = new Date(lastInvoice.dueDate).toISOString().slice(0, 7);
+  const externalId = `INV-ACCUM-${firstInvoice.leaseId}-${firstPeriod}_${lastPeriod}`;
+  const midtransOrderId = `${externalId}-${Date.now().toString(36)}`;
+
+  const tenant = firstInvoice.lease.user;
+  const tenantName = tenant.tenantProfile?.fullName || "Penghuni";
+  const roomNumber = firstInvoice.lease.room.number;
+
+  const itemDetails = invoices.map((inv) => {
+    const periodLabel = new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric" }).format(new Date(inv.dueDate));
+    const subtotal = inv.rentAmount + inv.utilityAmount + inv.otherAmount;
+    return {
+      id: `INV_${inv.id.slice(0, 10)}`,
+      price: subtotal,
+      quantity: 1,
+      name: `Sewa Kmr ${roomNumber} (${periodLabel})`.slice(0, 50),
+    };
+  });
+
+  if (tenantAdminFee > 0) {
+    itemDetails.push({
+      id: "ADMIN_FEE",
+      price: tenantAdminFee,
+      quantity: 1,
+      name: "Biaya Layanan",
+    });
+  }
+
+  if (totalDiscounts > 0) {
+    itemDetails.push({
+      id: "DISKON",
+      price: -totalDiscounts,
+      quantity: 1,
+      name: "Total Potongan",
+    });
+  }
+
+  const midtransPayload = {
+    transaction_details: {
+      order_id: midtransOrderId,
+      gross_amount: grossAmount,
+    },
+    customer_details: {
+      first_name: tenantName,
+      email: tenant.email || undefined,
+      phone: tenant.phoneNumber || undefined,
+    },
+    item_details: itemDetails,
+  };
+
+  log.info(
+    { userId, count: invoices.length, midtransOrderId, grossAmount, paymentMethodCode },
+    "Membuat transaksi akumulasi Midtrans"
+  );
+
+  const res = await fetch(`${MIDTRANS_BASE_URL}/snap/v1/transactions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: getMidtransAuthHeader(),
+    },
+    body: JSON.stringify(midtransPayload),
+  });
+
+  if (!res.ok) {
+    const errBody = await res.text();
+    log.error({ status: res.status, body: errBody, externalId }, "Midtrans API error");
+    throw new Error("Gagal membuat transaksi pembayaran Midtrans.");
+  }
+
+  const { token, redirect_url } = await res.json();
+
+  // Simpan snapToken dan midtransOrderId ke seluruh invoice yang tertunggak
+  await prisma.$transaction(
+    invoices.map((inv) =>
+      prisma.invoice.update({
+        where: { id: inv.id },
+        data: {
+          providerRef: midtransOrderId,
+          status: "PENDING",
+          provider: "MIDTRANS",
+          snapToken: token,
+          paymentUrl: redirect_url,
+          paymentMethod: paymentMethod?.methodCode || paymentMethodCode,
+        },
+      })
+    )
+  );
+
+  return {
+    snapToken: token,
+    paymentUrl: redirect_url,
+    orderId: midtransOrderId,
+    invoiceIds: invoices.map((inv) => inv.id),
+    isAccumulated: true,
+    invoicesCount: invoices.length,
+    grossAmount,
+  };
+}
+

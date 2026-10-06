@@ -75,6 +75,7 @@ export async function GET(req: NextRequest) {
                                 managerPhone: activeLease.property.managerPhone,
                                 guardPhone: activeLease.property.guardPhone,
                                 emergencyPhone: activeLease.property.emergencyPhone,
+                                features: (activeLease.property.features as Record<string, unknown> | null) ?? { hasTechnician: true },
                             }
                           : null,
                   }

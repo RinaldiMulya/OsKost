@@ -103,18 +103,49 @@ export function ReportDetail({
         </p>
       </div>
 
-      {/* Foto */}
-      {report.photoUrl && (
+      {/* Kategori, Lokasi & Waktu Kunjungan */}
+      {(report.category || report.location || report.preferredTime) && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {report.category && (
+            <div className="bg-zinc-900/40 rounded-lg p-2.5 border border-zinc-800/60">
+              <span className="text-[10px] text-zinc-500 uppercase font-semibold">Kategori</span>
+              <p className="text-xs font-medium text-zinc-200 mt-0.5">{report.category}</p>
+            </div>
+          )}
+          {report.location && (
+            <div className="bg-zinc-900/40 rounded-lg p-2.5 border border-zinc-800/60">
+              <span className="text-[10px] text-zinc-500 uppercase font-semibold">Lokasi Spesifik</span>
+              <p className="text-xs font-medium text-zinc-200 mt-0.5">{report.location}</p>
+            </div>
+          )}
+          {report.preferredTime && (
+            <div className="bg-zinc-900/40 rounded-lg p-2.5 border border-zinc-800/60">
+              <span className="text-[10px] text-zinc-500 uppercase font-semibold">Preferensi Jam</span>
+              <p className="text-xs font-medium text-zinc-200 mt-0.5 capitalize">{report.preferredTime}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Foto Bukti */}
+      {((report.photos && report.photos.length > 0) || report.photoUrl) && (
         <div className="space-y-1.5">
           <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wide">
-            Foto Kerusakan
+            Foto Bukti Kerusakan ({report.photos?.length || 1})
           </h4>
-          <ImageViewer
-            src={report.photoUrl}
-            alt={report.title}
-            className="w-full h-48 bg-zinc-950"
-            imageClassName="object-cover"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {(report.photos && report.photos.length > 0 ? report.photos : [report.photoUrl!]).map(
+              (photo, idx) => (
+                <ImageViewer
+                  key={idx}
+                  src={photo}
+                  alt={`${report.title} - ${idx + 1}`}
+                  className="w-full h-44 bg-zinc-950 rounded-lg overflow-hidden border border-zinc-800"
+                  imageClassName="object-cover"
+                />
+              )
+            )}
+          </div>
         </div>
       )}
 

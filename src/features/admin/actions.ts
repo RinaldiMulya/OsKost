@@ -117,13 +117,20 @@ export async function updatePropertyProfileAction(
         const id = formData.get("id") as string;
         const name = formData.get("name") as string;
         const address = formData.get("address") as string;
+        const hasTechnician = formData.get("hasTechnician") === "true" || formData.get("hasTechnician") === "on";
 
         if (!id || !name || !address) {
             return { success: false, error: "Semua data wajib diisi." };
         }
 
-        const { updatePropertyProfile } = await import("./admin-service");
-        await updatePropertyProfile(id, name, address);
+        const { updatePropertyProfile, getPropertyProfile } = await import("./admin-service");
+        const existing = await getPropertyProfile();
+        const existingFeatures = (existing?.features as Record<string, unknown>) || {};
+
+        await updatePropertyProfile(id, name, address, {
+            ...existingFeatures,
+            hasTechnician,
+        });
 
         const { revalidatePath, updateTag } = await import("next/cache");
         const { CACHE_TAGS } = await import("@/lib/cache-tags");

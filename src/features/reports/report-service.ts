@@ -39,8 +39,17 @@ export interface ReportForAdmin {
   id: string;
   title: string;
   description: string;
+  category: string;
+  location?: string | null;
+  preferredTime?: string | null;
+  photos: string[];
   photoUrl: string | null;
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED";
+  scheduledAt?: Date | null;
+  scheduleLabel?: string | null;
+  progress?: number;
+  resolvedByName?: string | null;
+  resolutionNote?: string | null;
   createdAt: Date;
   updatedAt: Date;
   lease: {
@@ -85,8 +94,17 @@ export const getAllReports = cache(async (): Promise<ReportForAdmin[]> => {
           id: true,
           title: true,
           description: true,
+          category: true,
+          location: true,
+          preferredTime: true,
+          photos: true,
           photoUrl: true,
           status: true,
+          scheduledAt: true,
+          scheduleLabel: true,
+          progress: true,
+          resolvedByName: true,
+          resolutionNote: true,
           createdAt: true,
           updatedAt: true,
           lease: {
@@ -121,7 +139,7 @@ export const getAllReports = cache(async (): Promise<ReportForAdmin[]> => {
       return reports as unknown as ReportForAdmin[];
     },
     ["reports-all"],
-    { tags: [CACHE_TAGS.REPORTS_ALL] }
+    { tags: [CACHE_TAGS.REPORTS_ALL], revalidate: 3 }
   )();
 });
 
@@ -138,8 +156,17 @@ export const getReportsByStatus = cache(
             id: true,
             title: true,
             description: true,
+            category: true,
+            location: true,
+            preferredTime: true,
+            photos: true,
             photoUrl: true,
             status: true,
+            scheduledAt: true,
+            scheduleLabel: true,
+            progress: true,
+            resolvedByName: true,
+            resolutionNote: true,
             createdAt: true,
             updatedAt: true,
             lease: {
@@ -174,7 +201,7 @@ export const getReportsByStatus = cache(
         return reports as unknown as ReportForAdmin[];
       },
       [`reports-status-${status}`],
-      { tags: [CACHE_TAGS.REPORTS_BY_STATUS(status)] }
+      { tags: [CACHE_TAGS.REPORTS_BY_STATUS(status)], revalidate: 3 }
     )();
   }
 );
@@ -192,8 +219,17 @@ export const getReportById = cache(
             id: true,
             title: true,
             description: true,
+            category: true,
+            location: true,
+            preferredTime: true,
+            photos: true,
             photoUrl: true,
             status: true,
+            scheduledAt: true,
+            scheduleLabel: true,
+            progress: true,
+            resolvedByName: true,
+            resolutionNote: true,
             createdAt: true,
             updatedAt: true,
             lease: {
@@ -227,7 +263,7 @@ export const getReportById = cache(
         return report as unknown as ReportForAdmin | null;
       },
       [`report-${id}`],
-      { tags: [CACHE_TAGS.REPORT_BY_ID(id)] }
+      { tags: [CACHE_TAGS.REPORT_BY_ID(id)], revalidate: 3 }
     )();
   }
 );

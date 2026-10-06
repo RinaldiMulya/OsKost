@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
       // Parsing externalId asli dengan membuang suffix timestamp jika ada
       const baseExternalId = payload.order_id.split("-").slice(0, 4).join("-");
 
-      const invoice = await tx.invoice.findFirst({
+      const matchingInvoices = await tx.invoice.findMany({
         where: {
           OR: [
             { providerRef: payload.order_id },
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      if (!invoice) {
+      if (matchingInvoices.length === 0) {
         log.warn(
           { orderId: payload.order_id, baseExternalId },
           "Invoice tidak ditemukan untuk order_id dari webhook"
@@ -142,8 +142,9 @@ export async function POST(req: NextRequest) {
         return;
       }
 
-      // Idempotency: jika sudah PAID, jangan proses ulang
-      if (invoice.status === "PAID") {
+      // Idempotency: jika seluruhnya sudah PAID, abaikan
+      const unpaidMatching = matchingInvoices.filter((inv) => inv.status !== "PAID");
+      if (unpaidMatching.length === 0) {
         log.info(
           { orderId: payload.order_id },
           "Invoice sudah PAID — webhook duplikat, diabaikan"
@@ -151,13 +152,14 @@ export async function POST(req: NextRequest) {
         return;
       }
 
+      const invoice = matchingInvoices[0];
       const nextStatus = mapMidtransStatus(
         payload.transaction_status,
         payload.fraud_status
       );
 
-      await tx.invoice.update({
-        where: { id: invoice.id },
+      await tx.invoice.updateMany({
+        where: { id: { in: unpaidMatching.map((inv) => inv.id) } },
         data: {
           status: nextStatus,
           providerRef: payload.transaction_id,
