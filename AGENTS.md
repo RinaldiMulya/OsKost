@@ -1,204 +1,160 @@
-# OsKost — AI Agent Instructions
+# OsKost — Master AI Agent Instructions (Web & Backend SaaS)
 
-> **OsKost** (Smartkost Pulo Jahe System) adalah aplikasi manajemen kost berbasis web
-> dengan Admin Dashboard dan PWA Tenant mobile-first. Baca instruksi ini sebelum
-> menulis kode apapun.
+> **OsKost** adalah Platform **Multi-Tenant B2B SaaS** untuk Manajemen Properti Kost modern di Indonesia (dengan Pilot Property: Smartkost Pulo Jahe).
+> Platform ini mencakup:
+> - **Web Marketing Publik** (`oskost.id`)
+> - **Web Admin Dashboard Pemilik Kost** (`app.oskost.id`)
+> - **Super Admin Platform** (`oskost.id/super-admin`)
+> - **Centralized Standalone REST API v1** (`api.oskost.id` / `/api/v1/*`) untuk Flutter Mobile Tenant App
+>
+> ⚠️ **CATATAN KRUSIAL**: Rute `(pwaTenant)` di web telah di-**SUNSET (DIPENSIUNKAN)**. Seluruh interaksi penghuni (tenant) dialihkan 100% ke aplikasi **Flutter Mobile Native Sanctuary**. Dilarang mengembangkan atau memperbaiki fitur PWA Tenant di repositori web!
 
 ---
 
 ## 1. Tech Stack & Versi
 
-| Layer | Teknologi | Versi |
-|-------|-----------|-------|
-| Framework | Next.js (App Router) | 16 |
-| UI Library | React | 19 |
-| Styling | Tailwind CSS + tw-animate-css | v4 |
-| Components | Shadcn UI (new-york style) + Radix UI | latest |
-| Icons | Lucide React | latest |
-| Animation | Framer Motion | 12 |
-| Database | PostgreSQL via Prisma (with `@prisma/adapter-pg`) | Prisma 7 |
-| Auth | NextAuth.js v5 (Credentials provider — email/phone) | 5.0.0-beta.30 |
-| Storage | Supabase Storage (Private + Public buckets) | latest |
-| State | Jotai (client) + nuqs (URL state) | latest |
-| Validation | Zod v4 | latest |
-| Package Manager | pnpm | — |
+| Layer | Teknologi | Versi | Catatan |
+|---|---|---|---|
+| **Framework** | Next.js (App Router) | `16.0` | React Server Components, Server Actions, Route Handlers |
+| **UI Library** | React | `19.0` | Actions primitives, `useActionState`, `useOptimistic` |
+| **Styling** | Tailwind CSS + tw-animate-css | `v4` | Oxide engine, class-based utility |
+| **Components** | Shadcn UI (new-york style) + Radix UI | Latest | Headless, accessible primitives |
+| **Icons** | Lucide React | Latest | Import via `@lucide/react` (treeshakeable) |
+| **Animation** | Framer Motion | `12` | Subtle micro-interactions |
+| **Database** | PostgreSQL via Prisma | `Prisma 7` | Driver `@prisma/adapter-pg` |
+| **Auth Web** | NextAuth.js v5 (Auth.js) | `5.0.0-beta` | Session cookie HTTP-Only untuk Web Dashboard |
+| **Auth Mobile API**| Custom JWT Bearer Token | — | Access Token (15m) + Refresh Token Rotation (30d) |
+| **Storage** | Supabase Storage | Latest | Bucket `Oskost-Data-Private` (KTP) & Public |
+| **Media Cloud** | Cloudinary | `^2.5.0` | Kompresi WebP & signature upload bukti kerusakan |
+| **Payment Gateway**| Midtrans Snap & Webhook | Latest | Pembayaran Langganan SaaS & Uang Sewa Kamar |
+| **State Web** | Jotai (client) + nuqs (URL search params) | Latest | URL-synchronized state management |
+| **Validation** | Zod v4 | Latest | Runtime validation untuk Zod schema |
+| **Package Manager**| pnpm | Latest | Workspace manager |
 
 ---
 
-## 2. Arsitektur & Konvensi Folder
+## 2. Arsitektur & Konvensi Folder (Multi-Tenant SaaS)
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── (dashboard)/admin/  # Admin routes (protected: role ADMIN)
-│   ├── (pwaTenant)/        # Tenant PWA routes (protected: role TENANT)
-│   ├── (marketing)/        # Landing page (public)
-│   ├── login/              # Auth pages
-│   └── rooms/              # Public room detail pages
-├── features/               # Feature-Sliced Design
-│   ├── rooms/              # Room management (actions, service, components)
-│   ├── tenants/            # Tenant management
-│   ├── tenant-pwa/         # PWA tenant features
-│   ├── dashboard/          # Admin dashboard widgets
-│   ├── landing/            # Landing page features
-│   └── auth/               # Auth features
+├── app/                               # Next.js App Router
+│   ├── (dashboard)/                   # Dashboard Admin Pemilik Kost (app.oskost.id)
+│   │   ├── dashboard/page.tsx         # Overview: Pendapatan, Okupansi, Tunggakan
+│   │   ├── rooms/                     # Manajemen Kamar (CRUD 11+ pintu, 360° viewer)
+│   │   ├── tenants/                   # Manajemen Penghuni & Riwayat Sewa
+│   │   ├── billing/                   # Manajemen Tagihan & Rekonsiliasi Kas
+│   │   ├── reports/                   # Disposisi Tiket Kerusakan Fasilitas
+│   │   └── settings/                  # Profil Kost & Paket Langganan SaaS
+│   ├── (marketing)/                   # Landing Page Publik (oskost.id)
+│   │   ├── page.tsx                   # Beranda pemasaran, benefit, booking steps
+│   │   └── rooms/                     # Katalog kamar publik & 360° tour
+│   ├── (superadmin)/                  # [SaaS Pivot] Dashboard HQ OsKost (oskost.id/super-admin)
+│   ├── api/
+│   │   ├── v1/                        # Centralized Standalone REST API untuk Flutter Mobile
+│   │   │   ├── auth/                  # /token, /refresh, /logout
+│   │   │   ├── me/                    # Profil tenant, status lease aktif, & dynamic theme
+│   │   │   ├── invoices/              # List tagihan, detail, & Snap token request
+│   │   │   ├── reports/               # Submit komplain, upload signature, tracking
+│   │   │   ├── media/                 # Cloudinary signing & direct upload helper
+│   │   │   ├── notifications/         # Pengumuman & notifikasi
+│   │   │   └── push/                  # Registrasi token FCM / Web Push
+│   │   ├── webhooks/
+│   │   │   ├── midtrans/              # Webhook pembayaran sewa kamar tenant
+│   │   │   └── saas-subscription/     # Webhook pembayaran langganan SaaS owner
+│   │   └── cron/                      # Otomasi denda sewa & jatuh tempo langganan
+│   ├── login/page.tsx                 # Portal Login Web Admin & Owner
+│   └── layout.tsx                     # Root Layout
+├── features/                          # Feature-Sliced Design (Domain Services)
+│   ├── admin/                         # Aksi administratif & manajemen akun
+│   ├── auth/                          # Layanan autentikasi NextAuth & password reset
+│   ├── dashboard/                     # Statistik okupansi, grafik pendapatan, export CSV
+│   ├── landing/                       # Komponen Hero, Booking Steps, Map, FAQ
+│   ├── notifications/                 # Layanan broadcast pengumuman
+│   ├── payment/                       # Layanan integrasi Midtrans & promo discount
+│   ├── reports/                       # Layanan penanganan tiket kerusakan staf
+│   ├── rooms/                         # Layanan katalog kamar & konfigurasi panorama 360°
+│   ├── saas/                          # [SaaS Pivot] Layanan kuota tier & billing langganan
+│   └── tenants/                       # Layanan kontrak sewa, enkripsi KTP, penagihan
 ├── components/
-│   ├── ui/                 # Shadcn UI primitives (Button, Card, Dialog, dll)
-│   ├── admin/              # Admin-specific shared components
-│   ├── tenant/             # Tenant-specific shared components
-│   └── shared/             # Cross-role shared components
+│   ├── ui/                            # Shadcn UI primitives (Button, Card, Dialog, Table)
+│   └── shared/                        # Shared reusable cross-domain components
 ├── lib/
-│   ├── db.ts               # Prisma client singleton (PG pool, max: 10)
-│   ├── cache-tags.ts       # Centralized cache tag definitions
-│   ├── utils.ts            # cn() helper (clsx + tailwind-merge)
-│   ├── supabase/           # Supabase client helpers
-│   └── utils/              # Utility functions
-├── hooks/                  # Custom React hooks
-├── types/                  # TypeScript type declarations
-├── auth.ts                 # NextAuth config
-└── auth.config.ts          # NextAuth edge config
+│   ├── db.ts                          # Prisma Client singleton (`@prisma/adapter-pg`)
+│   ├── jwt.ts                         # Enkripsi & verifikasi JWT Bearer Token Mobile
+│   ├── api-response.ts                # Standar Envelope response JSON builder
+│   ├── api-auth.ts                    # Middleware verifikasi Bearer JWT untuk route handlers
+│   ├── cache-tags.ts                  # Sentralisasi definisi CACHE_TAGS Next.js
+│   ├── utils.ts                       # Helper `cn()` (clsx + tailwind-merge)
+│   ├── security/ktp-crypto.ts         # Enkripsi simetris AES-256 dokumen sensitif KTP
+│   └── supabase/                      # Client Supabase Private/Public storage
+├── middleware.ts                      # Subdomain routing (app.*, oskost.*) & auth guard
 ```
 
-### Pola Feature-Sliced Design
+---
 
-Setiap folder di `src/features/<feature>/` mengikuti pola:
-- **`*-service.ts`** — Data access layer (`import "server-only"`) dengan `React.cache()` + `unstable_cache()` untuk query, `Prisma` untuk mutations
-- **`actions.ts`** — Server Actions (`"use server"`) yang memanggil service, lalu `revalidatePath()` + `updateTag()` via `CACHE_TAGS`
-- **`components/`** — UI components khusus fitur tersebut
-- **`index.ts`** — Public API / barrel export (jika ada)
+## 3. Aturan Kode yang WAJIB Diikuti (Engineering Rules)
+
+### 🔒 Rule #1: Isolasi Data Multi-Tenant yang Ketat (Mandatory `propertyId` Scoping)
+* **DILARANG KERAS** melakukan query Prisma secara global tanpa filter tenant.
+* Setiap query di Service Layer (`src/features/*/*-service.ts`) **WAJIB menyertakan `where: { propertyId }`** (atau `{ ownerId }`).
+  ```typescript
+  // ❌ SALAH (Potensi Bocor Data Antar Kost):
+  const rooms = await prisma.room.findMany();
+
+  // ✅ BENAR (Terisolasi per Properti):
+  const rooms = await prisma.room.findMany({
+    where: { propertyId: currentPropertyId },
+  });
+  ```
+
+### 👥 Rule #2: Hierarki 5 Role Pengguna
+Sesuai skema `SCHEMA_DRAFT_V2_SAAS_MOBILE.prisma`, dukung 5 jenjang akses:
+1. `SUPER_ADMIN`: Akses penuh ke seluruh platform, statistik MRR, dan manajemen tenant B2B.
+2. `PROPERTY_OWNER`: Pemilik kost yang berlangganan SaaS (mengelola kamar, keuangan, staff kost miliknya).
+3. `ADMIN`: Administrator kost lokal (operasional harian cabang).
+4. `MANAGER`: Pengawas lapangan / penanggung jawab operasional kost.
+5. `TENANT`: Penghuni kamar (akses via Aplikasi Mobile Flutter).
+
+### 💳 Rule #3: Penegakan Kuota Langganan SaaS (SaaS Quota Guard)
+* Sebelum membuat kamar baru di `src/features/rooms/room-service.ts`, sistem wajib memeriksa:
+  `activeRoomsCount < currentPlan.maxRooms`.
+* Jika kuota terlampaui, kembalikan error `HTTP 402 Payment Required` untuk memicu dialog Upgrade Paket SaaS.
+
+### ⚡ Rule #4: Single Service Layer Pattern & Caching
+* **DILARANG** melakukan query Prisma langsung di Route Handlers (`/api/v1/*`) atau Server Actions (`actions.ts`).
+* Logika bisnis murni wajib berada di `src/features/<feature>/<feature>-service.ts`.
+* Gunakan `React.cache()` dan `unstable_cache()` dengan tag dari `CACHE_TAGS` pada service query.
+* Setelah mutasi di Server Action, panggil `updateTag(CACHE_TAGS.XXX)`.
+
+### 📦 Rule #5: Standar Respons JSON REST API v1 (Envelope Pattern)
+Seluruh endpoint di `/api/v1/*` WAJIB mengembalikan format envelope seragam:
+```json
+// Berhasil
+{
+  "success": true,
+  "data": { ... },
+  "meta": { "total": 10, "page": 1, "limit": 20 }
+}
+
+// Gagal
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Sesi Anda telah kedaluwarsa.",
+    "details": null
+  }
+}
+```
+
+### 📱 Rule #6: Dynamic White-Labeling Metadata untuk Mobile
+Pada endpoint `GET /api/v1/me`, backend wajib merespons dengan metadata properti penyewa:
+- `property.name`, `property.logoUrl`, `property.primaryColorHex`, `property.accentColorHex`.
+Flutter akan membaca token ini untuk mengubah tema visual secara dinamis.
 
 ---
 
-## 3. Aturan Kode yang WAJIB Diikuti
-
-### Data Fetching & Caching
-- **Server Components** secara default. Gunakan `"use client"` hanya jika butuh state/interactivity.
-- Semua query di service layer WAJIB pakai `React.cache()` wrapper + `unstable_cache()` dengan tag dari `CACHE_TAGS`.
-- Cache tags didefinisikan di `src/lib/cache-tags.ts` — JANGAN buat tag ad-hoc di tempat lain.
-- Setelah mutation di Server Action, SELALU panggil `updateTag(CACHE_TAGS.XXX)` untuk tag yang relevan.
-- JANGAN gunakan `force-dynamic` kecuali benar-benar diperlukan.
-
-### Validasi
-- Semua input validation menggunakan **Zod** (schema didefinisikan di service layer).
-- Gunakan `z.coerce` untuk form data yang perlu konversi tipe.
-
-### Komponen UI
-- Gunakan komponen **Shadcn UI** dari `@/components/ui/` sebagai building block.
-- Style menggunakan **Tailwind CSS v4** (class-based, bukan `@apply` berlebihan).
-- Animasi menggunakan **Framer Motion** atau **tw-animate-css** class.
-- Icons dari **Lucide React** — pastikan `optimizePackageImports` sudah aktif di `next.config.ts`.
-
-### Database
-- Prisma client diakses via `import { prisma } from "@/lib/db"`.
-- Connection pool max: 10 (sudah dikonfigurasi).
-- Gunakan `select` (bukan `include`) untuk query agar hanya ambil field yang dibutuhkan.
-- Validasi ID/input dengan Zod sebelum query ke database.
-
-### Auth & Roles
-- Dua role: `ADMIN` dan `TENANT`.
-- Admin routes di `(dashboard)/admin/*` — dilindungi middleware.
-- Tenant routes di `(pwaTenant)/dashboard/*` — dilindungi middleware.
-- Login mendukung email ATAU phone number sebagai identifier.
-
-### File Upload
-- Upload ke **Supabase Storage** (bucket public untuk panorama, private untuk KTP).
-- **CRITICAL**: Setiap gambar/foto yang di-upload WAJIB dikompresi di sisi client sebelum di-submit.
-- Gunakan library seperti `browser-image-compression` untuk membatasi ukuran maksimal (misal 300kb - 500kb) dan **WAJIB** dikonversi ke format `.webp`.
-- Jika dibutuhkan versi thumbnail, buat versi terpisahnya di client sebelum di-upload.
-- Untuk merender/menampilkan gambar, gunakan komponen bawaan Next.js (`next/image`) agar image optimizer native berfungsi optimal.
-
----
-
-## 4. MCP Tools: code-review-graph
-
-**IMPORTANT: This project has a knowledge graph. ALWAYS use the
-code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
-the codebase.** The graph is faster, cheaper (fewer tokens), and gives
-you structural context (callers, dependents, test coverage) that file
-scanning cannot.
-
-### When to use graph tools FIRST
-
-- **Exploring code**: `semantic_search_nodes` or `query_graph` instead of Grep
-- **Understanding impact**: `get_impact_radius` instead of manually tracing imports
-- **Code review**: `detect_changes` + `get_review_context` instead of reading entire files
-- **Finding relationships**: `query_graph` with callers_of/callees_of/imports_of/tests_for
-- **Architecture questions**: `get_architecture_overview` + `list_communities`
-
-Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
-
-### Key Tools
-
-| Tool | Use when |
-|------|----------|
-| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
-| `get_review_context` | Need source snippets for review — token-efficient |
-| `get_impact_radius` | Understanding blast radius of a change |
-| `get_affected_flows` | Finding which execution paths are impacted |
-| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
-| `semantic_search_nodes` | Finding functions/classes by name or keyword |
-| `get_architecture_overview` | Understanding high-level codebase structure |
-| `refactor_tool` | Planning renames, finding dead code |
-
-### Workflow
-
-1. The graph auto-updates on file changes (via hooks).
-2. Use `detect_changes` for code review.
-3. Use `get_affected_flows` to understand impact.
-4. Use `query_graph` pattern="tests_for" to check coverage.
-
----
-
-## 5. Milestone Tracking
-
-**IMPORTANT**: 
-1. Proyek ini menggunakan `milestone.md` di root directory untuk memantau progress.
-Setiap kali Anda (AI) menyelesaikan sebuah fitur, tugas, atau update signifikan pada kode, Anda **WAJIB** memperbarui file `milestone.md` (misal: mengubah `[ ]` menjadi `[x]`, mengubah menjadi `[/]`, atau menambah poin milestone baru) untuk mencerminkan status terkini proyek.
-2. Saya ingin semua keputusan AI agent untuk setiap kondisi atau langkah yang akan diambil SETELAH PLAN sudah terpenuhi maka akan di anda simpan di `Docs/Decisions/AI-Decisions.md` (Saya itu ingin ada seperti Log setiap keputusan yg di ambil baik detail ataupun simpel)
-
----
-
-## 6. Bahasa & Gaya
-
-- Komentar kode dan commit message dalam **Bahasa Indonesia** (sesuai konteks project kost-kostan).
-- Pesan error yang ditampilkan ke user dalam **Bahasa Indonesia**.
-- Nama variabel, fungsi, dan tipe dalam **Bahasa Inggris**.
-
-<!-- code-review-graph MCP tools -->
-## MCP Tools: code-review-graph
-
-**IMPORTANT: This project has a knowledge graph. ALWAYS use the
-code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
-the codebase.** The graph is faster, cheaper (fewer tokens), and gives
-you structural context (callers, dependents, test coverage) that file
-scanning cannot.
-
-### When to use graph tools FIRST
-
-- **Exploring code**: `semantic_search_nodes` or `query_graph` instead of Grep
-- **Understanding impact**: `get_impact_radius` instead of manually tracing imports
-- **Code review**: `detect_changes` + `get_review_context` instead of reading entire files
-- **Finding relationships**: `query_graph` with callers_of/callees_of/imports_of/tests_for
-- **Architecture questions**: `get_architecture_overview` + `list_communities`
-
-Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
-
-### Key Tools
-
-| Tool | Use when |
-|------|----------|
-| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
-| `get_review_context` | Need source snippets for review — token-efficient |
-| `get_impact_radius` | Understanding blast radius of a change |
-| `get_affected_flows` | Finding which execution paths are impacted |
-| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
-| `semantic_search_nodes` | Finding functions/classes by name or keyword |
-| `get_architecture_overview` | Understanding high-level codebase structure |
-| `refactor_tool` | Planning renames, finding dead code |
-
-### Workflow
-
-1. The graph auto-updates on file changes (via hooks).
-2. Use `detect_changes` for code review.
-3. Use `get_affected_flows` to understand impact.
-4. Use `query_graph` pattern="tests_for" to check coverage.
+## 4. Panduan Verifikasi & Quality Check
+Setelah mengubah atau membuat kode baru di repositori web:
+1. Jalankan `pnpm build` atau lint check untuk memastikan tidak ada kesalahan tipe TypeScript.
+2. Pastikan relasi model baru di `prisma/schema.prisma` konsisten dengan `Docs/SCHEMA_DRAFT_V2_SAAS_MOBILE.prisma`.
