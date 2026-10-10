@@ -8,41 +8,57 @@ html {
 }
 
 :root {
-  --background: rgb(26, 29, 35);
-  --foreground: rgb(229, 229, 229);
-  --card: rgb(0, 0, 0);
-  --card-foreground: rgb(0, 204, 64);
-  --popover: rgb(47, 52, 54);
-  --popover-foreground: rgb(229, 229, 229);
-  --primary: rgb(156, 0, 253);
-  --primary-foreground: rgb(0, 0, 0);
-  --secondary: rgb(0, 204, 64);
-  --secondary-foreground: rgb(0, 0, 0);
-  --muted: rgb(68, 68, 68);
-  --muted-foreground: rgb(163, 163, 163);
-  --accent: rgb(0, 204, 64);
-  --accent-foreground: rgb(0, 0, 0);
-  --destructive: rgb(239, 71, 68);
-  --destructive-foreground: rgb(255, 255, 255);
-  --border: rgb(68, 68, 68);
-  --input: rgb(68, 68, 68);
-  --ring: rgb(255, 153, 202);
-  --chart-1: rgb(255, 153, 202);
-  --chart-2: rgb(51, 204, 54);
-  --chart-3: rgb(135, 204, 235);
-  --chart-4: rgb(251, 255, 0);
-  --chart-5: rgb(255, 208, 0);
-  --sidebar: rgb(26, 29, 35);
-  --sidebar-foreground: rgb(229, 229, 229);
-  --sidebar-primary: rgb(255, 153, 202);
-  --sidebar-primary-foreground: rgb(0, 0, 0);
-  --sidebar-accent: rgb(135, 204, 235);
-  --sidebar-accent-foreground: rgb(0, 0, 0);
-  --sidebar-border: rgb(68, 68, 68);
-  --sidebar-ring: rgb(255, 153, 202);
-  --font-sans: Inter, ui-sans-serif, sans-serif, system-ui;
-  --font-serif: Abhaya Libre, ui-serif, serif;
+  --background: #F8F6F1;
+  --foreground: #1E1B18;
+  --card: #FFFFFF;
+  --card-foreground: #1E1B18;
+  --popover: #FFFFFF;
+  --popover-foreground: #1E1B18;
+  --primary: #A45A3D;
+  --primary-foreground: #FFFFFF;
+  --secondary: #2C4C3B;
+  --secondary-foreground: #FFFFFF;
+  --muted: #F4EDE4;
+  --muted-foreground: #4A453F;
+  --accent: #FAF2EA;
+  --accent-foreground: #1E1B18;
+  --destructive: #C53030;
+  --destructive-foreground: #FFFFFF;
+  --border: rgba(44, 40, 37, 0.10);
+  --input: rgba(44, 40, 37, 0.12);
+  --ring: #A45A3D;
+  --chart-1: #A45A3D;
+  --chart-2: #2C4C3B;
+  --chart-3: #C98A2C;
+  --chart-4: #864327;
+  --chart-5: #EFE7DE;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1E1B18;
+  --sidebar-primary: #A45A3D;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #FAF2EA;
+  --sidebar-accent-foreground: #1E1B18;
+  --sidebar-border: rgba(44, 40, 37, 0.08);
+  --sidebar-ring: #A45A3D;
+  --font-sans: var(--font-jakarta), Inter, ui-sans-serif, sans-serif, system-ui;
+  --font-serif: var(--font-serif), "Noto Serif", Georgia, serif;
   --font-mono: Azeret Mono, ui-monospace, monospace;
+  
+  /* OsKost Japandi / Wabi-Sabi Sanctuary Tokens */
+  --canvas-alabaster: #F8F6F1;
+  --surface-porcelain: #FFFFFF;
+  --surface-bright: #FFF8F2;
+  --surface-container: #F4EDE4;
+  --surface-container-high: #EFE7DE;
+  --terracotta: #A45A3D;
+  --terracotta-hover: #864327;
+  --koke-moss: #2C4C3B;
+  --koke-moss-light: #C7EBD4;
+  --amber-ochre: #C98A2C;
+  --text-sumi: #1E1B18;
+  --text-slate: #4A453F;
+  --border-subtle: rgba(44, 40, 37, 0.08);
+
   --radius: 1.3rem;
   --shadow-x: 0;
   --shadow-y: 1px;
@@ -175,6 +191,20 @@ html {
 
 body {
   letter-spacing: var(--tracking-normal);
+}
+
+.font-editorial {
+  font-family: var(--font-serif), "Noto Serif", Georgia, serif;
+}
+
+.font-ui {
+  font-family: var(--font-jakarta), Inter, ui-sans-serif, sans-serif;
+}
+
+.ceramic-card {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(44, 40, 37, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(44, 40, 37, 0.04);
 }
 
 /* Hide scrollbar for horizontal scroll galleries */
