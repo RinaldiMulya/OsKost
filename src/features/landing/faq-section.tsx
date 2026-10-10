@@ -1,118 +1,118 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Headset, MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ChevronDown, MessageSquare } from "lucide-react";
+import Link from "next/link";
 
 const faqs = [
     {
         id: "faq-1",
-        question: "Bagaimana cara booking kamar di Smartkost?",
-        answer: "Proses booking sangat mudah. Pilih kamar yang Anda inginkan dari daftar properti kami, klik tombol 'Booking Sekarang', lalu ikuti instruksi pembayaran. Anda bisa membayar menggunakan transfer bank, virtual account, atau e-wallet yang didukung."
+        question: "Bagaimana cara booking kamar di OsKost?",
+        answer: "Pilih kamar favorit Anda dari katalog klaster, lalu klik 'Ajukan Sewa'. Anda dapat langsung terhubung dengan pengelola atau memilih reservasi online dengan verifikasi identitas dan pembayaran aman via QRIS/Virtual Account resmi.",
     },
     {
         id: "faq-2",
-        question: "Apakah bisa survey lokasi sebelum booking?",
-        answer: "Tentu saja. Kami sangat menyarankan Anda untuk melakukan survey. Anda dapat menjadwalkan kunjungan melalui fitur 'Jadwalkan Survey' di halaman detail properti. Tim kami akan menghubungi Anda untuk konfirmasi waktu kunjungan."
+        question: "Berapa lama estimasi jalan kaki ke PT Yamaha Motor Parts?",
+        answer: "Hanya sekitar 3 menit jalan kaki. Properti OsKost Cakung Sentral memiliki akses jalan pintas pemukiman warga yang aman, teduh, dan bebas macet langsung menuju gerbang operasional karyawan.",
     },
     {
         id: "faq-3",
-        question: "Apa saja fasilitas yang termasuk dalam harga sewa?",
-        answer: "Fasilitas bervariasi tergantung tipe kamar. Namun, umumnya harga sewa sudah termasuk listrik (kuota tertentu), air bersih, koneksi Wi-Fi berkecepatan tinggi, kebersihan area umum, dan keamanan 24 jam. Cek halaman detail masing-masing kamar untuk informasi spesifik."
+        question: "Apakah biaya sewa sudah termasuk listrik dan WiFi?",
+        answer: "WiFi Fiber Optic 1Gbps, air bersih, keamanan CCTV AI 24/7, dan kebersihan area publik sudah termasuk gratis dalam biaya sewa bulanan. Untuk listrik kamar menggunakan token digital mandiri transparan tanpa mark-up agar Anda hanya membayar sesuai pemakaian pribadi.",
     },
     {
         id: "faq-4",
-        question: "Bagaimana kebijakan pembatalan booking?",
-        answer: "Pembatalan dapat dilakukan maksimal H-7 sebelum tanggal masuk untuk mendapatkan pengembalian dana sebagian (sesuai S&K). Pembatalan kurang dari waktu tersebut mungkin tidak akan mendapatkan refund. Silakan hubungi customer service kami untuk bantuan lebih lanjut."
-    }
+        question: "Apakah tersedia paket sewa jangka panjang (6 bulan atau tahunan)?",
+        answer: "Ya, kami menyediakan promo Paket Kontrak 6+ Bulan dengan potongan harga spesial hingga 10%, prioritas pemilihan unit lantai, serta gratis cleaning service berkala.",
+    },
+    {
+        id: "faq-5",
+        question: "Bagaimana jika saya pemilik kost lain dan ingin menggunakan sistem OsKost SaaS?",
+        answer: "OsKost menyediakan paket Gratis Selamanya untuk pemilik dengan 1 - 5 unit kamar pertama. Untuk kapasitas di atasnya, tersedia paket Starter (6-15 kamar), Growth (16-40 kamar), dan Pro (41-100 kamar) dengan jaminan uji coba 14 hari gratis tanpa kartu kredit. Seluruh paket mendukung unlimited lokasi properti dan otomatisasi penagihan via QRIS/VA Midtrans.",
+    },
 ];
 
 export function FaqSection() {
-    const [openId, setOpenId] = useState<string | null>(null);
+    const [openId, setOpenId] = useState<string | null>("faq-1");
 
     const toggleAccordion = (id: string) => {
         setOpenId(openId === id ? null : id);
     };
 
     return (
-        <section className="w-full max-w-4xl mx-auto px-4 py-16 md:py-20">
-            {/* Header Section */}
-            <div className="text-center mb-16 relative">
-                <div className="absolute inset-0 -z-10 flex items-center justify-center opacity-20 pointer-events-none">
-                    <div className="w-64 h-64 bg-primary rounded-full blur-[100px]"></div>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">FAQ & Help Center</h2>
-                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Temukan jawaban untuk pertanyaan umum seputar pencarian, pemesanan, dan fasilitas Smartkost.
-                </p>
-            </div>
-
-            {/* Accordion Section */}
-            <div className="space-y-4">
-                {faqs.map((faq) => {
-                    const isOpen = openId === faq.id;
-                    
-                    return (
-                        <div 
-                            key={faq.id} 
-                            className={cn(
-                                "bg-card/40 backdrop-blur-xl border rounded-xl overflow-hidden transition-all duration-300",
-                                isOpen ? "border-secondary/50 shadow-lg shadow-black/10" : "border-border/30 hover:border-secondary/30"
-                            )}
-                        >
-                            <button
-                                aria-expanded={isOpen}
-                                onClick={() => toggleAccordion(faq.id)}
-                                className="w-full flex items-center justify-between p-6 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-secondary rounded-xl group"
-                            >
-                                <span className={cn(
-                                    "text-lg font-semibold transition-colors duration-200",
-                                    isOpen ? "text-primary" : "text-foreground group-hover:text-primary"
-                                )}>
-                                    {faq.question}
-                                </span>
-                                <div className={cn(
-                                    "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
-                                    isOpen ? "bg-muted" : "bg-card group-hover:bg-muted"
-                                )}>
-                                    <ChevronDown 
-                                        className={cn(
-                                            "w-5 h-5 text-foreground transition-transform duration-300",
-                                            isOpen ? "rotate-180" : ""
-                                        )}
-                                    />
-                                </div>
-                            </button>
-                            <div 
-                                className={cn(
-                                    "px-6 bg-muted/30 overflow-hidden transition-all duration-300 ease-in-out",
-                                    isOpen ? "max-h-[500px] opacity-100 py-4" : "max-h-0 opacity-0 py-0"
-                                )}
-                            >
-                                <p className="text-muted-foreground leading-relaxed">
-                                    {faq.answer}
-                                </p>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* Contact Support CTA */}
-            <div className="mt-20 text-center bg-card/40 backdrop-blur-xl border border-border/30 rounded-xl p-8 relative overflow-hidden">
-                <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-secondary opacity-10 rounded-full blur-[80px]"></div>
-                <div className="relative z-10">
-                    <div className="inline-flex justify-center mb-4">
-                        <Headset className="w-12 h-12 text-primary" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-foreground mb-2">Masih butuh bantuan?</h3>
-                    <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                        Tim support kami siap membantu menjawab pertanyaan Anda 24/7. Jangan ragu untuk menghubungi kami.
+        <section className="w-full bg-[#FFFFFF] py-8 sm:py-10 lg:py-10 border-b border-[#2C2825]/6">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Header */}
+                <div className="text-center mb-8 sm:mb-10">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#A45A3D] bg-[#A45A3D]/10 px-4 py-1.5 rounded-full inline-block mb-3.5">
+                        Pusat Bantuan &amp; Tanya Jawab
+                    </span>
+                    <h2 className="font-editorial text-3xl sm:text-4xl lg:text-5xl font-bold text-[#1E1B18] tracking-tight mb-3">
+                        Pertanyaan Umum Seputar OsKost
+                    </h2>
+                    <p className="font-ui text-base sm:text-lg text-[#38332E] leading-relaxed max-w-xl mx-auto">
+                        Jawaban lengkap seputar fasilitas kamar, akses transportasi Cakung, dan tata cara pembayaran sewa.
                     </p>
-                    <button className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold text-sm px-6 py-3 rounded-full hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(156,0,253,0.3)] hover:shadow-[0_0_25px_rgba(156,0,253,0.5)]">
+                </div>
+
+                {/* Accordion List */}
+                <div className="space-y-4 mb-8 sm:mb-10">
+                    {faqs.map((faq) => {
+                        const isOpen = openId === faq.id;
+
+                        return (
+                            <div
+                                key={faq.id}
+                                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                                    isOpen
+                                        ? "bg-[#F8F6F1] border-[#A45A3D]/30 shadow-[0_4px_16px_rgba(44,40,37,0.04)]"
+                                        : "bg-[#FFFFFF] border-[#2C2825]/8 hover:border-[#2C2825]/15"
+                                }`}
+                            >
+                                <button
+                                    onClick={() => toggleAccordion(faq.id)}
+                                    className="w-full px-6 py-5 text-left flex items-center justify-between gap-4 cursor-pointer"
+                                >
+                                    <span className="font-editorial text-base sm:text-lg font-bold text-[#1E1B18]">
+                                        {faq.question}
+                                    </span>
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-200 ${
+                                        isOpen ? "bg-[#A45A3D] text-white rotate-180" : "bg-[#EFE7DE] text-[#54433D]"
+                                    }`}>
+                                        <ChevronDown className="w-4 h-4" />
+                                    </div>
+                                </button>
+
+                                {isOpen && (
+                                    <div className="px-6 pb-5 pt-2 text-sm sm:text-base text-[#38332E] leading-relaxed border-t border-[#2C2825]/8">
+                                        {faq.answer}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                {/* WhatsApp Help CTA Card */}
+                <div className="p-6 sm:p-7 rounded-2xl bg-[#F8F6F1] border border-[#2C2825]/8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+                    <div>
+                        <h4 className="font-editorial text-lg font-bold text-[#1E1B18]">
+                            Masih ada pertanyaan yang belum terjawab?
+                        </h4>
+                        <p className="text-sm text-[#38332E] mt-1">
+                            Tim pengelola kami selalu siap sedia membantu konsultasi kamar dan jadwal kunjungan survey.
+                        </p>
+                    </div>
+
+                    <Link
+                        href="https://wa.me/6281234567890?text=Halo%20Admin%20OsKost,%20saya%20ingin%20tanya%20seputar%20sewa%20kamar"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-[#2C4C3B] hover:bg-[#1E372A] text-white text-xs sm:text-sm font-bold uppercase tracking-wider px-6 py-3.5 rounded-xl shadow-sm whitespace-nowrap transition-colors"
+                    >
                         <MessageSquare className="w-4 h-4" />
-                        Hubungi Customer Service
-                    </button>
+                        <span>Chat WhatsApp Admin</span>
+                    </Link>
                 </div>
             </div>
         </section>

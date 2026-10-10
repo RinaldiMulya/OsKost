@@ -1,91 +1,198 @@
 import Image from "next/image";
+import Link from "next/link";
+import {
+  MapPin,
+  Home,
+  Sparkles,
+  Search,
+  ShieldCheck,
+  Wifi,
+  Star,
+  CircleDollarSign,
+} from "lucide-react";
 
 export function HeroSection() {
-    return (
-        <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16 lg:pt-20">
-            {/* Background Image with dark overlay */}
-            <div className="absolute inset-0">
+  return (
+    <section className="relative w-full overflow-hidden bg-[#F8F6F1] pt-24 pb-8 sm:pt-28 sm:pb-10 lg:pt-32 lg:pb-12 border-b border-[#2C2825]/6">
+      {/* Ambient Warm Gradient Backdrop */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-[#A45A3D]/5 via-[#C7EBD4]/10 to-transparent rounded-full blur-3xl pointer-events-none -z-0" />
+      <div className="absolute -bottom-20 -left-20 w-[500px] h-[500px] bg-gradient-to-tr from-[#EFE7DE] via-[#F8F6F1] to-transparent rounded-full blur-2xl pointer-events-none -z-0" />
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+          {/* Left Column (Copywriting & Search) */}
+          <div className="lg:col-span-7 flex flex-col items-start text-left">
+            {/* Location Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FFFFFF] border border-[#2C2825]/10 shadow-[0_2px_8px_rgba(44,40,37,0.04)] mb-6">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#A45A3D] animate-pulse" />
+              <span className="text-[#A45A3D] text-xs sm:text-sm font-bold tracking-wide">
+                Hunian Modern &amp; Tenang di Cakung, Jakarta Timur
+              </span>
+            </div>
+
+            {/* Main Editorial Headline */}
+            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-[#1E1B18] tracking-tight leading-[1.15] mb-6">
+              Temukan Ketenangan Hunian di Tengah Hiruk Pikuk Industri.
+            </h1>
+
+            {/* Subtitle */}
+            <p className="font-ui text-base sm:text-lg text-[#38332E] leading-relaxed mb-6 max-w-2xl">
+              Kost eksklusif dekat Pabrik Yamaha &amp; Stasiun Buaran. Fasilitas
+              lengkap, WiFi Fiber ultra cepat, akses kunci digital terenkripsi,
+              dan transparansi sewa tanpa ribet.
+            </p>
+
+            {/* Floating Tactile Ceramic Search Card */}
+            <div className="w-full bg-[#FFFFFF] border border-[#2C2825]/10 rounded-2xl p-4 sm:p-5 shadow-[0_8px_30px_rgba(44,40,37,0.06)] mb-6">
+              <form
+                action="/kamar"
+                method="GET"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+              >
+                {/* Filter Lokasi */}
+                <div className="flex flex-col gap-1 p-2.5 rounded-xl bg-[#F8F6F1] hover:bg-[#FAF2EA] transition-colors border border-[#2C2825]/8">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#4A453F] flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-[#A45A3D]" />
+                    Lokasi Properti
+                  </label>
+                  <select
+                    name="property"
+                    defaultValue="pulo-jahe"
+                    className="bg-transparent text-sm font-semibold text-[#1E1B18] outline-none cursor-pointer"
+                  >
+                    <option value="pulo-jahe">OSkost Pulo Jahe (Utama)</option>
+                  </select>
+                </div>
+
+                {/* Filter Tipe Kamar */}
+                <div className="flex flex-col gap-1 p-2.5 rounded-xl bg-[#F8F6F1] hover:bg-[#FAF2EA] transition-colors border border-[#2C2825]/8">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#4A453F] flex items-center gap-1.5">
+                    <Home className="w-3.5 h-3.5 text-[#2C4C3B]" />
+                    Tipe Kamar
+                  </label>
+                  <select
+                    name="type"
+                    defaultValue="all"
+                    className="bg-transparent text-sm font-semibold text-[#1E1B18] outline-none cursor-pointer"
+                  >
+                    <option value="all">Semua Tipe Kamar</option>
+                    <option value="standar">Standar (1 Orang)</option>
+                    <option value="besar">Besar (2 - 3 Orang)</option>
+                  </select>
+                </div>
+
+                {/* Filter Rentang Harga */}
+                <div className="flex flex-col gap-1 p-2.5 rounded-xl bg-[#F8F6F1] hover:bg-[#FAF2EA] transition-colors border border-[#2C2825]/8">
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#4A453F] flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#C98A2C]" />
+                    Rentang Harga
+                  </label>
+                  <select
+                    name="price"
+                    defaultValue="all"
+                    className="bg-transparent text-sm font-semibold text-[#1E1B18] outline-none cursor-pointer"
+                  >
+                    <option value="all">Semua Harga</option>
+                    <option value="under_1500k">&lt; Rp 1.5jt / bln</option>
+                    <option value="1500k_2500k">Rp 1.5jt - 2.5jt / bln</option>
+                    <option value="above_2500k">&gt; Rp 2.5jt / bln</option>
+                  </select>
+                </div>
+
+                {/* Tombol Submit */}
+                <div className="flex items-center">
+                  <button
+                    type="submit"
+                    className="w-full h-full min-h-[48px] inline-flex items-center justify-center gap-2 bg-[#A45A3D] hover:bg-[#864327] text-white text-sm font-bold uppercase tracking-wider rounded-xl shadow-[0_4px_14px_rgba(164,90,61,0.25)] hover:shadow-[0_6px_20px_rgba(164,90,61,0.35)] transition-all cursor-pointer"
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>Cek Kamar</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Trust Micro-Metrics */}
+            <div className="flex flex-wrap items-center gap-6 text-sm font-medium text-[#38332E]">
+              <div className="flex items-center gap-2">
+                <Wifi className="w-4 h-4 text-[#A45A3D]" />
+                <span>WiFi Fiber Dedicated</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#C98A2C]" />
+                <span>Tanpa Biaya Tersembunyi</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CircleDollarSign className="w-4 h-4 text-[#C98A2C]" />
+                <span>Bayar Kost Mudah</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column (Visual Architectural Frame) */}
+          <div className="lg:col-span-5 relative">
+            {/* Main Image Frame with Ceramic Border */}
+            <div className="relative rounded-3xl overflow-hidden bg-[#FFFFFF] p-2.5 shadow-[0_12px_40px_rgba(44,40,37,0.08)] border border-[#2C2825]/8">
+              <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-[#EFE7DE]">
                 <Image
-                    src="/images/hero-bg.webp"
-                    alt="Cozy bedroom aesthetic"
-                    fill
-                    sizes="100vw"
-                    className="object-cover"
-                    priority
+                  src="/images/Hero2.jpg"
+                  alt="Interior Kamar OsKost Sanctuary"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 45vw"
+                  className="object-cover transition-transform duration-700 hover:scale-105"
+                  priority
                 />
-                {/* Dark overlay for readability */}
-                <div className="absolute inset-0 bg-black/50" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10" />
 
-                {/* Curtain stripes effect */}
-                <div className="absolute inset-0 opacity-20">
-                    {Array.from({ length: 20 }).map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute top-0 bottom-0 w-[5%] bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                            style={{ left: `${i * 5}%` }}
-                        />
-                    ))}
+                {/* 360 Badge on Image */}
+                <Link
+                  href="#tur-360"
+                  className="absolute bottom-4 left-4 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/90 backdrop-blur-md text-[#1E1B18] text-xs font-bold hover:bg-white transition-all shadow-md group"
+                >
+                  <span className="w-2 h-2 rounded-full bg-[#A45A3D] group-hover:scale-125 transition-transform" />
+                  <span>Tur Virtual 360° Tersedia</span>
+                </Link>
+              </div>
+
+              {/* Floating Top Badge: Kamar Tersedia */}
+              {/* <div className="absolute -top-3 -right-3 sm:-right-4 bg-[#FFFFFF] border border-[#2C2825]/10 rounded-2xl px-4 py-2.5 shadow-[0_8px_24px_rgba(44,40,37,0.08)] flex items-center gap-2.5 animate-bounce [animation-duration:4s]">
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2C4C3B] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-[#2C4C3B]" />
+                </span>
+                <div>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-[#757069]">
+                    Status Terkini
+                  </p>
+                  <p className="text-xs font-bold text-[#2C4C3B]">
+                    2 Kamar Tersedia Hari Ini
+                  </p>
                 </div>
-            </div>
+              </div> */}
 
-            {/* Left decorative - yellow line */}
-            <div className="absolute bottom-1/4 right-12 lg:right-40 lg:bottom-200">
-                <div className="w-16 h-0.5 lg:w-170 lg:h-1.5 bg-yellow-400/20" />
-            </div>
-            {/* Decorative elements */}
-            <div className="absolute top-1/4 right-8 lg:right-16">
-                <div className="w-16 h-16 lg:w-24 lg:h-24 rounded-full border-2 border-primary/30" />
-            </div>
-            <div className="absolute bottom-1/4 right-12 lg:right-24 rotate-45">
-                <div className="w-8 h-8 lg:w-12 lg:h-12 border-2 border-secondary/40" />
-            </div>
-            {/* Left decorative - Purple line */}
-            <div className="absolute bottom-1/4 left-12 lg:left-24">
-                <div className="w-16 h-0.5 lg:w-300 lg:h-1.5 bg-primary/20" />
-            </div>
-
-            {/* Content */}
-            <div className="relative z-10 container mx-auto px-4 lg:px-8">
-                <div className="max-w-8xl mx-auto text-start">
-                    {/* Badge - Light glow effect */}
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/30 border border-primary/90 mb-8 backdrop-blur-sm shadow-[0_0_40px_rgba(129,0,209,0.3)]">
-                        <span className="text-white text-lg font-medium tracking-wide drop-shadow-[0_0_16px_rgba(129,0,209,0.8)]">
-                            JAKARTA INDUSTRY HUB
-                        </span>
-                    </div>
-
-                    {/* Main Headline */}
-                    <h1 className="text-5xl sm:text-6xl lg:text-[10rem] font-extrabold tracking-tight mb-6 leading-none">
-                        <span className="text-white">KOST GAK</span>
-                        <br />
-                        <span className="text-secondary">RIBET </span>
-                        <span className="text-white">LAGI.</span>
-                    </h1>
-
-                    {/* Subtitle */}
-                    <p className="text-white/70 text-lg lg:text-2xl max-w-3xl mb-10 leading-relaxed">
-                        Upgrade hidupmu di Smartkost Pulo Jahe, Cakung. Kost modern bulanan dekat PT Yamaha (10 menit jalan kaki lewat jalan pintas warga) dan Stasiun Buaran (10-15 menit berkendara). Lokasi strategis di area pemukiman yang sangat dekat dengan pasar, puskesmas, serta kebutuhan harian Anda.
-                    </p>
-
-                    {/* 360 Virtual Tour CTA - Glass/Crystal effect with shine on hover */}
-                    <div className="group inline-flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-white/10 border border-white/20 backdrop-blur-md shadow-lg cursor-pointer transition-all duration-300 hover:bg-white/20 hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] relative overflow-hidden">
-                        {/* Shine effect on hover */}
-                        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-                        <div className="text-3xl lg:text-4xl font-bold text-white relative z-10">360°</div>
-                        <div className="text-left relative z-10">
-                            <p className="text-xs text-white/70 uppercase tracking-wider">Virtual</p>
-                            <p className="text-xs text-white/70 uppercase tracking-wider">Room Tour</p>
-                        </div>
-                    </div>
+              {/* Floating Bottom Badge: Verified Rating */}
+              {/* <div className="absolute -bottom-4 -left-3 sm:-left-4 bg-[#FFFFFF] border border-[#2C2825]/10 rounded-2xl px-4 py-3 shadow-[0_8px_24px_rgba(44,40,37,0.08)] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#C98A2C]/10 flex items-center justify-center text-[#C98A2C]">
+                  <Star className="w-5 h-5 fill-current" />
                 </div>
-            </div>
-
-            {/* Scroll indicator */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-                <div className="w-8 h-12 rounded-full border-2 border-white/50 flex items-start justify-center p-2 backdrop-blur-sm">
-                    <div className="w-1 h-3 rounded-full bg-secondary" />
+                <div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-bold text-[#1E1B18]">
+                      4.9 / 5.0
+                    </span>
+                    <span className="text-[10px] text-[#757069]">
+                      (128 Ulasan)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#757069]">
+                    Penghuni Aktif Terverifikasi
+                  </p>
                 </div>
+              </div> */}
             </div>
-        </section>
-    );
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

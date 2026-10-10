@@ -1,6 +1,9 @@
 export { HeroSection } from "./hero-section";
+export { TourSection } from "./tour-section";
+export { ClusterRoomsSection } from "./cluster-rooms-section";
 export { FeaturesSection } from "./features-section";
 export { BookingStepsSection } from "./booking-steps-section";
 export { MapsSection } from "./maps-section";
+export { SaasPricingSection } from "./saas-pricing-section";
 export { TestimonialSection } from "./testimonial-section";
 export { FaqSection } from "./faq-section";
