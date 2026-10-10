@@ -25,9 +25,11 @@ enum UserRole {
 }
 
 enum SaaSPlanTier {
-  STARTER         // Kuota 1-10 Kamar
-  PRO             // Kuota 11-30 Kamar
-  ENTERPRISE      // Kuota > 30 Kamar
+  FREE            // Kuota 1-5 Kamar (Gratis Selamanya)
+  STARTER         // Kuota 6-15 Kamar (Rp 69.000/bln)
+  GROWTH          // Kuota 16-40 Kamar (Rp 179.000/bln)
+  PRO             // Kuota 41-100 Kamar (Rp 349.000/bln)
+  ENTERPRISE      // Kuota > 100 Kamar (Custom / Rp 4.500/kamar)
 }
 
 enum SubscriptionStatus {

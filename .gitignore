@@ -72,3 +72,4 @@ Docs/Product/
 
 # Testing trash
 /prisma/seed.ts
+scratch/

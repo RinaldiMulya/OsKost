@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "tunnel": "C:\\PROGRA~2\\CLOUDF~1\\CLOUDF~1.EXE tunnel --url http://localhost:3000",
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
