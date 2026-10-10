@@ -89,70 +89,70 @@ export function TenantTable({ tenants }: TenantTableProps) {
   return (
     <div className="space-y-6">
       {/* Action Bar (Search & Filter) */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-zinc-900 py-6 px-8 rounded-xl border border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white py-4 px-6 rounded-2xl border border-[#2C2825]/10 shadow-sm">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-6 text-zinc-500" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#4A453F]" />
           <Input
             type="text"
             placeholder="Cari penghuni atau kamar..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-950 border-zinc-800 pl-10 pr-4 py-6 text-zinc-100 text-lg focus:ring-secondary focus:border-secondary transition-colors"
+            className="w-full bg-white border-[#2C2825]/15 pl-10 pr-4 h-11 text-[#1E1B18] placeholder:text-[#82756A] text-sm rounded-xl focus:ring-[#8C6239] transition-colors font-medium"
           />
         </div>
 
-        <div className="flex items-center gap-30 lg:gap-3">
-          <span className="text-xs font-semibold text-zinc-400 shrink-0">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-[#4A453F] shrink-0">
             Filter Status:
           </span>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px] bg-zinc-950/40 border-zinc-800 text-white text-sm rounded-xl">
+            <SelectTrigger className="w-[190px] bg-white border-[#2C2825]/15 text-[#1E1B18] text-sm font-semibold rounded-xl h-11">
               <SelectValue placeholder="Pilih Status" />
             </SelectTrigger>
-            <SelectContent className="bg-zinc-950 border-zinc-800 text-white rounded-xl">
-              <SelectItem value="ACTIVE" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Penghuni Aktif</SelectItem>
-              <SelectItem value="ALL" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Semua Status</SelectItem>
-              <SelectItem value="PAID" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Paid</SelectItem>
-              <SelectItem value="UNPAID" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Unpaid</SelectItem>
-              <SelectItem value="WARNING" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Hampir / Habis Kontrak</SelectItem>
-              <SelectItem value="CHECKED_OUT" className="focus:bg-zinc-900 focus:text-white cursor-pointer">Checked-out</SelectItem>
+            <SelectContent className="bg-white border-[#2C2825]/15 text-[#1E1B18] rounded-xl shadow-lg">
+              <SelectItem value="ACTIVE" className="focus:bg-[#F2EDE9] focus:text-[#1E1B18] text-[#1E1B18] font-medium text-sm cursor-pointer">Penghuni Aktif</SelectItem>
+              <SelectItem value="ALL" className="focus:bg-[#F2EDE9] focus:text-[#1E1B18] text-[#1E1B18] font-medium text-sm cursor-pointer">Semua Status</SelectItem>
+              <SelectItem value="PAID" className="focus:bg-[#F2EDE9] focus:text-[#1E1B18] text-[#1E1B18] font-medium text-sm cursor-pointer">Paid</SelectItem>
+              <SelectItem value="UNPAID" className="focus:bg-[#F2EDE9] focus:text-[#1E1B18] text-[#1E1B18] font-medium text-sm cursor-pointer">Unpaid</SelectItem>
+              <SelectItem value="WARNING" className="focus:bg-[#F2EDE9] focus:text-[#1E1B18] text-[#1E1B18] font-medium text-sm cursor-pointer">Hampir / Habis Kontrak</SelectItem>
+              <SelectItem value="CHECKED_OUT" className="focus:bg-[#F2EDE9] focus:text-[#1E1B18] text-[#1E1B18] font-medium text-sm cursor-pointer">Checked-out</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* Main Data Table */}
-      <div className="bg-zinc-900 border border-zinc-800/80 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-[#2C2825]/10 rounded-2xl overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-zinc-950/40 border-b border-zinc-800">
-            <TableRow className="hover:bg-transparent border-b border-zinc-800">
+          <TableHeader className="bg-[#F8F6F1]/80 border-b border-[#2C2825]/10">
+            <TableRow className="hover:bg-transparent border-b border-[#2C2825]/10">
               <TableHead className="w-12"></TableHead>
-              <TableHead className="text-zinc-400 font-semibold text-lg py-4 uppercase tracking-wider">
+              <TableHead className="text-[#1E1B18] font-bold text-sm py-3.5 uppercase tracking-wider">
                 Tenant
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold text-lg py-4 uppercase tracking-wider">
+              <TableHead className="text-[#1E1B18] font-bold text-sm py-3.5 uppercase tracking-wider">
                 Kamar
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold text-lg py-4 uppercase tracking-wider">
+              <TableHead className="text-[#1E1B18] font-bold text-sm py-3.5 uppercase tracking-wider">
                 Check-in
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold text-lg py-4 uppercase tracking-wider">
+              <TableHead className="text-[#1E1B18] font-bold text-sm py-3.5 uppercase tracking-wider">
                 Sewa & Kontrak
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold text-lg py-4 uppercase tracking-wider">
+              <TableHead className="text-[#1E1B18] font-bold text-sm py-3.5 uppercase tracking-wider">
                 Pembayaran
               </TableHead>
-              <TableHead className="text-zinc-400 font-semibold text-lg py-4 pr-15 uppercase tracking-wider text-right">
+              <TableHead className="text-[#1E1B18] font-bold text-sm py-3.5 pr-6 uppercase tracking-wider text-right">
                 Aksi
               </TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody className="divide-y divide-zinc-800">
+          <TableBody className="divide-y divide-[#2C2825]/8">
             {filteredTenants.length === 0 ? (
               <TableRow className="border-b-0 hover:bg-transparent">
                 <TableCell
                   colSpan={7}
-                  className="h-32 text-center text-zinc-500 text-md"
+                  className="h-32 text-center text-[#4A453F] text-base font-medium"
                 >
                   Tidak ada data penghuni yang cocok dengan kriteria.
                 </TableCell>

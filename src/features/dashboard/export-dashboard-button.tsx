@@ -154,12 +154,12 @@ export function ExportDashboardButton() {
       disabled={isExporting}
       variant="outline"
       size="sm"
-      className="gap-1.5 border-zinc-800 bg-zinc-900/50 text-zinc-300 hover:text-white hover:bg-zinc-800 text-xs"
+      className="gap-2 border-[#2C2825]/15 bg-white text-[#1E1B18] hover:text-[#1E1B18] hover:bg-[#F2EDE9] text-sm font-semibold shadow-sm h-9 px-3.5"
     >
       {isExporting ? (
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        <Loader2 className="h-4 w-4 animate-spin text-[#8C6239]" />
       ) : (
-        <Download className="h-3.5 w-3.5" />
+        <Download className="h-4 w-4 text-[#8C6239]" />
       )}
       Export CSV
     </Button>

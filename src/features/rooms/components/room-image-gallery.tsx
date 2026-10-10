@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Eye, Hand } from "lucide-react";
+import { Eye, Hand, Sparkles, Compass, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Room360Viewer } from "./room-360-viewer";
 
@@ -21,7 +21,7 @@ interface RoomImageGalleryProps {
 
 export function RoomImageGallery({
     images,
-    panoramaImages,
+    panoramaImages = [],
     roomName,
     roomNumber,
     priceDisplay,
@@ -30,170 +30,152 @@ export function RoomImageGallery({
     const [activePanoramaIndex, setActivePanoramaIndex] = useState(0);
     const [show360, setShow360] = useState(false);
 
-    const totalItems = images.length + (panoramaImages?.length ?? 0);
+    const safeImages = images.length > 0 ? images : ["/images/rooms/room-1.webp"];
+    const hasPanoramas = panoramaImages && panoramaImages.length > 0;
+    const totalItems = safeImages.length + (panoramaImages?.length ?? 0);
 
     return (
-        <>
-            {/* ===== HERO IMAGE / 360° ===== */}
-            <section className="mb-2 lg:mb-6">
-                {show360 ? (
-                    <div className="relative h-[65svh] lg:h-auto">
-                        <div className="h-full lg:aspect-video">
-                            <Room360Viewer imageUrl={panoramaImages?.[activePanoramaIndex]?.imageUrl} />
-                        </div>
+        <section className="flex flex-col gap-4 mb-8">
+            {/* Main Stage Viewport */}
+            <div className="relative w-full rounded-3xl overflow-hidden bg-[#EFE7DE] border border-[#2C2825]/8 shadow-[0_8px_30px_rgba(44,40,37,0.06)] aspect-[16/10] sm:aspect-[16/9] lg:aspect-[21/10] group">
+                {show360 && hasPanoramas ? (
+                    <div className="w-full h-full relative">
+                        <Room360Viewer imageUrl={panoramaImages[activePanoramaIndex]?.imageUrl} />
                         <button
                             onClick={() => setShow360(false)}
-                            className="absolute top-3 right-3 z-20 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-sm border border-zinc-700 text-xs lg:text-sm text-white hover:bg-black/80 transition-colors"
+                            className="absolute top-4 right-4 z-20 px-3.5 py-1.5 rounded-full bg-[#FFFFFF]/90 backdrop-blur-md border border-[#2C2825]/10 text-xs font-bold text-[#1E1B18] hover:bg-[#FFFFFF] shadow-md transition-all cursor-pointer"
                         >
                             Kembali ke Foto
                         </button>
                     </div>
                 ) : (
-                    <div className="relative rounded-2xl overflow-hidden group">
-                        {/* Main image — 65svh on mobile, aspect-video on desktop */}
-                        <div className="relative h-[65svh] lg:h-auto lg:aspect-video">
-                            <Image
-                                src={images[activeImageIndex] ?? "/images/rooms/room-1.webp"}
-                                alt={`${roomName} - ${roomNumber}`}
-                                fill
-                                className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-                                priority
-                            />
-                            {/* Bottom gradient overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="relative w-full h-full">
+                        <Image
+                            src={safeImages[activeImageIndex] || "/images/rooms/room-1.webp"}
+                            alt={`${roomName} - Kamar ${roomNumber}`}
+                            fill
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            priority
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+                        {/* Top Left Tag: Room Number */}
+                        <div className="absolute top-4 left-4 z-10">
+                            <span className="px-3.5 py-1.5 rounded-full bg-[#FFFFFF]/95 backdrop-blur-md border border-[#2C2825]/8 text-xs font-bold text-[#1E1B18] shadow-sm">
+                                Unit No. {roomNumber}
+                            </span>
                         </div>
 
-                        {/* Price tag - top right */}
+                        {/* Top Right Tag: Price Display */}
                         <div className="absolute top-4 right-4 z-10">
-                            <div className="px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg bg-black/60 backdrop-blur-sm border border-secondary/30 shadow-[0_0_20px_rgba(0,204,64,0.15)]">
-                                <p className="text-secondary font-bold text-xs lg:text-sm tracking-wide">
-                                    {priceDisplay}
-                                </p>
-                            </div>
+                            <span className="px-3.5 py-1.5 rounded-full bg-[#A45A3D] text-white text-xs font-bold shadow-md">
+                                {priceDisplay}
+                            </span>
                         </div>
 
-                        {/* 360° trigger button - bottom left */}
-                        {panoramaImages && panoramaImages.length > 0 && (
+                        {/* Bottom Left: Switch to 360 Mode Button */}
+                        {hasPanoramas && (
                             <button
                                 onClick={() => setShow360(true)}
-                                className="absolute bottom-4 left-4 z-10 flex items-center gap-2 px-3 py-2 lg:px-4 lg:py-2.5 rounded-xl bg-black/50 backdrop-blur-md border border-white/15 hover:bg-black/70 hover:border-white/30 transition-all duration-300 group/btn"
+                                className="absolute bottom-4 left-4 z-10 flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FFFFFF]/95 backdrop-blur-md border border-[#2C2825]/10 text-[#A45A3D] hover:bg-[#A45A3D] hover:text-white transition-all shadow-lg group/btn cursor-pointer"
                             >
-                                <Hand className="w-4 h-4 text-white/70 group-hover/btn:text-secondary transition-colors" />
-                                <span className="text-white/80 text-[10px] lg:text-xs font-medium uppercase tracking-widest group-hover/btn:text-white transition-colors">
-                                    Geser Untuk 360° View
+                                <Compass className="w-4 h-4 animate-spin-slow" />
+                                <span className="font-ui text-xs font-bold tracking-wide">
+                                    Buka Tur 360° Interaktif
                                 </span>
                             </button>
                         )}
                     </div>
                 )}
-            </section>
+            </div>
 
-            {/* ===== GALLERY - JELAJAH LINGKUNGAN ===== */}
+            {/* Thumbnails Row */}
             {totalItems > 1 && (
-                <section className="mb-6 lg:mb-8">
-                    <h3 className="text-xs lg:text-sm text-zinc-300 uppercase tracking-[0.25em] font-medium mb-2 lg:mb-3">
-                        Jelajah Lingkungan
-                    </h3>
-                    {/* Mobile: fill remaining ~25svh | Desktop: normal row */}
-                    <div className="flex gap-2 lg:gap-4 overflow-x-auto pb-2 p-3 scrollbar-hide">
-                        {/* 360 Panorama Images */}
-                        {panoramaImages?.map((pano, index) => {
-                            const isActive = show360 && activePanoramaIndex === index;
+                <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-xs text-[#757069] px-1">
+                        <span className="font-semibold uppercase tracking-wider text-[11px]">
+                            Pilihan Sudut Pandang ({totalItems} Aset)
+                        </span>
+                        {hasPanoramas && (
+                            <span className="text-[11px] text-[#A45A3D] font-medium flex items-center gap-1">
+                                <Sparkles className="w-3 h-3" />
+                                Tersedia foto panorama 360°
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+                        {/* 360 Panoramas */}
+                        {panoramaImages.map((pano, idx) => {
+                            const isActive = show360 && activePanoramaIndex === idx;
                             return (
                                 <button
-                                    key={`pano-${pano.id || index}`}
+                                    key={pano.id || idx}
                                     onClick={() => {
-                                        setActivePanoramaIndex(index);
+                                        setActivePanoramaIndex(idx);
                                         setShow360(true);
                                     }}
                                     className={cn(
-                                        "relative flex-shrink-0 rounded-xl overflow-hidden transition-all duration-300",
-                                        "w-[35vw] h-[20svh] lg:w-56 lg:h-36 xl:w-56 xl:h-36",
+                                        "relative flex-shrink-0 w-32 sm:w-40 aspect-video rounded-2xl overflow-hidden transition-all duration-200 border cursor-pointer",
                                         isActive
-                                            ? "ring-2 ring-secondary ring-offset-2 ring-offset-[#0a0f0a]"
-                                            : "opacity-60 hover:opacity-90"
+                                            ? "ring-2 ring-[#A45A3D] ring-offset-2 ring-offset-[#F8F6F1] border-transparent shadow-md"
+                                            : "border-[#2C2825]/10 opacity-70 hover:opacity-100"
                                     )}
                                 >
                                     <Image
                                         src={pano.imageUrl}
-                                        alt={pano.title || `360 View ${index + 1}`}
+                                        alt={pano.title || `360 View ${idx + 1}`}
                                         fill
                                         className="object-cover"
                                     />
-                                    {isActive ? (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                            <span className="bg-secondary text-black text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1">
-                                                <span className="text-[10px] font-extrabold">360°</span> VIEW
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <div className="absolute top-2 right-2">
-                                            <span className="bg-black/60 backdrop-blur-md text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-0.5 border border-white/10">
-                                                <span className="text-[9px] font-bold">360°</span>
-                                            </span>
-                                        </div>
-                                    )}
-                                    <p
-                                        className={cn(
-                                            "absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] lg:text-sm font-semibold uppercase tracking-wider text-center w-full px-2 truncate",
-                                            isActive ? "text-secondary font-bold" : "text-zinc-300"
-                                        )}
-                                    >
-                                        {pano.title}
-                                    </p>
+                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                        <span className="px-2 py-0.5 rounded-full bg-[#A45A3D] text-white text-[10px] font-bold flex items-center gap-1">
+                                            <span>360°</span>
+                                        </span>
+                                    </div>
+                                    <div className="absolute bottom-1 left-1 right-1 text-center bg-black/60 backdrop-blur-xs rounded py-0.5 px-1">
+                                        <p className="text-[10px] text-white truncate font-medium">
+                                            {pano.title || `360° View ${idx + 1}`}
+                                        </p>
+                                    </div>
                                 </button>
                             );
                         })}
 
-                        {/* Standard Images */}
-                        {images.map((img, index) => {
-                            const isActive = !show360 && activeImageIndex === index;
+                        {/* Normal Room Photos */}
+                        {safeImages.map((imgUrl, idx) => {
+                            const isActive = !show360 && activeImageIndex === idx;
                             return (
                                 <button
-                                    key={`img-${index}`}
+                                    key={idx}
                                     onClick={() => {
-                                        setActiveImageIndex(index);
+                                        setActiveImageIndex(idx);
                                         setShow360(false);
                                     }}
                                     className={cn(
-                                        "relative flex-shrink-0 rounded-xl overflow-hidden transition-all duration-300",
-                                        "w-[35vw] h-[20svh] lg:w-56 lg:h-36 xl:w-56 xl:h-36",
+                                        "relative flex-shrink-0 w-32 sm:w-40 aspect-video rounded-2xl overflow-hidden transition-all duration-200 border cursor-pointer",
                                         isActive
-                                            ? "ring-2 ring-secondary ring-offset-2 ring-offset-[#0a0f0a]"
-                                            : "opacity-50 hover:opacity-90"
+                                            ? "ring-2 ring-[#A45A3D] ring-offset-2 ring-offset-[#F8F6F1] border-transparent shadow-md"
+                                            : "border-[#2C2825]/10 opacity-70 hover:opacity-100"
                                     )}
                                 >
                                     <Image
-                                        src={img}
-                                        alt={`View ${index + 1}`}
+                                        src={imgUrl}
+                                        alt={`Foto ${idx + 1}`}
                                         fill
                                         className="object-cover"
                                     />
-                                    {isActive ? (
-                                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                                            <span className="px-3 py-1 rounded-md bg-secondary/90 text-[10px] lg:text-xs font-bold text-black uppercase tracking-widest">
-                                                View
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <div className="absolute top-2 right-2">
-                                            <Eye className="w-4 h-4 lg:w-5 lg:h-5 text-white/60" />
-                                        </div>
-                                    )}
-                                    <p
-                                        className={cn(
-                                            "absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] lg:text-sm font-semibold uppercase tracking-wider",
-                                            isActive ? "text-secondary font-bold" : "text-zinc-500"
-                                        )}
-                                    >
-                                        {index === 0 ? "Depan" : index === 1 ? "Dalam" : "Luar"}
-                                    </p>
+                                    <div className="absolute bottom-1 left-1 right-1 text-center bg-black/50 backdrop-blur-xs rounded py-0.5 px-1">
+                                        <p className="text-[10px] text-white truncate font-medium">
+                                            Foto {idx + 1}
+                                        </p>
+                                    </div>
                                 </button>
                             );
                         })}
                     </div>
-                </section>
+                </div>
             )}
-        </>
+        </section>
     );
 }

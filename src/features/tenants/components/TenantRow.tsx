@@ -93,22 +93,22 @@ export function TenantRow({ tenant }: TenantRowProps) {
     ? getDaysRemaining(activeLease.endDate)
     : 999;
 
-  let contractBadgeColor = "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
+  let contractBadgeColor = "bg-[#F2EDE9] text-[#4A453F] border-[#2C2825]/15";
   if (hasActiveLease) {
     if (daysLeft < 0) {
       // Kontrak sudah habis tapi belum dicheckout
-      contractBadgeColor = "bg-red-500/10 text-red-400 border-red-500/20";
+      contractBadgeColor = "bg-red-50 text-red-800 border-red-300";
     } else if (daysLeft <= 30) {
-      contractBadgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+      contractBadgeColor = "bg-amber-50 text-amber-800 border-amber-300";
     } else {
-      contractBadgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+      contractBadgeColor = "bg-emerald-50 text-emerald-800 border-emerald-300";
     }
   }
 
   // === Status Pembayaran Dinamis (Bulan) ===
   let paymentText = "—";
-  let paymentColor = "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-  let paymentDotColor = "bg-zinc-500";
+  let paymentColor = "bg-[#F2EDE9] text-[#4A453F] border-[#2C2825]/15";
+  let paymentDotColor = "bg-[#4A453F]";
 
   if (hasActiveLease) {
     if (hasUnpaid) {
@@ -116,8 +116,8 @@ export function TenantRow({ tenant }: TenantRowProps) {
       const oldestUnpaid = unpaidInvoices[0];
       const monthLabel = formatShortMonth(oldestUnpaid.dueDate);
       paymentText = `Unpaid (${monthLabel})`;
-      paymentColor = "bg-red-500/10 text-red-400 border-red-500/20";
-      paymentDotColor = "bg-red-400";
+      paymentColor = "bg-red-50 text-red-800 border-red-300";
+      paymentDotColor = "bg-red-600";
     } else {
       // Cari invoice terakhir yang sudah PAID
       const paidInvoices = activeInvoices.filter(
@@ -131,13 +131,13 @@ export function TenantRow({ tenant }: TenantRowProps) {
       } else {
         paymentText = "Paid";
       }
-      paymentColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      paymentDotColor = "bg-emerald-400";
+      paymentColor = "bg-emerald-50 text-emerald-800 border-emerald-300";
+      paymentDotColor = "bg-emerald-600";
     }
   } else if (tenant.leases.length > 0) {
     paymentText = "—";
-    paymentColor = "bg-zinc-500/10 text-zinc-400 border-zinc-500/20";
-    paymentDotColor = "bg-zinc-400";
+    paymentColor = "bg-[#F2EDE9] text-[#4A453F] border-[#2C2825]/15";
+    paymentDotColor = "bg-[#82756A]";
   }
 
   async function handleMarkPaid(invoiceId: string) {
@@ -169,25 +169,25 @@ export function TenantRow({ tenant }: TenantRowProps) {
       {/* MAIN ROW */}
       <TableRow
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`border-zinc-800 hover:bg-zinc-800/40 cursor-pointer transition-colors select-none ${
-          isExpanded ? "bg-zinc-800/20" : ""
+        className={`border-b border-[#2C2825]/8 hover:bg-[#F8F6F1]/70 cursor-pointer transition-colors select-none ${
+          isExpanded ? "bg-[#FAF2EA]/60" : ""
         }`}
       >
         <TableCell className="text-center w-12">
           {isExpanded ? (
-            <ChevronUp className="size-4 text-zinc-400" />
+            <ChevronUp className="size-4 text-[#4A453F]" />
           ) : (
-            <ChevronDown className="size-4 text-zinc-400" />
+            <ChevronDown className="size-4 text-[#4A453F]" />
           )}
         </TableCell>
         <TableCell className="py-4">
           <div className="flex items-center gap-3">
-            <div className="size-9 rounded-full bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-zinc-300 font-bold text-lg">
-              {initials || <User className="size-4 text-zinc-400" />}
+            <div className="size-10 rounded-full bg-[#FAF2EA] border border-[#714A23]/25 flex items-center justify-center text-[#714A23] font-bold text-sm">
+              {initials || <User className="size-4 text-[#714A23]" />}
             </div>
             <div>
-              <p className="font-semibold text-lg text-zinc-100">{name}</p>
-              <div className="flex items-center gap-2 mt-0.5 text-md text-zinc-500">
+              <p className="font-bold text-base text-[#1E1B18]">{name}</p>
+              <div className="flex items-center gap-2 mt-0.5 text-xs font-semibold text-[#5C564E]">
                 <span className="font-mono">
                   T-{tenant.id.slice(-6).toUpperCase()}
                 </span>
@@ -195,7 +195,7 @@ export function TenantRow({ tenant }: TenantRowProps) {
                   <>
                     <span>•</span>
                     <span className="flex items-center gap-1">
-                      <Phone className="size-3 text-zinc-500" />
+                      <Phone className="size-3 text-[#5C564E]" />
                       {tenant.phoneNumber}
                     </span>
                   </>
@@ -204,33 +204,33 @@ export function TenantRow({ tenant }: TenantRowProps) {
             </div>
           </div>
         </TableCell>
-        <TableCell className="text-zinc-200 font-medium text-md">
+        <TableCell className="text-[#1E1B18] font-bold text-sm">
           {roomNumber}
         </TableCell>
-        <TableCell className="text-zinc-400 text-md">{checkInDate}</TableCell>
+        <TableCell className="text-[#4A453F] font-semibold text-sm">{checkInDate}</TableCell>
         <TableCell>
           {hasActiveLease ? (
             <Badge
               variant="outline"
-              className={`font-semibold text-md ${contractBadgeColor}`}
+              className={`font-bold text-xs rounded-full px-2.5 py-1 ${contractBadgeColor}`}
             >
               {remainingContract}
             </Badge>
           ) : tenant.leases.length > 0 ? (
             <Badge
               variant="outline"
-              className="font-semibold text-md bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+              className="font-bold text-xs bg-[#F2EDE9] text-[#4A453F] border-[#2C2825]/15 rounded-full px-2.5 py-1"
             >
               Checked-out
             </Badge>
           ) : (
-            <span className="text-zinc-600">—</span>
+            <span className="text-[#82756A]">—</span>
           )}
         </TableCell>
         <TableCell>
           <Badge
             variant="outline"
-            className={`gap-1.5 px-2.5 py-1 text-md ${paymentColor}`}
+            className={`gap-1.5 px-3 py-1 text-xs font-bold rounded-full ${paymentColor}`}
           >
             <span className={`size-1.5 rounded-full ${paymentDotColor}`} />
             {paymentText}
@@ -241,7 +241,7 @@ export function TenantRow({ tenant }: TenantRowProps) {
             variant="outline"
             size="sm"
             asChild
-            className="border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 h-8 gap-2"
+            className="border-[#2C2825]/15 text-[#1E1B18] hover:text-[#1E1B18] hover:bg-[#F2EDE9] h-8 text-xs font-semibold gap-1.5 rounded-lg"
           >
             <Link href={`/admin/tenants/${tenant.id}`}>
               <Eye className="size-3.5" /> Lihat Detail
@@ -252,51 +252,51 @@ export function TenantRow({ tenant }: TenantRowProps) {
 
       {/* EXPANDED PANEL */}
       {isExpanded && (
-        <TableRow className="bg-zinc-950/60 border-zinc-800 hover:bg-transparent">
+        <TableRow className="bg-[#F8F6F1]/50 border-b border-[#2C2825]/10 hover:bg-[#F8F6F1]/50">
           <TableCell colSpan={7} className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-zinc-900/40 rounded-xl p-6 border border-zinc-800/60 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 bg-white rounded-2xl p-6 border border-[#2C2825]/10 shadow-sm animate-in fade-in duration-300">
               {/* Panel 1: Kontak & Asal */}
               <div className="flex flex-col gap-4">
-                <h4 className="font-semibold text-xl text-zinc-400 flex items-center gap-2 border-b border-zinc-400 pb-2">
-                  <Phone className="size-4 text-zinc-500" /> Kontak & Asal
+                <h4 className="font-bold text-base text-[#1E1B18] flex items-center gap-2 border-b border-[#2C2825]/10 pb-2">
+                  <Phone className="size-4 text-[#714A23]" /> Kontak & Asal
                 </h4>
-                <div className="text-lg text-zinc-300 space-y-2">
+                <div className="text-sm text-[#4A453F] space-y-2.5">
                   <p className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-500 block">
+                    <span className="text-[#5C564E] font-medium block">
                       Nomor HP Penghuni
                     </span>
-                    <span className="font-mono text-zinc-200 font-medium">
+                    <span className="font-mono text-[#1E1B18] font-bold">
                       {tenant.phoneNumber ?? "—"}
                     </span>
                   </p>
                   {tenant.email && (
                     <p className="flex items-center justify-between gap-2">
-                      <span className="text-zinc-500 block">
+                      <span className="text-[#5C564E] font-medium block">
                         Email
                       </span>
-                      <span className="text-zinc-200 text-md truncate max-w-[180px]">
+                      <span className="text-[#1E1B18] font-semibold truncate max-w-[180px]">
                         {tenant.email}
                       </span>
                     </p>
                   )}
                   <p className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-500 block">
+                    <span className="text-[#5C564E] font-medium block">
                       Nama Kontak Darurat
                     </span>
-                    <span className="font-medium text-zinc-200">
+                    <span className="font-bold text-[#1E1B18]">
                       {tenant.tenantProfile?.emergencyContactName ?? "—"}
                     </span>
                   </p>
                   <p className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-500 block">
+                    <span className="text-[#5C564E] font-medium block">
                       Nomor Kontak Darurat
                     </span>
-                    <span className="font-mono text-zinc-200">
+                    <span className="font-mono text-[#1E1B18] font-bold">
                       {tenant.tenantProfile?.emergencyContactNumber ?? "—"}
                     </span>
                   </p>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-500 block">Alamat Asal KTP</span>
+                    <span className="text-[#5C564E] font-medium block">Alamat Asal KTP</span>
                     <AddressField
                       address={tenant.tenantProfile?.address ?? undefined}
                     />
@@ -306,30 +306,29 @@ export function TenantRow({ tenant }: TenantRowProps) {
 
               {/* Panel 2: Contract Info */}
               <div className="flex flex-col gap-4">
-                <h4 className="font-semibold text-lg text-zinc-400 flex items-center gap-2 border-b border-zinc-400 pb-2">
-                  <FileText className="size-4 text-zinc-500" /> Detail Kontrak
+                <h4 className="font-bold text-base text-[#1E1B18] flex items-center gap-2 border-b border-[#2C2825]/10 pb-2">
+                  <FileText className="size-4 text-[#714A23]" /> Detail Kontrak
                 </h4>
-                <div className="text-xs text-zinc-300 space-y-2">
+                <div className="text-sm text-[#4A453F] space-y-2.5">
                   <p className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-500 text-lg block">
+                    <span className="text-[#5C564E] font-medium block">
                       Durasi Sewa
                     </span>
-                    <span className="flex items-center gap-1.5 text-zinc-200 mt-0.5">
-                      <Calendar className="size-4 text-zinc-500" />
-                      <span className="text-lg">
+                    <span className="flex items-center gap-1.5 text-[#1E1B18] font-bold">
+                      <Calendar className="size-4 text-[#714A23]" />
+                      <span>
                         {activeLease
                           ? `${formatDate(activeLease.startDate)} s/d ${formatDate(activeLease.endDate)}`
                           : "—"}
                       </span>
                     </span>
                   </p>
-
                 </div>
-                <div className="flex flex-col gap-3 mt-auto pt-4 border-t border-zinc-400/40">
+                <div className="flex flex-col gap-2.5 mt-auto pt-4 border-t border-[#2C2825]/10">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 border-zinc-800 text-zinc-300 hover:text-white bg-transparent hover:bg-zinc-800 text-xs w-full"
+                    className="h-9 border-[#2C2825]/15 text-[#1E1B18] hover:bg-[#F2EDE9] text-xs font-semibold w-full rounded-xl"
                     asChild
                   >
                     <Link href={`/admin/tenants/${tenant.id}/edit`}>
@@ -349,7 +348,7 @@ export function TenantRow({ tenant }: TenantRowProps) {
                       size="sm"
                       onClick={handleSendReminder}
                       disabled={isSendingReminder}
-                      className="h-8 border-amber-500/20 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 bg-transparent text-xs w-full gap-1"
+                      className="h-9 border-amber-300 text-amber-800 hover:bg-amber-50 bg-amber-50/50 text-xs font-bold w-full gap-1.5 rounded-xl"
                     >
                       {isSendingReminder ? (
                         <Loader2 className="size-3.5 animate-spin" />
@@ -363,21 +362,21 @@ export function TenantRow({ tenant }: TenantRowProps) {
               </div>
 
               {/* Panel 3: Billing & Invoices */}
-              <div className="flex flex-col gap-4 bg-zinc-900/80 rounded-lg p-4 border border-zinc-800/80">
+              <div className="flex flex-col gap-4 bg-[#FAF2EA]/50 rounded-xl p-5 border border-[#2C2825]/10">
                 <div className="flex items-center justify-between">
                   <h4
-                    className={`font-semibold text-sm flex items-center gap-2 ${
-                      hasUnpaid ? "text-red-400" : "text-emerald-400"
+                    className={`font-bold text-sm flex items-center gap-2 ${
+                      hasUnpaid ? "text-red-700" : "text-emerald-700"
                     }`}
                   >
                     <ReceiptIcon className="size-4" /> Tagihan Aktif
                   </h4>
                   {hasUnpaid ? (
-                    <Badge className="bg-red-500/20 text-red-400 hover:bg-red-500/20 text-[10px] font-bold tracking-wider uppercase border border-red-500/30">
+                    <Badge className="bg-red-100 text-red-800 hover:bg-red-100 text-xs font-bold tracking-wider uppercase border border-red-300 rounded-full px-2.5 py-0.5">
                       Belum Bayar
                     </Badge>
                   ) : (
-                    <Badge className="bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 text-[10px] font-bold tracking-wider uppercase border border-emerald-500/30">
+                    <Badge className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 text-xs font-bold tracking-wider uppercase border border-emerald-300 rounded-full px-2.5 py-0.5">
                       Lunas
                     </Badge>
                   )}
@@ -386,19 +385,19 @@ export function TenantRow({ tenant }: TenantRowProps) {
                 {hasUnpaid ? (
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="text-xs space-y-1.5 my-2">
-                      <p className="text-zinc-400">
+                      <p className="text-[#4A453F] font-medium">
                         Periode Tagihan:{" "}
-                        <span className="font-semibold text-zinc-100">
+                        <span className="font-bold text-[#1E1B18]">
                           {formatPeriodDate(unpaidInvoices[0].dueDate)}
                         </span>
                       </p>
-                      <p className="text-zinc-400">
+                      <p className="text-[#4A453F] font-medium">
                         Total Tunggakan:{" "}
-                        <span className="text-red-400 font-bold text-base block mt-0.5">
+                        <span className="text-red-700 font-extrabold text-lg block mt-0.5">
                           {formatRupiah(totalUnpaidAmount)}
                         </span>
                       </p>
-                      <p className="text-red-400/90 font-semibold flex items-center gap-1 mt-2 text-[11px]">
+                      <p className="text-red-700 font-bold flex items-center gap-1 mt-2 text-xs">
                         <Clock className="size-3.5 shrink-0" />
                         <span>
                           Jatuh tempo pada{" "}
@@ -410,7 +409,7 @@ export function TenantRow({ tenant }: TenantRowProps) {
                     <Button
                       onClick={() => handleMarkPaid(unpaidInvoices[0].id)}
                       disabled={loadingInvoiceId !== null}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium h-9 text-xs transition-all active:scale-[0.98] gap-1.5 shadow-sm mt-3"
+                      className="w-full bg-[#2C4C3B] hover:bg-[#1E3428] text-white font-bold h-9 text-xs transition-all active:scale-[0.98] gap-1.5 shadow-sm mt-3 rounded-xl"
                     >
                       {loadingInvoiceId === unpaidInvoices[0].id ? (
                         <Loader2 className="size-3.5 animate-spin" />
@@ -423,12 +422,12 @@ export function TenantRow({ tenant }: TenantRowProps) {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-center">
-                    <Check className="size-8 text-emerald-400 mb-2 p-1 bg-emerald-500/10 rounded-full border border-emerald-500/20" />
-                    <p className="text-xs font-semibold text-zinc-300">
+                  <div className="flex-1 flex flex-col items-center justify-center text-center py-4">
+                    <Check className="size-9 text-emerald-700 mb-2 p-1.5 bg-emerald-100 rounded-full border border-emerald-300" />
+                    <p className="text-sm font-bold text-[#1E1B18]">
                       Semua Tagihan Lunas
                     </p>
-                    <p className="text-[11px] text-zinc-500 mt-1 mr-28 max-w-[180px]">
+                    <p className="text-xs font-medium text-[#4A453F] mt-1 max-w-[200px]">
                       Tidak ada tagihan tertunggak untuk masa sewa aktif ini.
                     </p>
                   </div>

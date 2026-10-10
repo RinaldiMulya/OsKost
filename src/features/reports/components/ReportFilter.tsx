@@ -42,7 +42,7 @@ export function ReportFilter({
   };
 
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap">
       {STATUS_OPTIONS.map((opt) => (
         <Button
           key={opt.value}
@@ -50,10 +50,10 @@ export function ReportFilter({
           size="sm"
           onClick={() => handleStatusChange(opt.value)}
           className={`
-            gap-1.5 text-xs font-medium transition-all
+            gap-1.5 text-xs font-bold transition-all h-9 px-3.5 rounded-xl
             ${activeStatus === opt.value
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+              ? "bg-[#714A23] text-white hover:bg-[#5C3B1A] shadow-sm"
+              : "border-[#2C2825]/15 bg-white text-[#4A453F] hover:text-[#1E1B18] hover:bg-[#F2EDE9]"
             }
           `}
         >

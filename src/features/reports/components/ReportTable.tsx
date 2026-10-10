@@ -36,18 +36,18 @@ function StatusBadge({ status }: { status: "OPEN" | "IN_PROGRESS" | "RESOLVED" }
   const config = {
     OPEN: {
       label: "Terbuka",
-      icon: <AlertTriangle className="h-3 w-3" />,
-      className: "bg-red-500/10 text-red-400 border-red-500/20",
+      icon: <AlertTriangle className="h-3.5 w-3.5" />,
+      className: "bg-red-50 text-red-800 border-red-300",
     },
     IN_PROGRESS: {
       label: "Diproses",
-      icon: <Wrench className="h-3 w-3" />,
-      className: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      icon: <Wrench className="h-3.5 w-3.5" />,
+      className: "bg-amber-50 text-amber-800 border-amber-300",
     },
     RESOLVED: {
       label: "Selesai",
-      icon: <CheckCircle2 className="h-3 w-3" />,
-      className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      icon: <CheckCircle2 className="h-3.5 w-3.5" />,
+      className: "bg-emerald-50 text-emerald-800 border-emerald-300",
     },
   };
 
@@ -55,7 +55,7 @@ function StatusBadge({ status }: { status: "OPEN" | "IN_PROGRESS" | "RESOLVED" }
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${className}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${className}`}
     >
       {icon}
       {label}
@@ -105,26 +105,26 @@ export function ReportTable({
   onDelete?: (reportId: string) => void;
 }) {
   return (
-    <div className="rounded-xl border border-zinc-800 overflow-hidden">
+    <div className="rounded-2xl border border-[#2C2825]/10 bg-white overflow-hidden shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow className="border-zinc-800 bg-zinc-900/50 hover:bg-zinc-900/50">
-            <TableHead className="text-zinc-400 font-semibold text-xs">
+          <TableRow className="border-b border-[#2C2825]/10 bg-[#F8F6F1]/80 hover:bg-[#F8F6F1]/80">
+            <TableHead className="text-[#1E1B18] font-bold text-sm h-12">
               Judul
             </TableHead>
-            <TableHead className="text-zinc-400 font-semibold text-xs">
+            <TableHead className="text-[#1E1B18] font-bold text-sm h-12">
               Penghuni
             </TableHead>
-            <TableHead className="text-zinc-400 font-semibold text-xs">
+            <TableHead className="text-[#1E1B18] font-bold text-sm h-12">
               Kamar
             </TableHead>
-            <TableHead className="text-zinc-400 font-semibold text-xs">
+            <TableHead className="text-[#1E1B18] font-bold text-sm h-12">
               Status
             </TableHead>
-            <TableHead className="text-zinc-400 font-semibold text-xs">
+            <TableHead className="text-[#1E1B18] font-bold text-sm h-12">
               Dibuat
             </TableHead>
-            <TableHead className="text-zinc-400 font-semibold text-xs w-12">
+            <TableHead className="text-[#1E1B18] font-bold text-sm h-12 w-12">
               {/* Aksi */}
             </TableHead>
           </TableRow>
@@ -133,43 +133,43 @@ export function ReportTable({
           {reports.map((report) => (
             <TableRow
               key={report.id}
-              className="border-zinc-800/50 hover:bg-zinc-900/30 transition-colors cursor-pointer"
+              className="border-b border-[#2C2825]/8 hover:bg-[#F8F6F1]/70 transition-colors cursor-pointer"
               onClick={() => onViewDetail(report)}
             >
-              <TableCell className="max-w-48">
+              <TableCell className="max-w-48 py-4">
                 <div className="flex items-center gap-2">
                   {report.photoUrl && (
-                    <ImageIcon className="h-3.5 w-3.5 text-zinc-500 shrink-0" />
+                    <ImageIcon className="h-4 w-4 text-[#8C6239] shrink-0" />
                   )}
-                  <span className="font-medium text-white text-sm truncate">
+                  <span className="font-bold text-[#1E1B18] text-sm truncate">
                     {report.title}
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="text-zinc-300 text-sm truncate max-w-36">
+              <TableCell className="text-[#4A453F] font-semibold text-sm truncate max-w-36 py-4">
                 {report.lease.user.tenantProfile?.fullName || "—"}
               </TableCell>
-              <TableCell className="text-sm">
-                <div className="text-zinc-300">
+              <TableCell className="text-sm py-4">
+                <div className="text-[#1E1B18] font-bold">
                   {report.lease.room.number} – {report.lease.room.name}
                 </div>
-                <div className="text-xs text-zinc-500">
+                <div className="text-xs font-medium text-[#5C564E] mt-0.5">
                   {report.lease.room.property.name}
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="py-4">
                 <StatusBadge status={report.status} />
               </TableCell>
-              <TableCell className="text-xs text-zinc-500">
+              <TableCell className="text-xs font-semibold text-[#5C564E] py-4">
                 {formatRelativeDate(report.createdAt)}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-zinc-400 hover:text-white"
+                      className="h-8 w-8 p-0 text-[#4A453F] hover:text-[#1E1B18] hover:bg-[#F2EDE9] rounded-lg"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <MoreHorizontal className="h-4 w-4" />
@@ -177,23 +177,23 @@ export function ReportTable({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-48 bg-zinc-950 border-zinc-800"
+                    className="w-48 bg-white border-[#2C2825]/15 text-[#1E1B18] shadow-lg rounded-xl"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <DropdownMenuItem
                       onClick={() => onViewDetail(report)}
-                      className="text-zinc-300 focus:text-white focus:bg-zinc-800"
+                      className="text-[#1E1B18] font-medium text-xs focus:bg-[#F2EDE9] focus:text-[#1E1B18] cursor-pointer"
                     >
-                      <Eye className="h-4 w-4 mr-2" />
+                      <Eye className="h-4 w-4 mr-2 text-[#714A23]" />
                       Lihat Detail
                     </DropdownMenuItem>
 
-                    <DropdownMenuSeparator className="bg-zinc-800" />
+                    <DropdownMenuSeparator className="bg-[#2C2825]/10" />
 
                     {report.status !== "OPEN" && (
                       <DropdownMenuItem
                         onClick={() => onStatusChange(report.id, "OPEN")}
-                        className="text-red-400 focus:text-red-300 focus:bg-zinc-800"
+                        className="text-red-700 font-medium text-xs focus:bg-red-50 focus:text-red-800 cursor-pointer"
                       >
                         <AlertTriangle className="h-4 w-4 mr-2" />
                         Tandai Terbuka
@@ -204,7 +204,7 @@ export function ReportTable({
                         onClick={() =>
                           onStatusChange(report.id, "IN_PROGRESS")
                         }
-                        className="text-amber-400 focus:text-amber-300 focus:bg-zinc-800"
+                        className="text-amber-800 font-medium text-xs focus:bg-amber-50 focus:text-amber-900 cursor-pointer"
                       >
                         <Clock className="h-4 w-4 mr-2" />
                         Tandai Diproses
@@ -215,7 +215,7 @@ export function ReportTable({
                         onClick={() =>
                           onStatusChange(report.id, "RESOLVED")
                         }
-                        className="text-emerald-400 focus:text-emerald-300 focus:bg-zinc-800"
+                        className="text-emerald-800 font-medium text-xs focus:bg-emerald-50 focus:text-emerald-900 cursor-pointer"
                       >
                         <CheckCircle2 className="h-4 w-4 mr-2" />
                         Tandai Selesai
@@ -224,10 +224,10 @@ export function ReportTable({
                     
                     {onDelete && (
                       <>
-                        <DropdownMenuSeparator className="bg-zinc-800" />
+                        <DropdownMenuSeparator className="bg-[#2C2825]/10" />
                         <DropdownMenuItem
                           onClick={() => onDelete(report.id)}
-                          className="text-red-500 focus:text-red-400 focus:bg-red-500/10"
+                          className="text-red-600 font-medium text-xs focus:bg-red-50 focus:text-red-700 cursor-pointer"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Hapus Laporan

@@ -14,11 +14,21 @@ export interface RoomDetail {
     id: string;
     number: string;
     name: string;
+    type?: string | null;
     price: number;
     facilities: string[];
     description: string | null;
     status: RoomStatus;
     images: string[];
+    propertyId?: string;
+    property?: {
+        id: string;
+        name: string;
+        slug: string | null;
+        address: string;
+        managerPhone: string | null;
+        guardPhone: string | null;
+    } | null;
     panoramaImages?: {
         id: string;
         title: string;
@@ -63,11 +73,23 @@ const getRoomsForLandingQuery = unstable_cache(
                 id: true,
                 name: true,
                 number: true,
+                type: true,
                 price: true,
                 status: true,
                 description: true,
                 facilities: true,
                 images: true,
+                propertyId: true,
+                property: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        address: true,
+                        managerPhone: true,
+                        guardPhone: true,
+                    }
+                },
                 panoramaImages: {
                     select: {
                         id: true,
@@ -81,11 +103,160 @@ const getRoomsForLandingQuery = unstable_cache(
         return rooms as RoomDetail[];
     },
     ["rooms-landing"],
-    { revalidate: 86400, tags: [CACHE_TAGS.ROOMS_LANDING] }
+    { revalidate: 300, tags: [CACHE_TAGS.ROOMS_LANDING] }
 );
 
 export async function getRoomsForLanding(): Promise<RoomDetail[]> {
     return getRoomsForLandingQuery();
+}
+
+// ============================================
+// READ - Active Property Info & Statistics
+// ============================================
+
+export interface PropertyWithStats {
+    id: string;
+    name: string;
+    slug: string | null;
+    address: string;
+    managerPhone: string | null;
+    guardPhone: string | null;
+    totalRooms: number;
+    availableRooms: number;
+    occupiedRooms: number;
+    maintenanceRooms: number;
+}
+
+export async function getActivePropertyWithStats(): Promise<PropertyWithStats | null> {
+    const property = await prisma.property.findFirst({
+        where: { slug: "pulo-jahe" },
+        include: {
+            rooms: {
+                select: { status: true }
+            }
+        }
+    }) || await prisma.property.findFirst({
+        include: {
+            rooms: {
+                select: { status: true }
+            }
+        }
+    });
+
+    if (!property) return null;
+
+    const totalRooms = property.rooms.length;
+    const availableRooms = property.rooms.filter(r => r.status === "AVAILABLE").length;
+    const occupiedRooms = property.rooms.filter(r => r.status === "OCCUPIED").length;
+    const maintenanceRooms = property.rooms.filter(r => r.status === "MAINTENANCE").length;
+
+    return {
+        id: property.id,
+        name: property.name,
+        slug: property.slug,
+        address: property.address,
+        managerPhone: property.managerPhone,
+        guardPhone: property.guardPhone,
+        totalRooms,
+        availableRooms,
+        occupiedRooms,
+        maintenanceRooms
+    };
+}
+
+// ============================================
+// READ - Filtered Public Catalog Rooms
+// ============================================
+
+export interface PublicCatalogFilterParams {
+    search?: string;
+    type?: string;
+    status?: string;
+    priceRange?: string;
+    propertySlug?: string;
+}
+
+export async function getPublicCatalogRooms(filters: PublicCatalogFilterParams): Promise<RoomDetail[]> {
+    const where: any = {};
+
+    // Filter Property
+    if (filters.propertySlug && filters.propertySlug !== "all") {
+        where.property = { slug: filters.propertySlug };
+    }
+
+    // Filter Search
+    if (filters.search && filters.search.trim() !== "") {
+        const query = filters.search.trim();
+        where.OR = [
+            { number: { contains: query, mode: "insensitive" } },
+            { name: { contains: query, mode: "insensitive" } },
+            { description: { contains: query, mode: "insensitive" } },
+        ];
+    }
+
+    // Filter Tipe Kamar (1 Orang vs 2-3 Orang)
+    if (filters.type && filters.type !== "all") {
+        if (filters.type === "standar" || filters.type === "standard") {
+            where.type = { contains: "Standar", mode: "insensitive" };
+        } else if (filters.type === "besar" || filters.type === "large" || filters.type === "deluxe") {
+            where.type = { contains: "Besar", mode: "insensitive" };
+        } else {
+            where.type = { contains: filters.type, mode: "insensitive" };
+        }
+    }
+
+    // Filter Status (AVAILABLE, OCCUPIED, MAINTENANCE)
+    if (filters.status && filters.status !== "all") {
+        where.status = filters.status.toUpperCase();
+    }
+
+    // Filter Rentang Harga
+    if (filters.priceRange && filters.priceRange !== "all") {
+        if (filters.priceRange === "under_1500k" || filters.priceRange === "under-1.5m") {
+            where.price = { lte: 1499999 };
+        } else if (filters.priceRange === "1500k_2500k" || filters.priceRange === "1.5m-2.5m") {
+            where.price = { gte: 1500000, lte: 2500000 };
+        } else if (filters.priceRange === "above_2500k" || filters.priceRange === "above-2.5m") {
+            where.price = { gte: 2500001 };
+        }
+    }
+
+    const rooms = await prisma.room.findMany({
+        where,
+        orderBy: { number: "asc" },
+        select: {
+            id: true,
+            name: true,
+            number: true,
+            type: true,
+            price: true,
+            status: true,
+            description: true,
+            facilities: true,
+            images: true,
+            propertyId: true,
+            property: {
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    address: true,
+                    managerPhone: true,
+                    guardPhone: true,
+                }
+            },
+            panoramaImages: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    imageUrl: true,
+                }
+            },
+        },
+    });
+
+    return rooms as RoomDetail[];
 }
 
 // ============================================
@@ -103,11 +274,23 @@ export async function getRoomById(id: string): Promise<RoomDetail | null> {
                     id: true,
                     name: true,
                     number: true,
+                    type: true,
                     price: true,
                     status: true,
                     description: true,
                     facilities: true,
                     images: true,
+                    propertyId: true,
+                    property: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                            address: true,
+                            managerPhone: true,
+                            guardPhone: true,
+                        }
+                    },
                     panoramaImages: {
                         select: {
                             id: true,
@@ -121,7 +304,7 @@ export async function getRoomById(id: string): Promise<RoomDetail | null> {
             return room as RoomDetail | null;
         },
         [`room-${parsedId}`],
-        { revalidate: 86400, tags: [CACHE_TAGS.roomDetail(parsedId)] }
+        { revalidate: 300, tags: [CACHE_TAGS.roomDetail(parsedId)] }
     );
 
     return cachedQuery(parsedId);

@@ -30,11 +30,11 @@ export function AdminHeader({ notifications = [] }: AdminHeaderProps) {
     const title = pageTitles[pathname] ?? "Dashboard";
 
     return (
-        <header className="flex h-14 items-center justify-between border-b border-zinc-800 bg-zinc-950/80 px-4 backdrop-blur-sm">
+        <header className="flex h-14 items-center justify-between border-b border-[#2C2825]/8 bg-[#FFFFFF]/90 px-4 backdrop-blur-sm">
             <div className="flex items-center gap-3">
-                <SidebarTrigger className="text-muted-foreground hover:text-white" />
-                <Separator orientation="vertical" className="h-5 bg-zinc-700" />
-                <h1 className="text-base font-semibold text-white tracking-tight">
+                <SidebarTrigger className="text-[#4A453F] hover:text-[#1E1B18] cursor-pointer" />
+                <Separator orientation="vertical" className="h-5 bg-[#2C2825]/10" />
+                <h1 className="text-base font-bold text-[#1E1B18] tracking-tight">
                     {title}
                 </h1>
             </div>

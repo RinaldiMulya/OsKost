@@ -1,9 +1,10 @@
+import Image from "next/image";
 import { LoginForm } from "@/features/auth/login-form";
 import "./login.css";
 
 export const metadata = {
-  title: "Login | Smartkost Pulo Jahe",
-  description: "Login untuk masuk ke panel manajemen OSkost.",
+  title: "Login Portal | OsKost Residences & SaaS",
+  description: "Login untuk masuk ke panel manajemen OsKost.",
   robots: {
     index: false,
     follow: false,
@@ -108,51 +109,31 @@ export default function LoginPage() {
 
         {/* Brand top: Logo + Eyebrow */}
         <div className="login-brand-top">
-          <div className="login-brand-row">
-            {/* Keytag SVG icon */}
-            <div className="login-keytag-wrap">
-              <svg width="36" height="47" viewBox="0 0 40 52" fill="none">
-                <circle
-                  cx="20"
-                  cy="8"
-                  r="6"
-                  stroke="#8891a3"
-                  strokeWidth="2"
-                  fill="none"
-                />
-                <rect
-                  x="4"
-                  y="14"
-                  width="32"
-                  height="34"
-                  rx="8"
-                  fill="url(#tagGradLogin)"
-                  stroke="#0a7f29"
-                  strokeWidth="1"
-                />
-                <circle cx="20" cy="17" r="5.5" fill="#0d1016" />
-                <circle cx="20" cy="30" r="5" fill="#002e10" opacity="0.55" />
-                <path d="M20 32 L16 40 H24 Z" fill="#002e10" opacity="0.55" />
-                <defs>
-                  <linearGradient
-                    id="tagGradLogin"
-                    x1="4"
-                    y1="14"
-                    x2="36"
-                    y2="48"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop stopColor="#33d96a" />
-                    <stop offset="1" stopColor="#00a333" />
-                  </linearGradient>
-                </defs>
-              </svg>
+          <div className="login-brand-row flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center p-2 backdrop-blur-md">
+              <Image
+                src="/images/logo-icon-white.png"
+                alt="OsKost Mark"
+                width={36}
+                height={36}
+                className="w-8 h-8 object-contain"
+                priority
+              />
             </div>
-            <div className="login-wordmark">
-              OS<span>KOST</span>
+            <div className="flex flex-col">
+              <Image
+                src="/images/logo-brand-white.png"
+                alt="OsKost SaaS Platform"
+                width={140}
+                height={48}
+                className="h-8 w-auto object-contain"
+                priority
+              />
+              <span className="text-[11px] font-semibold text-emerald-400/90 tracking-wider uppercase mt-0.5">
+                Residences &amp; Multi-Property SaaS
+              </span>
             </div>
           </div>
-          <div className="login-hero-eyebrow">Sistem Manajemen Kost</div>
         </div>
 
         {/* Brand hero: Big headline */}

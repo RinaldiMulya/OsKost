@@ -64,16 +64,16 @@ export default async function AdminOverviewPage() {
     return (
         <div className="space-y-8">
             {/* Welcome */}
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-white tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-[#1E1B18] tracking-tight">
                         Selamat Datang, Admin 👋
                     </h2>
-                    <p className="text-muted-foreground mt-1">
+                    <p className="text-sm sm:text-base text-[#4A453F] font-medium mt-1">
                         Berikut ringkasan kondisi kost Anda hari ini.
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                     <ExportDashboardButton />
                     <SyncButton />
                 </div>
@@ -128,14 +128,14 @@ export default async function AdminOverviewPage() {
             </div>
 
             {/* Charts Row 1 — Pendapatan & Okupansi */}
-            <div className="grid gap-4 lg:grid-cols-5">
+            <div className="grid gap-6 lg:grid-cols-5">
                 {/* Pendapatan — lebih lebar (3/5) */}
-                <div className="lg:col-span-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
-                    <div className="mb-4">
-                        <h3 className="text-base font-semibold text-white">
+                <div className="lg:col-span-3 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                    <div className="mb-5">
+                        <h3 className="text-lg font-bold text-[#1E1B18]">
                             Tren Pendapatan
                         </h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">
+                        <p className="text-sm text-[#4A453F] font-medium mt-0.5">
                             6 bulan terakhir — invoice lunas
                         </p>
                     </div>
@@ -145,12 +145,12 @@ export default async function AdminOverviewPage() {
                 </div>
 
                 {/* Okupansi — lebih kecil (2/5) */}
-                <div className="lg:col-span-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
-                    <div className="mb-4">
-                        <h3 className="text-base font-semibold text-white">
+                <div className="lg:col-span-2 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                    <div className="mb-5">
+                        <h3 className="text-lg font-bold text-[#1E1B18]">
                             Okupansi Kamar
                         </h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">
+                        <p className="text-sm text-[#4A453F] font-medium mt-0.5">
                             Distribusi status kamar saat ini
                         </p>
                     </div>
@@ -161,14 +161,14 @@ export default async function AdminOverviewPage() {
             </div>
 
             {/* Charts Row 2 — Status Tagihan & Laporan Kerusakan */}
-            <div className="grid gap-4 lg:grid-cols-5">
+            <div className="grid gap-6 lg:grid-cols-5">
                 {/* Status Tagihan — lebih kecil (2/5) */}
-                <div className="lg:col-span-2 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
-                    <div className="mb-4">
-                        <h3 className="text-base font-semibold text-white">
+                <div className="lg:col-span-2 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                    <div className="mb-5">
+                        <h3 className="text-lg font-bold text-[#1E1B18]">
                             Status Tagihan
                         </h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">
+                        <p className="text-sm text-[#4A453F] font-medium mt-0.5">
                             Bulan berjalan
                         </p>
                     </div>
@@ -178,12 +178,12 @@ export default async function AdminOverviewPage() {
                 </div>
 
                 {/* Laporan Kerusakan — lebih lebar (3/5) */}
-                <div className="lg:col-span-3 rounded-xl border border-zinc-800 bg-zinc-950/60 p-6">
-                    <div className="mb-4">
-                        <h3 className="text-base font-semibold text-white">
+                <div className="lg:col-span-3 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                    <div className="mb-5">
+                        <h3 className="text-lg font-bold text-[#1E1B18]">
                             Tren Laporan Kerusakan
                         </h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">
+                        <p className="text-sm text-[#4A453F] font-medium mt-0.5">
                             6 bulan terakhir — per status
                         </p>
                     </div>
@@ -194,14 +194,14 @@ export default async function AdminOverviewPage() {
             </div>
 
             {/* Third Row — Widgets */}
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
                 {/* Aktivitas Terbaru */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 flex flex-col h-full">
+                <div className="rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm flex flex-col h-full">
                     <div className="mb-6">
-                        <h3 className="text-base font-semibold text-white">
+                        <h3 className="text-lg font-bold text-[#1E1B18]">
                             Aktivitas Terbaru
                         </h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">3 hari terakhir</p>
+                        <p className="text-sm text-[#4A453F] font-medium mt-0.5">3 hari terakhir</p>
                     </div>
                     <div className="flex-1">
                         <RecentActivities activities={activities} />
@@ -209,10 +209,13 @@ export default async function AdminOverviewPage() {
                 </div>
 
                 {/* Kamar Akan Habis Kontrak */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-6 flex flex-col h-full">
-                    <h3 className="text-base font-semibold text-white mb-6">
-                        Akan Habis Kontrak (&lt; 30 Hari)
-                    </h3>
+                <div className="rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm flex flex-col h-full">
+                    <div className="mb-6">
+                        <h3 className="text-lg font-bold text-[#1E1B18]">
+                            Akan Habis Kontrak (&lt; 30 Hari)
+                        </h3>
+                        <p className="text-sm text-[#4A453F] font-medium mt-0.5">Peringatan jatuh tempo sewa penghuni</p>
+                    </div>
                     <div className="flex-1">
                         <ExpiringLeases leases={expiringLeases} />
                     </div>

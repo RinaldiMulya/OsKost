@@ -32,9 +32,9 @@ export default async function AdminSettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Pengaturan</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+      <div className="pb-6 border-b border-[#2C2825]/10">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B18] tracking-tight">Pengaturan</h1>
+        <p className="text-sm sm:text-base text-[#4A453F] font-medium mt-1">
           Kelola profil admin, properti kost, notifikasi, dan pelajari panduan sistem.
         </p>
       </div>

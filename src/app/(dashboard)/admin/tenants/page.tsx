@@ -70,23 +70,22 @@ export default async function AdminTenantsPage() {
   return (
     <div className="space-y-8 lg:p-8 w-full lg:max-w-[2400px] mx-auto animate-in fade-in duration-500">
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-6 border-b border-[#2C2825]/10">
         <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#1E1B18] tracking-tight">
             Manajemen Penghuni
           </h2>
-          <p className="text-xl text-zinc-400 mt-1.5">
-            Kelola data, status pembayaran, dan kontrak penyewa kost Anda secara
-            digital.
+          <p className="text-sm sm:text-base text-[#4A453F] font-medium mt-1">
+            Kelola data, status pembayaran, dan kontrak penyewa kost Anda secara terpusat.
           </p>
         </div>
-        <div className="w-full flex items-center justify-end gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <Button
             asChild
-            className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700 transition-all hover:shadow-[0_4px_12px_rgba(16,185,129,0.15)] active:scale-95 text-lg font-semibold h-10 px-5"
+            className="gap-2 bg-[#714A23] text-white hover:bg-[#5C3B1A] transition-all active:scale-95 text-sm font-semibold h-11 px-5 rounded-xl shadow-sm"
           >
             <Link href="/admin/tenants/create">
-              <Plus className="size-6" />
+              <Plus className="size-4" />
               Check-in Tenant
             </Link>
           </Button>

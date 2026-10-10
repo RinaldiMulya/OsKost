@@ -76,20 +76,19 @@ export default async function AdminRoomsPage({ searchParams }: PageProps) {
   return (
     <div className="space-y-6 w-full max-w-full overflow-x-hidden md:overflow-visible">
       {/* Header & Actions */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-zinc-800/80">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-[#2C2825]/10">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B18] tracking-tight">
             Manajemen Kamar
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Kelola data kamar, tipe, harga, status, dan fasilitas kost Anda
-            secara terpusat.
+          <p className="text-sm sm:text-base text-[#4A453F] font-medium mt-1">
+            Kelola data kamar, tipe, harga, status, dan fasilitas kost Anda secara terpusat.
           </p>
         </div>
         <div className="w-full sm:w-auto">
           <Button
             asChild
-            className="w-full sm:w-auto gap-2 bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl px-5 h-11 font-medium transition-all shadow-[0_0_15px_rgba(0,204,64,0.15)] hover:shadow-[0_0_20px_rgba(0,204,64,0.25)] hover:-translate-y-0.5 duration-200"
+            className="w-full sm:w-auto gap-2 bg-[#714A23] text-white hover:bg-[#5C3B1A] rounded-xl px-5 h-11 text-sm font-semibold transition-all shadow-sm hover:-translate-y-0.5 duration-200"
           >
             <Link href="/admin/rooms/create">
               <Plus className="size-4" />
@@ -100,70 +99,70 @@ export default async function AdminRoomsPage({ searchParams }: PageProps) {
       </div>
 
       {/* Bento Grid Stats */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {/* Total Kamar */}
-        <div className="bg-zinc-950/40 border border-zinc-800/85 rounded-2xl p-4 sm:p-6 relative overflow-hidden backdrop-blur-md hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 transition-all duration-300 group border-t-2 border-t-purple-500">
+        <div className="bg-white border border-[#2C2825]/10 rounded-2xl p-5 sm:p-6 relative overflow-hidden shadow-sm hover:-translate-y-0.5 transition-all duration-300 group border-t-4 border-t-purple-600">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
-            <span className="text-xs sm:text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-bold text-[#4A453F]">
               Total Kamar
             </span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
-              <BedDouble className="size-4 sm:size-5" />
+            <div className="p-2 rounded-xl bg-purple-50 text-purple-700 group-hover:scale-110 transition-transform">
+              <BedDouble className="size-5" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <div className="text-3xl sm:text-4xl font-extrabold text-[#1E1B18] tracking-tight">
             {totalRoomsCount}
           </div>
         </div>
 
         {/* Terisi */}
-        <div className="bg-zinc-950/40 border border-zinc-800/85 rounded-2xl p-4 sm:p-6 relative overflow-hidden backdrop-blur-md hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 transition-all duration-300 group border-t-2 border-t-blue-500">
+        <div className="bg-white border border-[#2C2825]/10 rounded-2xl p-5 sm:p-6 relative overflow-hidden shadow-sm hover:-translate-y-0.5 transition-all duration-300 group border-t-4 border-t-blue-600">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
-            <span className="text-xs sm:text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-bold text-[#4A453F]">
               Terisi
             </span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-blue-500/10 text-blue-400 group-hover:scale-110 transition-transform">
-              <Lock className="size-4 sm:size-5" />
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-700 group-hover:scale-110 transition-transform">
+              <Lock className="size-5" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <div className="text-3xl sm:text-4xl font-extrabold text-[#1E1B18] tracking-tight">
             {occupiedCount}
           </div>
         </div>
 
         {/* Tersedia */}
-        <div className="bg-zinc-950/40 border border-zinc-800/85 rounded-2xl p-4 sm:p-6 relative overflow-hidden backdrop-blur-md hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 transition-all duration-300 group border-t-2 border-t-secondary">
+        <div className="bg-white border border-[#2C2825]/10 rounded-2xl p-5 sm:p-6 relative overflow-hidden shadow-sm hover:-translate-y-0.5 transition-all duration-300 group border-t-4 border-t-emerald-600">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
-            <span className="text-xs sm:text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-bold text-[#4A453F]">
               Tersedia
             </span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-secondary/10 text-secondary group-hover:scale-110 transition-transform">
-              <Key className="size-4 sm:size-5" />
+            <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700 group-hover:scale-110 transition-transform">
+              <Key className="size-5" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <div className="text-3xl sm:text-4xl font-extrabold text-[#1E1B18] tracking-tight">
             {availableCount}
           </div>
         </div>
 
         {/* Perbaikan */}
-        <div className="bg-zinc-950/40 border border-zinc-800/85 rounded-2xl p-4 sm:p-6 relative overflow-hidden backdrop-blur-md hover:-translate-y-1 hover:shadow-lg hover:shadow-black/10 transition-all duration-300 group border-t-2 border-t-amber-500">
+        <div className="bg-white border border-[#2C2825]/10 rounded-2xl p-5 sm:p-6 relative overflow-hidden shadow-sm hover:-translate-y-0.5 transition-all duration-300 group border-t-4 border-t-amber-600">
           <div className="flex justify-between items-start mb-3 sm:mb-4">
-            <span className="text-xs sm:text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-bold text-[#4A453F]">
               Perbaikan
             </span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform">
-              <Wrench className="size-4 sm:size-5" />
+            <div className="p-2 rounded-xl bg-amber-50 text-amber-700 group-hover:scale-110 transition-transform">
+              <Wrench className="size-5" />
             </div>
           </div>
-          <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+          <div className="text-3xl sm:text-4xl font-extrabold text-[#1E1B18] tracking-tight">
             {maintenanceCount}
           </div>
         </div>
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-zinc-950/30 p-4 border border-zinc-800/80 rounded-2xl backdrop-blur-md shadow-inner">
+      <div className="bg-white p-4 border border-[#2C2825]/10 rounded-2xl shadow-sm">
         <RoomsFilterHeader
           types={types}
           initialSearch={search}

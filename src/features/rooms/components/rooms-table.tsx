@@ -24,17 +24,17 @@ const statusStyles: Record<string, { label: string; className: string }> = {
   AVAILABLE: {
     label: "Tersedia",
     className:
-      "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[11px] font-semibold uppercase tracking-wider rounded-full px-2.5 py-0.5",
+      "bg-emerald-50 text-emerald-800 border-emerald-300 text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1",
   },
   OCCUPIED: {
     label: "Terisi",
     className:
-      "bg-blue-500/10 text-blue-400 border-blue-500/20 text-[11px] font-semibold uppercase tracking-wider rounded-full px-2.5 py-0.5",
+      "bg-blue-50 text-blue-800 border-blue-300 text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1",
   },
   MAINTENANCE: {
     label: "Maintenance",
     className:
-      "bg-amber-500/10 text-amber-400 border-amber-500/20 text-[11px] font-semibold uppercase tracking-wider rounded-full px-2.5 py-0.5",
+      "bg-amber-50 text-amber-800 border-amber-300 text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1",
   },
 };
 
@@ -107,51 +107,51 @@ export function RoomsTable({
 
   return (
     <div className="relative">
-      <div className="rounded-2xl border border-zinc-800/85 bg-zinc-950/40 backdrop-blur-md shadow-xl relative">
-        <div className="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-800 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700 transition-all pb-2">
+      <div className="rounded-2xl border border-[#2C2825]/10 bg-white shadow-sm relative overflow-hidden">
+        <div className="overflow-x-auto pb-2">
           <Table className="min-w-[800px] border-collapse">
             <TableHeader>
-              <TableRow className="border-zinc-800 hover:bg-transparent bg-zinc-900/30">
+              <TableRow className="border-b border-[#2C2825]/10 bg-[#F8F6F1]/80 hover:bg-[#F8F6F1]/80">
                 <TableHead className="w-12 text-center pl-4">
                   <div
                     onClick={handleSelectAll}
                     className={`mx-auto flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded border transition-all duration-150 ${
                       isAllSelected
-                        ? "bg-secondary border-secondary text-secondary-foreground"
-                        : "border-zinc-800 bg-zinc-950/40 text-transparent hover:border-zinc-700"
+                        ? "bg-[#714A23] border-[#714A23] text-white"
+                        : "border-[#2C2825]/30 bg-white text-transparent hover:border-[#714A23]"
                     }`}
                   >
                     <Check className="h-3 w-3 stroke-[3]" />
                   </div>
                 </TableHead>
-                <TableHead className="text-zinc-400 pl-2 h-12 sticky left-0 z-20 bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800/50 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)]">
+                <TableHead className="text-[#1E1B18] font-bold text-sm pl-2 h-12 sticky left-0 z-20 bg-[#F8F6F1] border-r border-[#2C2825]/10 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.05)]">
                   No. Kamar
                 </TableHead>
-                <TableHead className="text-zinc-400 h-12">Tipe</TableHead>
-                <TableHead className="text-zinc-400 h-12">
+                <TableHead className="text-[#1E1B18] font-bold text-sm h-12">Tipe</TableHead>
+                <TableHead className="text-[#1E1B18] font-bold text-sm h-12">
                   Harga Bulanan
                 </TableHead>
-                <TableHead className="text-zinc-400 h-12">Status</TableHead>
-                <TableHead className="text-zinc-400 h-12 hidden md:table-cell">
+                <TableHead className="text-[#1E1B18] font-bold text-sm h-12">Status</TableHead>
+                <TableHead className="text-[#1E1B18] font-bold text-sm h-12 hidden md:table-cell">
                   Fasilitas
                 </TableHead>
-                <TableHead className="text-zinc-400 text-right pr-6 h-12">
+                <TableHead className="text-[#1E1B18] font-bold text-sm text-right pr-6 h-12">
                   Aksi
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rooms.length === 0 ? (
-                <TableRow className="border-zinc-800/60">
+                <TableRow className="border-b border-[#2C2825]/8">
                   <TableCell
                     colSpan={7}
-                    className="h-44 text-center text-muted-foreground"
+                    className="h-44 text-center text-[#4A453F]"
                   >
                     <div className="flex flex-col items-center justify-center gap-2 py-8">
-                      <p className="text-base font-semibold text-zinc-300">
+                      <p className="text-base font-bold text-[#1E1B18]">
                         Tidak ada kamar ditemukan
                       </p>
-                      <p className="text-sm text-zinc-500">
+                      <p className="text-sm font-medium text-[#4A453F]">
                         Coba ubah kata kunci pencarian atau filter Anda.
                       </p>
                     </div>
@@ -164,8 +164,8 @@ export function RoomsTable({
                   return (
                     <TableRow
                       key={room.id}
-                      className={`border-zinc-800/60 hover:bg-zinc-900/40 transition-colors group relative ${
-                        isSelected ? "bg-zinc-900/30" : ""
+                      className={`border-b border-[#2C2825]/8 hover:bg-[#F8F6F1]/70 transition-colors group relative ${
+                        isSelected ? "bg-[#FAF2EA]" : ""
                       }`}
                     >
                       <TableCell className="w-12 text-center pl-4 py-4">
@@ -173,25 +173,25 @@ export function RoomsTable({
                           onClick={() => handleSelectRow(room.id)}
                           className={`mx-auto flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded border transition-all duration-150 ${
                             isSelected
-                              ? "bg-secondary border-secondary text-secondary-foreground"
-                              : "border-zinc-800 bg-zinc-950/40 text-transparent hover:border-zinc-700"
+                              ? "bg-[#714A23] border-[#714A23] text-white"
+                              : "border-[#2C2825]/30 bg-white text-transparent hover:border-[#714A23]"
                           }`}
                         >
                           <Check className="h-3 w-3 stroke-[3]" />
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono font-bold text-white pl-2 relative py-4 sticky left-0 z-10 bg-zinc-950/90 backdrop-blur-xl border-r border-zinc-800/50 shadow-[4px_0_12px_-4px_rgba(0,0,0,0.5)] group-hover:bg-zinc-900/90 transition-colors">
+                      <TableCell className="font-mono font-bold text-base text-[#1E1B18] pl-2 relative py-4 sticky left-0 z-10 bg-white border-r border-[#2C2825]/10 shadow-[2px_0_6px_-2px_rgba(0,0,0,0.05)] group-hover:bg-[#F8F6F1] transition-colors">
                         <div
                           className={`absolute left-0 top-0 bottom-0 w-[3px] bg-transparent transition-all duration-300 ${
-                            isSelected ? "bg-secondary" : "group-hover:bg-primary"
+                            isSelected ? "bg-[#714A23]" : "group-hover:bg-[#8C6239]"
                           }`}
                         />
                         {room.number}
                       </TableCell>
-                      <TableCell className="text-white py-4 font-medium">
+                      <TableCell className="text-[#1E1B18] py-4 font-bold text-sm">
                         {room.name}
                       </TableCell>
-                      <TableCell className="text-white py-4">
+                      <TableCell className="text-[#1E1B18] py-4 font-semibold text-sm">
                         {formatCurrency(room.price)}
                       </TableCell>
                       <TableCell className="py-4">
@@ -208,7 +208,7 @@ export function RoomsTable({
                             <Badge
                               key={i}
                               variant="outline"
-                              className="text-[10px] font-medium border-zinc-800 text-zinc-400 bg-zinc-900/40 rounded-md px-1.5 py-0.5"
+                              className="text-xs font-semibold border-[#2C2825]/15 text-[#4A453F] bg-[#F2EDE9] rounded-lg px-2.5 py-0.5"
                             >
                               {f}
                             </Badge>
@@ -216,7 +216,7 @@ export function RoomsTable({
                           {room.facilities.length > 3 && (
                             <Badge
                               variant="outline"
-                              className="text-[10px] font-medium border-zinc-800 text-zinc-500 bg-zinc-900/10 rounded-md px-1.5 py-0.5"
+                              className="text-xs font-bold border-[#2C2825]/15 text-[#714A23] bg-[#FAF2EA] rounded-lg px-2 py-0.5"
                             >
                               +{room.facilities.length - 3}
                             </Badge>
@@ -229,7 +229,7 @@ export function RoomsTable({
                             variant="ghost"
                             size="icon"
                             asChild
-                            className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800/60 rounded-lg transition-all"
+                            className="h-8 w-8 text-[#4A453F] hover:text-[#1E1B18] hover:bg-[#F2EDE9] rounded-lg transition-all"
                           >
                             <Link href={`/admin/rooms/${room.id}/edit`}>
                               <Pencil className="size-4" />
@@ -267,16 +267,16 @@ export function RoomsTable({
             transition={{ type: "spring", stiffness: 350, damping: 26 }}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl"
           >
-            <div className="bg-zinc-950/95 border border-zinc-800/80 rounded-2xl p-4 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-3 shadow-black/45">
+            <div className="bg-white border border-[#2C2825]/15 rounded-2xl p-4 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
-                  <ShieldAlert className="size-4" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FAF2EA] text-[#714A23]">
+                  <ShieldAlert className="size-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-white">
+                  <h4 className="text-sm font-bold text-[#1E1B18]">
                     {selectedIds.length} Kamar Terpilih
                   </h4>
-                  <p className="text-[10px] text-zinc-400">
+                  <p className="text-xs font-medium text-[#4A453F]">
                     Pilih aksi status di samping untuk update massal.
                   </p>
                 </div>
@@ -287,10 +287,10 @@ export function RoomsTable({
                   onClick={() => setSelectedIds([])}
                   variant="ghost"
                   size="sm"
-                  className="text-xs text-zinc-400 hover:text-white rounded-xl hover:bg-zinc-900/60"
+                  className="text-xs font-semibold text-[#4A453F] hover:text-[#1E1B18] rounded-xl hover:bg-[#F2EDE9]"
                   disabled={isPending}
                 >
-                  <X className="size-3 mr-1" />
+                  <X className="size-3.5 mr-1" />
                   Batal
                 </Button>
 
@@ -298,7 +298,7 @@ export function RoomsTable({
                   <Button
                     onClick={() => handleBulkUpdateStatus("AVAILABLE")}
                     size="sm"
-                    className="text-xs bg-emerald-500/10 hover:bg-emerald-500/25 border border-emerald-500/20 text-emerald-400 rounded-xl"
+                    className="text-xs font-bold bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-xl"
                     disabled={isPending}
                   >
                     <Key className="size-3 mr-1" />
@@ -307,7 +307,7 @@ export function RoomsTable({
                   <Button
                     onClick={() => handleBulkUpdateStatus("OCCUPIED")}
                     size="sm"
-                    className="text-xs bg-blue-500/10 hover:bg-blue-500/25 border border-blue-500/20 text-blue-400 rounded-xl"
+                    className="text-xs font-bold bg-blue-50 hover:bg-blue-100 border border-blue-300 text-blue-800 rounded-xl"
                     disabled={isPending}
                   >
                     <Lock className="size-3 mr-1" />
@@ -316,7 +316,7 @@ export function RoomsTable({
                   <Button
                     onClick={() => handleBulkUpdateStatus("MAINTENANCE")}
                     size="sm"
-                    className="text-xs bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/20 text-amber-400 rounded-xl"
+                    className="text-xs font-bold bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 rounded-xl"
                     disabled={isPending}
                   >
                     <Wrench className="size-3 mr-1" />

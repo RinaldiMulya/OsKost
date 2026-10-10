@@ -46,23 +46,23 @@ export function RevenueChart({ data }: RevenueChartProps) {
         <CartesianGrid
           vertical={false}
           strokeDasharray="3 3"
-          stroke="var(--border)"
+          stroke="rgba(44, 40, 37, 0.08)"
         />
         <XAxis
           dataKey="month"
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          fontSize={12}
-          tick={{ fill: "#a3a3a3" }}
+          fontSize={13}
+          tick={{ fill: "#4A453F", fontWeight: 600 }}
         />
         <YAxis
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          fontSize={12}
+          fontSize={13}
           tickFormatter={formatRupiah}
-          tick={{ fill: "#a3a3a3" }}
+          tick={{ fill: "#4A453F", fontWeight: 600 }}
         />
         <ChartTooltip
           content={

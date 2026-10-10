@@ -12,25 +12,25 @@ interface StatCardProps {
 
 const variantStyles = {
     default: {
-        iconBg: "bg-secondary/10",
-        iconColor: "text-secondary",
-        valueColor: "text-white",
+        iconBg: "bg-[#2C4C3B]/10",
+        iconColor: "text-[#2C4C3B]",
+        valueColor: "text-[#1E1B18]",
     },
     danger: {
         // High contrast red — "mata orang tua butuh bantuan visual yang tegas"
-        iconBg: "bg-red-500/15",
-        iconColor: "text-red-400",
-        valueColor: "text-red-400",
+        iconBg: "bg-red-500/10",
+        iconColor: "text-red-600",
+        valueColor: "text-red-600",
     },
     warning: {
-        iconBg: "bg-amber-500/15",
-        iconColor: "text-amber-400",
-        valueColor: "text-amber-400",
+        iconBg: "bg-amber-500/10",
+        iconColor: "text-amber-700",
+        valueColor: "text-amber-800",
     },
     muted: {
-        iconBg: "bg-muted/20",
-        iconColor: "text-muted-foreground",
-        valueColor: "text-muted-foreground",
+        iconBg: "bg-[#F4EDE4]",
+        iconColor: "text-[#5C564E]",
+        valueColor: "text-[#1E1B18]",
     },
 } as const;
 
@@ -44,7 +44,7 @@ export function StatCard({
     const styles = variantStyles[variant];
 
     return (
-        <Card className="border-zinc-800 bg-zinc-950/60 backdrop-blur-sm">
+        <Card className="border border-[#2C2825]/8 bg-[#FFFFFF] shadow-[0_2px_12px_rgba(44,40,37,0.04)] rounded-2xl">
             <CardContent className="flex items-center gap-4 p-5">
                 <div
                     className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${styles.iconBg}`}
@@ -52,12 +52,12 @@ export function StatCard({
                     <Icon className={`h-6 w-6 ${styles.iconColor}`} />
                 </div>
                 <div className="min-w-0">
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-sm font-semibold text-[#5C564E] truncate">
                         {label}
                     </p>
-                    <p className={`text-3xl font-bold tracking-tight ${styles.valueColor}`}>
+                    <p className={`text-3xl font-extrabold tracking-tight ${styles.valueColor}`}>
                         {value}
-                        {suffix && <span className="text-xl ml-1 opacity-70">{suffix}</span>}
+                        {suffix && <span className="text-xl ml-1 font-semibold opacity-75">{suffix}</span>}
                     </p>
                 </div>
             </CardContent>

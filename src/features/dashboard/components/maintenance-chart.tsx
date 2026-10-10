@@ -47,22 +47,22 @@ export function MaintenanceChart({ data }: MaintenanceChartProps) {
         data={data}
         margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
       >
-        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
+        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="rgba(44, 40, 37, 0.08)" />
         <XAxis
           dataKey="month"
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          fontSize={12}
-          tick={{ fill: "var(--muted-foreground)" }}
+          fontSize={13}
+          tick={{ fill: "#4A453F", fontWeight: 600 }}
         />
         <YAxis
           tickLine={false}
           axisLine={false}
           tickMargin={8}
-          fontSize={12}
+          fontSize={13}
           allowDecimals={false}
-          tick={{ fill: "var(--muted-foreground)" }}
+          tick={{ fill: "#4A453F", fontWeight: 600 }}
         />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />

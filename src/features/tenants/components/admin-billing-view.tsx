@@ -216,11 +216,11 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">
+      <div className="pb-6 border-b border-[#2C2825]/10">
+        <h1 className="text-2xl sm:text-3xl font-bold text-[#1E1B18] tracking-tight">
           Manajemen Tagihan & Keuangan
         </h1>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm sm:text-base text-[#4A453F] font-medium mt-1">
           Kelola tagihan sewa bulanan, verifikasi bukti transfer manual, dan
           konfirmasi klaim promo Google Review.
         </p>
@@ -228,65 +228,65 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
 
       {/* Overview Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-zinc-900/60 border-zinc-800">
+        <Card className="bg-white border-[#2C2825]/10 rounded-2xl shadow-sm">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-medium">
+              <p className="text-xs font-bold text-[#4A453F]">
                 Total Tagihan Bulan Ini
               </p>
-              <p className="text-xl font-bold text-white mt-1">
+              <p className="text-2xl font-extrabold text-[#1E1B18] mt-1">
                 {formatRupiah(stats.totalBilledThisMonth)}
               </p>
             </div>
-            <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
+            <div className="p-2.5 rounded-xl bg-blue-50 text-blue-700">
               <DollarSign className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900/60 border-zinc-800">
+        <Card className="bg-white border-[#2C2825]/10 rounded-2xl shadow-sm">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-medium">Sudah Lunas</p>
-              <p className="text-xl font-bold text-emerald-400 mt-1">
+              <p className="text-xs font-bold text-[#4A453F]">Sudah Lunas</p>
+              <p className="text-2xl font-extrabold text-emerald-700 mt-1">
                 {formatRupiah(stats.totalPaidThisMonth)}
               </p>
             </div>
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
               <TrendingUp className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900/60 border-zinc-800">
+        <Card className="bg-white border-[#2C2825]/10 rounded-2xl shadow-sm">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-medium">Tunggakan Belum Lunas</p>
-              <p className="text-xl font-bold text-amber-400 mt-1">
+              <p className="text-xs font-bold text-[#4A453F]">Tunggakan Belum Lunas</p>
+              <p className="text-2xl font-extrabold text-amber-800 mt-1">
                 {formatRupiah(stats.totalUnpaidAmount)}
               </p>
             </div>
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400">
+            <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700">
               <FileWarning className="h-5 w-5" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-zinc-900/60 border-zinc-800">
+        <Card className="bg-white border-[#2C2825]/10 rounded-2xl shadow-sm">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-medium">Verifikasi Masuk</p>
+              <p className="text-xs font-bold text-[#4A453F]">Verifikasi Masuk</p>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-lg font-bold text-white">
+                <span className="text-lg font-extrabold text-[#1E1B18]">
                   {stats.pendingTransfersCount} Transfer
                 </span>
-                <span className="text-zinc-600">·</span>
-                <span className="text-lg font-bold text-amber-400">
+                <span className="text-[#82756A]">·</span>
+                <span className="text-lg font-extrabold text-amber-800">
                   {stats.pendingPromoClaimsCount} Promo
                 </span>
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400">
+            <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700">
               <Gift className="h-5 w-5" />
             </div>
           </CardContent>
@@ -296,14 +296,14 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
       {/* Main Content Tabs */}
       <div className="space-y-4">
         {/* Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div className="flex items-center justify-between border-b border-[#2C2825]/10 pb-3">
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab("INVOICES")}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                 activeTab === "INVOICES"
-                  ? "bg-secondary text-white shadow-md shadow-secondary/20"
-                  : "bg-zinc-900/50 text-zinc-400 hover:text-white border border-zinc-800"
+                  ? "bg-[#714A23] text-white shadow-sm"
+                  : "bg-white text-[#4A453F] hover:text-[#1E1B18] border border-[#2C2825]/15"
               }`}
             >
               Daftar Semua Tagihan
@@ -313,13 +313,13 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
               onClick={() => setActiveTab("PROMOS")}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all relative ${
                 activeTab === "PROMOS"
-                  ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
-                  : "bg-zinc-900/50 text-zinc-400 hover:text-white border border-zinc-800"
+                  ? "bg-[#8C6239] text-white shadow-sm"
+                  : "bg-white text-[#4A453F] hover:text-[#1E1B18] border border-[#2C2825]/15"
               }`}
             >
               Verifikasi Klaim Promo
               {stats.pendingPromoClaimsCount > 0 && (
-                <span className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">
+                <span className="ml-2 bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-extrabold">
                   {stats.pendingPromoClaimsCount}
                 </span>
               )}
@@ -333,12 +333,12 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
             {/* Filter & Search Bar */}
             <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
               <div className="relative w-full sm:w-72">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-[#4A453F]" />
                 <Input
                   placeholder="Cari nama penghuni / nomor kamar..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-zinc-900 border-zinc-800 text-xs text-white"
+                  className="pl-9 bg-white border-[#2C2825]/15 text-sm text-[#1E1B18] placeholder:text-[#82756A] font-medium h-10 rounded-xl"
                 />
               </div>
 
@@ -348,10 +348,10 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                     <button
                       key={status}
                       onClick={() => setStatusFilter(status)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
                         statusFilter === status
-                          ? "bg-zinc-100 text-zinc-900"
-                          : "bg-zinc-900/80 text-zinc-400 hover:text-white border border-zinc-800"
+                          ? "bg-[#714A23] text-white shadow-sm"
+                          : "bg-white text-[#4A453F] hover:text-[#1E1B18] border border-[#2C2825]/15"
                       }`}
                     >
                       {status === "ALL" && "Semua Status"}
@@ -366,17 +366,17 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
             </div>
 
             {/* Invoices Table */}
-            <Card className="bg-zinc-900/60 border-zinc-800">
+            <Card className="bg-white border-[#2C2825]/10 rounded-2xl shadow-sm overflow-hidden">
               <CardContent className="p-0">
                 <Table>
-                  <TableHeader className="bg-zinc-900">
-                    <TableRow className="border-zinc-800">
-                      <TableHead className="text-zinc-400">Penghuni & Kamar</TableHead>
-                      <TableHead className="text-zinc-400">Periode</TableHead>
-                      <TableHead className="text-zinc-400">Rincian Nominal</TableHead>
-                      <TableHead className="text-zinc-400">Metode</TableHead>
-                      <TableHead className="text-zinc-400">Status</TableHead>
-                      <TableHead className="text-right text-zinc-400">Aksi</TableHead>
+                  <TableHeader className="bg-[#F8F6F1]/80 border-b border-[#2C2825]/10">
+                    <TableRow className="border-b border-[#2C2825]/10">
+                      <TableHead className="text-[#1E1B18] font-bold text-sm h-12">Penghuni & Kamar</TableHead>
+                      <TableHead className="text-[#1E1B18] font-bold text-sm h-12">Periode</TableHead>
+                      <TableHead className="text-[#1E1B18] font-bold text-sm h-12">Rincian Nominal</TableHead>
+                      <TableHead className="text-[#1E1B18] font-bold text-sm h-12">Metode</TableHead>
+                      <TableHead className="text-[#1E1B18] font-bold text-sm h-12">Status</TableHead>
+                      <TableHead className="text-right text-[#1E1B18] font-bold text-sm h-12">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -391,34 +391,34 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                         return (
                           <TableRow
                             key={inv.id}
-                            className="border-zinc-800/50 hover:bg-zinc-800/30"
+                            className="border-b border-[#2C2825]/8 hover:bg-[#F8F6F1]/70 transition-colors"
                           >
-                            <TableCell>
+                            <TableCell className="py-4">
                               <div>
-                                <p className="font-semibold text-white text-sm">
+                                <p className="font-bold text-[#1E1B18] text-sm">
                                   {tenantName}
                                 </p>
-                                <p className="text-xs text-zinc-400">
+                                <p className="text-xs font-semibold text-[#5C564E] mt-0.5">
                                   Kamar {roomNumber}
                                 </p>
                               </div>
                             </TableCell>
 
-                            <TableCell className="text-xs text-zinc-300">
+                            <TableCell className="text-xs sm:text-sm font-semibold text-[#4A453F] py-4">
                               {formatPeriod(inv.dueDate)}
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="py-4">
                               <div className="space-y-0.5 text-xs">
-                                <p className="font-bold text-emerald-400 text-sm">
+                                <p className="font-bold text-emerald-700 text-sm">
                                   {formatRupiah(inv.amount)}
                                 </p>
-                                <p className="text-[10px] text-zinc-500">
+                                <p className="text-xs text-[#5C564E] font-medium">
                                   Sewa: {formatRupiah(inv.rentAmount)}
                                   {inv.tenantAdminFee > 0 &&
                                     ` + Admin: ${formatRupiah(inv.tenantAdminFee)}`}
                                   {inv.discountAmount > 0 && (
-                                    <span className="text-purple-400 ml-1">
+                                    <span className="text-purple-700 font-bold ml-1">
                                       (-{formatRupiah(inv.discountAmount)})
                                     </span>
                                   )}
@@ -426,33 +426,33 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                               </div>
                             </TableCell>
 
-                            <TableCell className="text-xs text-zinc-400">
+                            <TableCell className="text-xs font-semibold text-[#4A453F] py-4">
                               {inv.provider === "MIDTRANS" ? (
                                 <Badge
                                   variant="outline"
-                                  className="border-blue-500/30 text-blue-400 bg-blue-500/10 text-[10px]"
+                                  className="border-blue-300 text-blue-800 bg-blue-50 text-xs font-bold rounded-lg px-2 py-0.5"
                                 >
                                   Midtrans
                                 </Badge>
                               ) : (
                                 <Badge
                                   variant="outline"
-                                  className="border-zinc-700 text-zinc-400 bg-zinc-800 text-[10px]"
+                                  className="border-[#2C2825]/15 text-[#4A453F] bg-[#F2EDE9] text-xs font-semibold rounded-lg px-2 py-0.5"
                                 >
                                   Manual / Onsite
                                 </Badge>
                               )}
                             </TableCell>
 
-                            <TableCell>
+                            <TableCell className="py-4">
                               <Badge
                                 variant="outline"
-                                className={`text-[10px] ${
+                                className={`text-xs font-bold rounded-full px-2.5 py-0.5 ${
                                   inv.status === "PAID"
-                                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                    ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                                     : inv.status === "PENDING"
-                                    ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                    : "bg-red-500/10 text-red-400 border-red-500/20"
+                                    ? "bg-blue-50 text-blue-800 border-blue-300"
+                                    : "bg-red-50 text-red-800 border-red-300"
                                 }`}
                               >
                                 {inv.status}
@@ -577,18 +577,17 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
         {/* TAB 2: VERIFIKASI PROMO */}
         {activeTab === "PROMOS" && (
           <div className="space-y-4">
-            <Card className="bg-zinc-900/60 border-zinc-800">
-              <CardHeader className="border-b border-zinc-800/80">
-                <CardTitle className="text-lg font-semibold text-zinc-200 flex items-center gap-2">
-                  <Gift className="h-5 w-5 text-amber-400" />
+            <Card className="bg-white border-[#2C2825]/10 rounded-2xl shadow-sm">
+              <CardHeader className="border-b border-[#2C2825]/10">
+                <CardTitle className="text-lg font-bold text-[#1E1B18] flex items-center gap-2">
+                  <Gift className="h-5 w-5 text-[#8C6239]" />
                   Pengajuan Klaim Promo Menunggu Verifikasi
                 </CardTitle>
-                <CardDescription className="text-zinc-400 text-xs">
-                  Review bukti ulasan Google Maps Bintang 5 dari tenant sebelum
-                  menyetujui pembebasan biaya admin.
+                <CardDescription className="text-sm font-medium text-[#4A453F]">
+                  Review bukti ulasan Google Maps Bintang 5 dari tenant sebelum menyetujui pembebasan biaya admin.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="p-4 sm:p-6">
                 {pendingPromoClaims.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {pendingPromoClaims.map((claim) => {
@@ -600,27 +599,27 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                       return (
                         <div
                           key={claim.id}
-                          className="bg-zinc-900/80 rounded-xl p-4 border border-amber-500/30 space-y-3"
+                          className="bg-[#FAF2EA]/40 rounded-2xl p-4 border border-[#2C2825]/10 shadow-xs space-y-3"
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="font-bold text-white text-sm">
+                              <p className="font-bold text-[#1E1B18] text-sm">
                                 {tenantName}
                               </p>
-                              <p className="text-xs text-zinc-400">
+                              <p className="text-xs font-semibold text-[#5C564E] mt-0.5">
                                 Kamar {roomNumber} · Periode{" "}
                                 {formatPeriod(claim.invoice?.dueDate)}
                               </p>
                             </div>
-                            <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[10px]">
+                            <Badge className="bg-amber-100 text-amber-900 border-amber-300 text-xs font-bold rounded-lg px-2.5 py-0.5">
                               {claim.discountCode}
                             </Badge>
                           </div>
 
                           {claim.googleName && (
-                            <p className="text-xs text-zinc-300">
-                              <span className="text-zinc-500">Nama Akun Google: </span>
-                              <span className="font-semibold text-amber-400">
+                            <p className="text-xs text-[#4A453F]">
+                              <span className="text-[#5C564E] font-medium">Nama Akun Google: </span>
+                              <span className="font-bold text-[#1E1B18]">
                                 {claim.googleName}
                               </span>
                             </p>
@@ -633,13 +632,13 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="w-full border-zinc-800 bg-zinc-950 text-zinc-300 hover:bg-zinc-900 text-xs gap-2"
+                                  className="w-full border-[#2C2825]/15 bg-white text-[#1E1B18] hover:bg-[#F2EDE9] text-xs font-semibold rounded-xl gap-2"
                                 >
-                                  <Eye className="h-3.5 w-3.5 text-amber-400" />
+                                  <Eye className="h-3.5 w-3.5 text-[#8C6239]" />
                                   Lihat Screenshot Ulasan Google Maps
                                 </Button>
                               </DialogTrigger>
-                              <DialogContent className="border-zinc-800 bg-zinc-950 p-0 overflow-hidden sm:max-w-md">
+                              <DialogContent className="border-[#2C2825]/15 bg-white p-0 overflow-hidden sm:max-w-md rounded-2xl shadow-2xl">
                                 <DialogTitle className="sr-only">Screenshot Ulasan Google</DialogTitle>
                                 <div className="relative w-full aspect-[9/16] max-h-[70vh]">
                                   <Image
@@ -654,7 +653,7 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                           )}
 
                           {/* Action Buttons */}
-                          <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                          <div className="flex gap-2 pt-2 border-t border-[#2C2825]/10">
                             <Button
                               variant="outline"
                               size="sm"
@@ -663,7 +662,7 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                                 if (reason) handleRejectPromo(claim.id);
                               }}
                               disabled={loadingClaimId === claim.id}
-                              className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs gap-1.5"
+                              className="flex-1 border-red-300 text-red-700 hover:bg-red-50 bg-white font-bold text-xs rounded-xl gap-1.5"
                             >
                               <CircleX className="h-3.5 w-3.5" />
                               Tolak
@@ -673,7 +672,7 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                               size="sm"
                               onClick={() => handleApprovePromo(claim.id)}
                               disabled={loadingClaimId === claim.id}
-                              className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs gap-1.5"
+                              className="flex-1 bg-[#714A23] hover:bg-[#5C3B1A] text-white font-bold text-xs rounded-xl shadow-sm gap-1.5"
                             >
                               {loadingClaimId === claim.id ? (
                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -688,9 +687,9 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-10 text-zinc-500 space-y-2">
-                    <Gift className="h-10 w-10 mx-auto opacity-30 text-amber-400" />
-                    <p className="text-xs">
+                  <div className="text-center py-10 text-[#4A453F] space-y-2">
+                    <Gift className="h-10 w-10 mx-auto opacity-30 text-[#8C6239]" />
+                    <p className="text-sm font-medium">
                       Tidak ada pengajuan klaim promo yang membutuhkan verifikasi saat ini.
                     </p>
                   </div>

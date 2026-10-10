@@ -41,7 +41,7 @@ export function SettingsTabs({
   return (
     <div className="space-y-6">
       {/* Tabs Selector Bar */}
-      <div className="flex border-b border-zinc-800/80 gap-2 pb-px overflow-x-auto scrollbar-hide">
+      <div className="flex border-b border-[#2C2825]/10 gap-2 pb-px overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -49,10 +49,10 @@ export function SettingsTabs({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all shrink-0 cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-all shrink-0 cursor-pointer ${
                 isActive
-                  ? "border-secondary text-secondary"
-                  : "border-transparent text-zinc-400 hover:text-zinc-200"
+                  ? "border-[#714A23] text-[#714A23]"
+                  : "border-transparent text-[#4A453F] hover:text-[#1E1B18]"
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -91,8 +91,8 @@ export function SettingsTabs({
               {property ? (
                 <PropertyForm property={property} />
               ) : (
-                <div className="text-center py-10 bg-zinc-950/20 border border-zinc-800 rounded-2xl">
-                  <p className="text-xs text-zinc-500">Properti utama belum dikonfigurasi.</p>
+                <div className="text-center py-10 bg-white border border-[#2C2825]/10 rounded-2xl shadow-sm">
+                  <p className="text-sm font-medium text-[#4A453F]">Properti utama belum dikonfigurasi.</p>
                 </div>
               )}
             </motion.div>

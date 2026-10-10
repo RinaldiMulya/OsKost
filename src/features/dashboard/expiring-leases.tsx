@@ -7,38 +7,38 @@ import Link from "next/link";
 export function ExpiringLeases({ leases }: { leases: ExpiringLease[] }) {
     if (leases.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-sm">
-                <CalendarClock className="h-8 w-8 mb-2 opacity-20" />
+            <div className="flex flex-col items-center justify-center py-8 text-[#4A453F] text-sm sm:text-base font-medium">
+                <CalendarClock className="h-9 w-9 mb-2 text-[#8C6239]/40" />
                 <p>Tidak ada kontrak yang akan habis dalam waktu dekat.</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             {leases.map((lease) => (
-                <div key={lease.id} className="flex items-center justify-between p-3 rounded-lg border border-zinc-800/50 bg-zinc-900/30 hover:bg-zinc-800/40 transition-colors">
+                <div key={lease.id} className="flex items-center justify-between p-3.5 rounded-xl border border-[#2C2825]/10 bg-[#F8F6F1]/80 hover:bg-[#F2EDE9] transition-colors">
                     <div>
-                        <p className="text-sm font-semibold text-white">{lease.tenantName}</p>
-                        <p className="text-xs text-zinc-400">
-                            Kamar {lease.roomNumber} &bull; Habis {format(lease.endDate, "dd MMM yyyy", { locale: localeId })}
+                        <p className="text-sm sm:text-base font-bold text-[#1E1B18]">{lease.tenantName}</p>
+                        <p className="text-xs sm:text-sm text-[#4A453F] font-medium mt-0.5">
+                            Kamar <span className="font-bold text-[#1E1B18]">{lease.roomNumber}</span> &bull; Habis {format(lease.endDate, "dd MMM yyyy", { locale: localeId })}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className={`text-xs font-bold px-2 py-1 rounded-md ${
+                        <div className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
                             lease.daysRemaining <= 7 
-                                ? "bg-red-500/10 text-red-500" 
+                                ? "bg-red-50 text-red-700 border border-red-200" 
                                 : lease.daysRemaining <= 14 
-                                    ? "bg-amber-500/10 text-amber-500" 
-                                    : "bg-blue-500/10 text-blue-400"
+                                    ? "bg-amber-50 text-amber-800 border border-amber-200" 
+                                    : "bg-orange-50 text-[#8C6239] border border-orange-200"
                         }`}>
                             {lease.daysRemaining} hari lagi
                         </div>
                     </div>
                 </div>
             ))}
-            <Link href="/admin/tenants" className="flex items-center justify-center w-full py-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
-                Kelola Penghuni <ArrowRight className="h-3 w-3 ml-1 group-hover:translate-x-1 transition-transform" />
+            <Link href="/admin/tenants" className="flex items-center justify-center w-full py-2.5 text-sm font-bold text-[#8C6239] hover:text-[#714A23] transition-colors group mt-2">
+                Kelola Semua Penghuni <ArrowRight className="h-4 w-4 ml-1.5 group-hover:translate-x-1 transition-transform" />
             </Link>
         </div>
     );

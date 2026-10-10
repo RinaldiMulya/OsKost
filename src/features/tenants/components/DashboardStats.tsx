@@ -25,79 +25,77 @@ export function DashboardStats({
   newTenantsThisMonth = 0,
 }: DashboardStatsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in duration-500">
       {/* Stat 1: Total Tenants */}
-      <Card className="bg-zinc-900 border-zinc-800/80 p-6 hover:scale-[1.02] hover:border-blue-700/80 transition-all duration-300">
+      <Card className="bg-white border-[#2C2825]/10 p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
         <div className="flex items-center gap-3 mb-4">
-          <div className="size-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+          <div className="size-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-700">
             <Users className="size-5" />
           </div>
-          <h3 className="text-xl font-medium text-zinc-400">Total Penghuni</h3>
+          <h3 className="text-base font-bold text-[#4A453F]">Total Penghuni</h3>
         </div>
-        <div className="flex items-baseline gap-5">
-          <span className="text-3xl pl-2 font-bold text-white tracking-tight">
+        <div className="flex items-baseline gap-4">
+          <span className="text-3xl sm:text-4xl font-extrabold text-[#1E1B18] tracking-tight">
             {totalCount}
           </span>
-          <span className="text-2xl text-emerald-400 bg-emerald-500/10 px-4 py-1 rounded-md flex items-center gap-1">
-            <TrendingUp className="size-6" />
+          <span className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg flex items-center gap-1">
+            <TrendingUp className="size-3.5" />
             {newTenantsThisMonth > 0 ? `+${newTenantsThisMonth}` : "0"} bulan ini
           </span>
         </div>
       </Card>
 
       {/* Stat 2: Sudah Bayar */}
-      <Card className="bg-zinc-900 border-zinc-800/80 p-6 hover:scale-[1.02] hover:border-green-700/80 transition-all duration-300">
+      <Card className="bg-white border-[#2C2825]/10 p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
         <div className="flex items-center gap-3 mb-4">
-          <div className="size-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+          <div className="size-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-700">
             <CheckCircle2 className="size-5" />
           </div>
-          <h3 className="text-xl font-medium text-zinc-400">Sudah Bayar</h3>
+          <h3 className="text-base font-bold text-[#4A453F]">Sudah Bayar</h3>
         </div>
-        <div className="flex items-baseline gap-5 ">
-          <span className="text-3xl pl-2 font-bold text-white tracking-tight">
+        <div className="flex items-baseline gap-4">
+          <span className="text-3xl sm:text-4xl font-extrabold text-[#1E1B18] tracking-tight">
             {paidCount}
           </span>
-          <span className="text-2xl text-zinc-400">
-            {totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0}%
-            dari total
+          <span className="text-sm font-semibold text-[#4A453F]">
+            {totalCount > 0 ? Math.round((paidCount / totalCount) * 100) : 0}% dari total
           </span>
         </div>
       </Card>
 
       {/* Stat 3: Belum Bayar */}
-      <Card className="bg-zinc-900 border-zinc-800/80 p-6 hover:scale-[1.02] hover:border-red-700/80 transition-all duration-300 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent pointer-events-none" />
-        <div className="flex items-center gap-3 mb-4 relative z-10">
-          <div className="size-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-400">
+      <Card className="bg-white border-[#2C2825]/10 p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="size-10 rounded-xl bg-red-50 flex items-center justify-center text-red-700">
             <AlertTriangle className="size-5" />
           </div>
-          <h3 className="text-xl font-medium text-zinc-400">Belum Bayar</h3>
+          <h3 className="text-base font-bold text-[#4A453F]">Belum Bayar</h3>
         </div>
-        <div className="flex items-baseline gap-5 relative z-10">
-          <span className="text-3xl pl-2 font-bold text-red-400 tracking-tight">
+        <div className="flex items-baseline gap-4">
+          <span className="text-3xl sm:text-4xl font-extrabold text-red-700 tracking-tight">
             {unpaidCount}
           </span>
-          <span className="text-2xl text-red-400 bg-red-500/10 px-2 py-1 rounded-md flex items-center gap-1">
+          <span className="text-xs font-bold text-red-800 bg-red-50 border border-red-200 px-2.5 py-1 rounded-lg flex items-center gap-1">
             Perlu tindak lanjut
           </span>
         </div>
       </Card>
 
       {/* Stat 4: Kontrak < 30 Hari */}
-      <Card className="bg-zinc-900 border-zinc-800/80 p-6 hover:scale-[1.02] hover:border-yellow-700 transition-all duration-300">
+      <Card className="bg-white border-[#2C2825]/10 p-5 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300">
         <div className="flex items-center gap-3 mb-4">
-          <div className="size-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-400">
+          <div className="size-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700">
             <Clock className="size-5" />
           </div>
-          <h3 className="text-xl font-medium text-zinc-400">
+          <h3 className="text-base font-bold text-[#4A453F]">
             Kontrak &lt;30hr
           </h3>
         </div>
-        <div className="flex items-baseline gap-5">
-          <span className="text-3xl pl-2 font-bold text-amber-400 tracking-tight">
+        <div className="flex items-baseline gap-4">
+          <span className="text-3xl sm:text-4xl font-extrabold text-amber-800 tracking-tight">
             {warningCount}
           </span>
-          <span className="text-2xl text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md">
+          <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
             Masa sewa habis
           </span>
         </div>

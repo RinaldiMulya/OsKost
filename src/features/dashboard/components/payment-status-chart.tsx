@@ -76,14 +76,14 @@ export function PaymentStatusChart({ data }: PaymentStatusChartProps) {
                     <tspan
                       x={viewBox.cx}
                       y={viewBox.cy}
-                      className="fill-foreground text-3xl font-bold"
+                      className="fill-[#1E1B18] text-3xl font-extrabold"
                     >
                       {totalInvoices}
                     </tspan>
                     <tspan
                       x={viewBox.cx}
                       y={(viewBox.cy || 0) + 24}
-                      className="fill-muted-foreground text-sm"
+                      className="fill-[#4A453F] text-sm font-bold"
                     >
                       Tagihan
                     </tspan>
