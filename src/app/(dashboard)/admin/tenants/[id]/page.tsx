@@ -40,7 +40,7 @@ export default async function TenantDetailPage({
   }
 
   return (
-    <div className="space-y-2 lg:p-2 w-full lg:max-w-[1400px] mx-auto animate-in fade-in duration-500">
+    <div className="space-y-8 w-full max-w-7xl mx-auto animate-in fade-in duration-500 pb-12">
       <TenantHeader tenant={tenant} />
       <TenantTabs tenant={tenant} signedKtpUrl={signedKtpUrl} />
     </div>

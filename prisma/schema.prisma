@@ -80,7 +80,7 @@ enum ReportStatus {
 
 model Property {
   id              String   @id @default(cuid())
-  slug            String   @unique @default("pulo-jahe") // Subdomain routing atau slug URL
+  slug            String?  @unique @default("pulo-jahe") // Subdomain routing atau slug URL
   name            String   // Contoh: "Smartkost Pulo Jahe"
   address         String
   mapsLink        String?
@@ -100,6 +100,19 @@ model Property {
   guardPhone      String?  // e.g. "08123456789" (Pak Slamet & Pak Yanto - Pos Jaga)
   emergencyPhone  String?  // Nomor darurat terdekat (Polsek/RS/Damkar)
 
+  // [Pencairan Sewa Pemilik Kost & Tier Starter: Manual Transfer & QRIS Statis]
+  bankName           String?  // e.g. "BCA", "MANDIRI", "BRI", "BNI"
+  bankAccountNumber  String?  // e.g. "1234567890"
+  bankAccountHolder  String?  // e.g. "Ahmad Rinaldi"
+  bankAccountInfo    String?  // Petunjuk transfer / catatan manual (db.Text)
+  qrisImageUrl       String?  // URL gambar QRIS Statis di Cloudinary
+
+  // [Metode Pembayaran: Tier Pro (Direct Merchant Midtrans)]
+  midtransMerchantId String?  // ID Merchant Midtrans Pemilik Kost
+  midtransServerKey  String?  // AES-256-GCM Encrypted at rest (DILARANG Plaintext!)
+  midtransClientKey  String?  // Public Client Key untuk SDK Frontend/Mobile
+  isMidtransActive   Boolean  @default(false) // Toggle switch aktif/non-aktif
+
   // [SaaS Pivot: Status Langganan Platform]
   subscription    SaaSSubscription?
 
@@ -109,6 +122,7 @@ model Property {
   invoices        Invoice[]
   reports         Report[]
   notifications   Notification[]
+  saasTransactions SaaSTransaction[]
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -128,6 +142,11 @@ model SaaSSubscription {
   currentPeriodStart     DateTime           @default(now())
   currentPeriodEnd       DateTime?
   midtransSubscriptionId String?            // ID recurring billing dari Midtrans
+  trialEndsAt            DateTime?
+  cancelledAt            DateTime?
+  suspendedAt            DateTime?
+  notes                  String?
+  transactions           SaaSTransaction[]
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
 
@@ -150,6 +169,8 @@ model User {
   passwordChangedAt DateTime?                 // Metadata "Terakhir diperbarui X hari lalu"
   isActive          Boolean   @default(true)  // Kontrol akses akun aktif
   isSuspended       Boolean   @default(false) // Penangguhan akses aplikasi jika ada tunggakan
+  lastLoginAt       DateTime?
+  impersonatedBy    String?
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -299,8 +320,12 @@ model Invoice {
 
   paidAt         DateTime?
   expiredAt      DateTime?
-  proofUrl       String?         // Foto bukti transfer manual
-  adminNote      String?
+  proofUrl       String?         // Foto bukti transfer manual di Cloudinary
+  adminNote      String?         // Alasan penolakan / catatan persetujuan Owner
+
+  // [Audit Jejak Verifikasi Manual Tier Starter]
+  verifiedBy     String?         // ID User (Owner/Admin) yang menyetujui / menolak
+  verifiedAt     DateTime?       // Waktu disetujui / ditolak
 
   // [Strict Multi-Tenant Scoping]
   propertyId     String?
@@ -506,5 +531,86 @@ model DiscountClaim {
   @@index([status])
   @@index([invoiceId])
   @@index([userId])
+}
+
+// ==============================================================================
+// 10. AUDIT LOGGING & PLATFORM SECURITY
+// ==============================================================================
+
+enum AuditCategory {
+  AUTH
+  SUBSCRIPTION
+  OWNER
+  SYSTEM
+  PROPERTY
+  SECURITY
+}
+
+model AuditLog {
+  id          String        @id @default(cuid())
+  actorId     String?       // ID User yang mengeksekusi aksi
+  actorEmail  String?       // Snapshot email user saat aksi
+  actorRole   UserRole?     // Role saat aksi
+  action      String        // e.g. "SUPER_ADMIN_LOGIN", "OWNER_SUSPENDED", "PLAN_CHANGED"
+  category    AuditCategory @default(SYSTEM)
+  targetType  String?       // "User", "Property", "SaaSSubscription", "Invoice"
+  targetId    String?       // ID entitas target
+  metadata    Json?         // Snapshot detail (oldValue, newValue, params)
+  ipAddress   String?       // IP Address client
+  userAgent   String?       // Device info
+  createdAt   DateTime      @default(now())
+
+  @@index([actorId])
+  @@index([category])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ==============================================================================
+// 11. SAAS PRICING PLANS & FEATURE MATRIX
+// ==============================================================================
+
+model SaaSPlan {
+  id             String       @id @default(cuid())
+  tier           SaaSPlanTier @unique // FREE, STARTER, GROWTH, PRO, ENTERPRISE
+  name           String       // "Starter Plan", "Pro Scale", dll.
+  description    String?      @db.Text
+  monthlyPrice   Int          // Harga per bulan (Rp)
+  annualPrice    Int          // Harga per tahun jika bayar tahunan (Rp)
+  maxRooms       Int          // Batas maksimal unit kamar
+  maxProperties  Int          @default(1)
+  features       Json         // { "smartLock": false, "customDomain": false, "midtransGateway": true, dll }
+  isActive       Boolean      @default(true)
+  isPopular      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// ==============================================================================
+// 12. SAAS B2B SUBSCRIPTION TRANSACTIONS
+// ==============================================================================
+
+model SaaSTransaction {
+  id                String            @id @default(cuid())
+  subscriptionId    String
+  subscription      SaaSSubscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  propertyId        String
+  property          Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  amount            Int               // Nominal tagihan (Rp)
+  periodMonths      Int               @default(1) // 1 bulan / 12 bulan
+  planTier          SaaSPlanTier
+  status            PaymentStatus     @default(PENDING) // PENDING, PAID, FAILED, EXPIRED
+  paymentMethod     String?           // "QRIS", "BCA_VA", "MANDIRI_VA", "MANUAL"
+  midtransOrderId   String?           @unique
+  midtransSnapToken String?
+  paidAt            DateTime?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([subscriptionId])
+  @@index([propertyId])
+  @@index([status])
+  @@index([createdAt])
 }
 

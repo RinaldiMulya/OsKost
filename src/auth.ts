@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { authConfig } from "./auth.config";
 import logger from "@/lib/logger";
+import { logAuditEvent } from "@/lib/audit-log";
 
 const log = logger.child({ module: "auth" });
 
@@ -29,16 +30,48 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                             : { phoneNumber: identifier },
                     });
 
-                    if (!user) return null;
+                    if (!user) {
+                        await logAuditEvent({
+                            actorEmail: identifier,
+                            action: "LOGIN_FAILED_NOT_FOUND",
+                            category: "AUTH",
+                            metadata: { identifier },
+                        });
+                        return null;
+                    }
 
                     const passwordsMatch = await bcryptjs.compare(password, user.passwordHash);
 
                     if (passwordsMatch) {
+                        // Update lastLoginAt asynchronously without blocking
+                        prisma.user
+                            .update({
+                                where: { id: user.id },
+                                data: { lastLoginAt: new Date() },
+                            })
+                            .catch((err) => log.error({ err }, "Gagal update lastLoginAt"));
+
+                        await logAuditEvent({
+                            actorId: user.id,
+                            actorEmail: user.email,
+                            actorRole: user.role,
+                            action: "LOGIN_SUCCESS",
+                            category: "AUTH",
+                        });
+
                         return {
                             id: user.id,
                             email: user.email,
                             role: user.role,
                         };
+                    } else {
+                        await logAuditEvent({
+                            actorId: user.id,
+                            actorEmail: user.email,
+                            actorRole: user.role,
+                            action: "LOGIN_FAILED_INVALID_PASSWORD",
+                            category: "AUTH",
+                        });
                     }
                 }
 

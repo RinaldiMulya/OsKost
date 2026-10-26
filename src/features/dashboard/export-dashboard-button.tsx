@@ -154,7 +154,7 @@ export function ExportDashboardButton() {
       disabled={isExporting}
       variant="outline"
       size="sm"
-      className="gap-2 border-[#2C2825]/15 bg-white text-[#1E1B18] hover:text-[#1E1B18] hover:bg-[#F2EDE9] text-sm font-semibold shadow-sm h-9 px-3.5"
+      className="gap-2 border-2 border-[#2C2825]/18 rounded-xl bg-white text-[#1E1B18] hover:text-[#1E1B18] hover:bg-[#F2EDE9] hover:border-[#2C2825]/30 text-sm font-semibold shadow-2xs h-9 px-3.5 transition-all"
     >
       {isExporting ? (
         <Loader2 className="h-4 w-4 animate-spin text-[#8C6239]" />

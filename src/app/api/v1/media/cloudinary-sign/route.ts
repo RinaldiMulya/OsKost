@@ -34,7 +34,9 @@ export async function POST(req: NextRequest) {
           requestedFolder.startsWith("oskost/reports") ||
           requestedFolder.startsWith("oskost/rooms") ||
           requestedFolder.startsWith("oskost/avatars") ||
-          requestedFolder.startsWith("oskost/property")
+          requestedFolder.startsWith("oskost/property") ||
+          requestedFolder.startsWith("oskost/payment-proofs") ||
+          requestedFolder.startsWith("oskost/qris")
         ) {
           folder = requestedFolder;
         }

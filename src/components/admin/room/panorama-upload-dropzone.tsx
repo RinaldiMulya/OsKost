@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, UploadCloud, X, CheckCircle } from "lucide-react";
 import { ReactPhotoSphereViewer } from "react-photo-sphere-viewer";
-import { uploadImageToSupabase } from "@/lib/supabase/storage-client";
 import { addPanoramaAction } from "@/features/rooms/actions";
 import { compressImage } from "@/lib/utils/image-compression";
 import { useRouter } from "next/navigation";
@@ -99,15 +98,72 @@ export function PanoramaUploadDropzone({
         fileType: "image/webp",
       });
 
-      // 1. Upload file fisik ke Supabase Storage (Oskost-Data-Public)
-      const folderPath = `panoramas/${userId}`;
-      const { imageUrl, storagePath } = await uploadImageToSupabase(
-        compressedFile,
-        "Oskost-Data-Public",
-        folderPath,
-      );
+      // 1. Request signature dari backend OsKost untuk Cloudinary
+      const folder = "oskost/rooms/panoramas";
+      const signRes = await fetch("/api/v1/media/cloudinary-sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ folder }),
+      });
 
-      // 2. Simpan metadata (Langsung atau Deferred)
+      let imageUrl = "";
+      let storagePath = "";
+
+      if (signRes.ok) {
+        const signJson = await signRes.json();
+        const {
+          signature,
+          timestamp,
+          apiKey,
+          uploadUrl,
+          folder: targetFolder,
+        } = signJson.data;
+
+        // 2. Upload langsung ke Cloudinary API
+        const formData = new FormData();
+        formData.append("file", compressedFile);
+        formData.append("api_key", apiKey);
+        formData.append("timestamp", timestamp.toString());
+        formData.append("signature", signature);
+        formData.append("folder", targetFolder);
+
+        const uploadRes = await fetch(uploadUrl, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (uploadRes.ok) {
+          const uploadJson = await uploadRes.json();
+          imageUrl = uploadJson.secure_url;
+          storagePath = uploadJson.public_id;
+        }
+      }
+
+      // 3. Fallback: jika direct upload ke Cloudinary gagal, gunakan proxy backend
+      if (!imageUrl) {
+        const fallbackData = new FormData();
+        fallbackData.append("file", compressedFile);
+        fallbackData.append("folder", folder);
+
+        const fallbackRes = await fetch("/api/v1/media/upload", {
+          method: "POST",
+          body: fallbackData,
+        });
+
+        if (!fallbackRes.ok) {
+          const errData = await fallbackRes.json().catch(() => ({}));
+          throw new Error(
+            errData.error?.message ||
+              "Gagal mengunggah foto panorama ke Cloudinary",
+          );
+        }
+
+        const fallbackJson = await fallbackRes.json();
+        imageUrl = fallbackJson.data.secureUrl;
+        storagePath = fallbackJson.data.publicId;
+      }
+
+      // 4. Simpan metadata (Langsung atau Deferred)
       const metadata = {
         title,
         description,
@@ -163,29 +219,32 @@ export function PanoramaUploadDropzone({
         <div>
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+            className={`border-2 border-dashed rounded-2xl p-10 sm:p-12 text-center cursor-pointer transition-all ${
               isDragActive
-                ? "border-primary bg-primary/5"
-                : "border-border hover:border-primary/50 hover:bg-muted/50"
+                ? "border-[#714A23] bg-[#FAF2EA]/60 scale-[0.99]"
+                : "border-[#2C2825]/20 hover:border-[#714A23] bg-[#FAF8F5] hover:bg-[#F4EDE4]/50"
             }`}
           >
             <input {...getInputProps()} />
-            <div className="flex flex-col items-center gap-4">
-              <div className="p-4 bg-muted rounded-full">
-                <UploadCloud className="w-8 h-8 text-muted-foreground" />
+            <div className="flex flex-col items-center gap-3">
+              <div className="p-3.5 bg-white border border-[#2C2825]/10 rounded-2xl text-[#714A23] shadow-2xs">
+                <UploadCloud className="w-8 h-8" />
               </div>
               <div>
-                <p className="text-lg font-medium">
-                  Drag & drop gambar 360° di sini
+                <p className="text-base sm:text-lg font-bold text-[#1E1B18]">
+                  Tarik & lepas file gambar 360° di sini
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  atau klik untuk memilih file (JPG/PNG, max 50MB)
+                <p className="text-xs sm:text-sm text-[#7A7A7A] mt-1">
+                  atau klik untuk memilih foto panorama equirectangular
+                  (JPG/PNG, maks. 50MB)
                 </p>
               </div>
             </div>
           </div>
           {errorMessage && (
-            <p className="text-red-500 text-sm mt-2">{errorMessage}</p>
+            <p className="text-red-600 text-xs sm:text-sm mt-2 font-medium">
+              {errorMessage}
+            </p>
           )}
         </div>
       ) : null}
@@ -223,14 +282,19 @@ export function PanoramaUploadDropzone({
             <div className="space-y-4 flex flex-col justify-between">
               <div className="space-y-4">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium">Detail Gambar</h3>
+                  <h3 className="text-base font-bold text-[#1E1B18]">
+                    Detail Gambar 360°
+                  </h3>
                   <Button
+                    type="button"
                     variant="ghost"
                     size="icon"
                     onClick={handleCancel}
                     disabled={uploadState === "UPLOADING"}
+                    className="h-8 w-8 rounded-full bg-[#FAF8F5] border border-[#2C2825]/15 text-[#4A453F] hover:bg-[#FAF2EA] hover:text-[#714A23] hover:border-[#714A23]/40 transition-all"
+                    title="Tutup / Batal"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                   </Button>
                 </div>
 
@@ -264,11 +328,11 @@ export function PanoramaUploadDropzone({
                 )}
               </div>
 
-              <div className="flex gap-3 pt-4 border-t">
+              <div className="flex gap-3 pt-4 border-t border-[#2C2825]/10">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 rounded-xl border-[#2C2825]/15 text-[#4A453F] hover:bg-[#F4EDE4]"
                   onClick={handleCancel}
                   disabled={uploadState === "UPLOADING"}
                 >
@@ -276,17 +340,17 @@ export function PanoramaUploadDropzone({
                 </Button>
                 <Button
                   type="button"
-                  className="flex-1"
+                  className="flex-1 rounded-xl bg-[#714A23] hover:bg-[#5C3B1A] text-white shadow-xs font-semibold"
                   onClick={handleUpload}
                   disabled={uploadState === "UPLOADING" || !title.trim()}
                 >
                   {uploadState === "UPLOADING" ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Upload...
+                      Mengupload...
                     </>
                   ) : (
-                    "Simpan Gambar"
+                    "Simpan Gambar 360°"
                   )}
                 </Button>
               </div>

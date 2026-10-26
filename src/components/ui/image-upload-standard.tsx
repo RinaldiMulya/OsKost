@@ -91,7 +91,7 @@ export function ImageUploadStandard({
       <Label>{label}</Label>
 
       {previewUrl ? (
-        <div className="relative w-40 h-40 rounded-lg border overflow-hidden group">
+        <div className="relative w-44 h-44 rounded-2xl border border-[#2C2825]/15 overflow-hidden group shadow-xs bg-[#FAF8F5]">
           <Image
             src={previewUrl}
             alt="Preview"
@@ -99,43 +99,45 @@ export function ImageUploadStandard({
             className="object-cover"
           />
           {!isUploading && (
-            <button
-              type="button"
-              onClick={handleRemove}
-              className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X size={16} />
-            </button>
+            <div className="absolute inset-0 bg-[#1E1B18]/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-xs">
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                onClick={handleRemove}
+                className="h-9 w-9 rounded-full shadow-sm hover:scale-105 transition-transform"
+                title="Hapus gambar"
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
           )}
           {isUploading && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 text-white animate-spin" />
+            <div className="absolute inset-0 bg-[#1E1B18]/70 flex items-center justify-center backdrop-blur-xs">
+              <Loader2 className="w-7 h-7 text-white animate-spin" />
             </div>
           )}
         </div>
       ) : (
-        <div className="flex items-center gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isUploading}
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full h-32 border-dashed flex flex-col gap-2 cursor-pointer"
-          >
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className="w-full border-2 border-dashed border-[#2C2825]/20 hover:border-[#714A23] rounded-2xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all bg-[#FAF8F5] hover:bg-[#F4EDE4]/50 text-[#4A453F] group"
+        >
+          <div className="h-10 w-10 rounded-full bg-white border border-[#2C2825]/10 shadow-2xs flex items-center justify-center group-hover:scale-105 group-hover:border-[#714A23]/30 transition-transform">
             {isUploading ? (
-              <>
-                <Loader2 className="w-6 h-6 animate-spin" />
-                <span>Mengupload & Kompresi...</span>
-              </>
+              <Loader2 className="h-5 w-5 animate-spin text-[#714A23]" />
             ) : (
-              <>
-                <Upload className="w-6 h-6 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  Klik untuk upload gambar
-                </span>
-              </>
+              <Upload className="h-5 w-5 text-[#714A23]" />
             )}
-          </Button>
+          </div>
+          <div className="text-xs font-medium text-center">
+            <span className="text-[#714A23] font-bold block text-sm mb-0.5">
+              Klik untuk upload foto KTP
+            </span>
+            <p className="text-[#7A7A7A] text-[11px]">
+              Format JPG, PNG, atau WebP (Disimpan di server privat terenkripsi)
+            </p>
+          </div>
         </div>
       )}
 

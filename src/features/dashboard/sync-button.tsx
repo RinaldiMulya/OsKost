@@ -40,7 +40,7 @@ export function SyncButton() {
             size="sm" 
             onClick={handleSync}
             disabled={isSyncing}
-            className="border-[#2C2825]/15 bg-white text-[#1E1B18] hover:bg-[#F2EDE9] hover:text-[#1E1B18] font-semibold text-sm shadow-sm h-9 px-3.5"
+            className="border-2 border-[#2C2825]/18 rounded-xl bg-white text-[#1E1B18] hover:bg-[#F2EDE9] hover:border-[#2C2825]/30 hover:text-[#1E1B18] font-semibold text-sm shadow-2xs h-9 px-3.5 transition-all"
         >
             <RefreshCw className={`h-4 w-4 mr-2 ${isSyncing ? "animate-spin" : ""}`} />
             {isSyncing ? "Syncing..." : "Sync Data"}

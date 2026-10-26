@@ -153,3 +153,106 @@ export async function updatePropertyProfileAction(
     }
 }
 
+// ============================================
+// UPDATE BANK ACCOUNT FOR RENT DISBURSEMENT
+// ============================================
+
+export async function updatePropertyBankAccountAction(
+    _prevState: ActionResult | null,
+    formData: FormData
+): Promise<ActionResult> {
+    try {
+        await getAdminId();
+        const id = formData.get("id") as string;
+        const bankName = (formData.get("bankName") as string)?.trim();
+        const bankAccountNumber = (formData.get("bankAccountNumber") as string)?.trim();
+        const bankAccountHolder = (formData.get("bankAccountHolder") as string)?.trim();
+
+        if (!id || !bankName || !bankAccountNumber || !bankAccountHolder) {
+            return {
+                success: false,
+                error: "Nama bank, nomor rekening, dan nama pemilik rekening wajib diisi.",
+            };
+        }
+
+        const { updatePropertyBankAccount } = await import("./admin-service");
+        await updatePropertyBankAccount(id, bankName, bankAccountNumber, bankAccountHolder);
+
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/admin/settings");
+
+        return {
+            success: true,
+            message: "Rekening pencairan sewa berhasil disimpan.",
+        };
+    } catch (error) {
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return {
+            success: false,
+            error: "Terjadi kesalahan saat menyimpan rekening bank.",
+        };
+    }
+}
+
+// ============================================
+// UPDATE PAYMENT SETTINGS (TIER STARTER & TIER PRO)
+// ============================================
+
+export async function updatePaymentSettingsAction(
+    _prevState: ActionResult | null,
+    formData: FormData
+): Promise<ActionResult> {
+    try {
+        await getAdminId();
+        const id = formData.get("id") as string;
+        const bankName = (formData.get("bankName") as string)?.trim() || null;
+        const bankAccountNumber = (formData.get("bankAccountNumber") as string)?.trim() || null;
+        const bankAccountHolder = (formData.get("bankAccountHolder") as string)?.trim() || null;
+        const bankAccountInfo = (formData.get("bankAccountInfo") as string)?.trim() || null;
+        const qrisImageUrl = (formData.get("qrisImageUrl") as string)?.trim() || null;
+
+        const isMidtransActive = formData.get("isMidtransActive") === "true" || formData.get("isMidtransActive") === "on";
+        const midtransMerchantId = (formData.get("midtransMerchantId") as string)?.trim() || null;
+        const midtransClientKey = (formData.get("midtransClientKey") as string)?.trim() || null;
+        const newMidtransServerKey = (formData.get("newMidtransServerKey") as string)?.trim() || null;
+
+        if (!id) {
+            return { success: false, error: "ID properti tidak valid." };
+        }
+
+        const { updatePropertyPaymentSettings } = await import("./admin-service");
+        await updatePropertyPaymentSettings(id, {
+            bankName,
+            bankAccountNumber,
+            bankAccountHolder,
+            bankAccountInfo,
+            qrisImageUrl,
+            isMidtransActive,
+            midtransMerchantId,
+            midtransClientKey,
+            newMidtransServerKey,
+        });
+
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath("/admin/settings");
+        revalidatePath("/admin/billing");
+
+        return {
+            success: true,
+            message: "Pengaturan metode pembayaran sewa berhasil disimpan.",
+        };
+    } catch (error) {
+        if (error instanceof Error) {
+            return { success: false, error: error.message };
+        }
+        return {
+            success: false,
+            error: "Terjadi kesalahan saat menyimpan pengaturan pembayaran.",
+        };
+    }
+}
+
+
+

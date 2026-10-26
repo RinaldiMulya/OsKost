@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath, updateTag } from "next/cache";
+import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
@@ -71,6 +71,10 @@ export async function createTenantAction(
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
+        revalidateTag(CACHE_TAGS.DASHBOARD_STATS, "default");
+        revalidateTag(CACHE_TAGS.ADMIN_TENANTS, "default");
+        revalidateTag(CACHE_TAGS.ADMIN_ROOMS, "default");
+        revalidateTag(CACHE_TAGS.ADMIN_ROOM_STATS, "default");
         updateTag(CACHE_TAGS.DASHBOARD_STATS);
         updateTag(CACHE_TAGS.ADMIN_TENANTS);
         updateTag(CACHE_TAGS.ADMIN_ROOMS);
@@ -256,10 +260,11 @@ export async function markInvoicePaidAction(invoiceId: string): Promise<ActionRe
             return { success: false, error: "Invoice ID is required" };
         }
 
-        const result = await markInvoicePaid(invoiceId);
+        const result = await markInvoicePaid(invoiceId, session.user.id);
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
+        revalidatePath("/admin/billing");
         updateTag(CACHE_TAGS.DASHBOARD_STATS);
         updateTag(CACHE_TAGS.ADMIN_TENANTS);
         
@@ -294,10 +299,11 @@ export async function rejectInvoicePaymentAction(invoiceId: string, reason: stri
             return { success: false, error: "Alasan penolakan wajib diisi" };
         }
 
-        const result = await rejectInvoicePayment(invoiceId, reason);
+        const result = await rejectInvoicePayment(invoiceId, reason, session.user.id);
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
+        revalidatePath("/admin/billing");
         updateTag(CACHE_TAGS.DASHBOARD_STATS);
         updateTag(CACHE_TAGS.ADMIN_TENANTS);
 

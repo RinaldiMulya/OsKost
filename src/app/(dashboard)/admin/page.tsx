@@ -37,6 +37,9 @@ function ChartSkeleton() {
     );
 }
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata = {
     title: "Overview | Admin Smartkost",
 };
@@ -130,7 +133,7 @@ export default async function AdminOverviewPage() {
             {/* Charts Row 1 — Pendapatan & Okupansi */}
             <div className="grid gap-6 lg:grid-cols-5">
                 {/* Pendapatan — lebih lebar (3/5) */}
-                <div className="lg:col-span-3 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                <div className="lg:col-span-3 rounded-2xl border-2 border-[#2C2825]/12 bg-white p-6 shadow-sm hover:border-[#2C2825]/20 transition-all">
                     <div className="mb-5">
                         <h3 className="text-lg font-bold text-[#1E1B18]">
                             Tren Pendapatan
@@ -145,7 +148,7 @@ export default async function AdminOverviewPage() {
                 </div>
 
                 {/* Okupansi — lebih kecil (2/5) */}
-                <div className="lg:col-span-2 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                <div className="lg:col-span-2 rounded-2xl border-2 border-[#2C2825]/12 bg-white p-6 shadow-sm hover:border-[#2C2825]/20 transition-all">
                     <div className="mb-5">
                         <h3 className="text-lg font-bold text-[#1E1B18]">
                             Okupansi Kamar
@@ -163,7 +166,7 @@ export default async function AdminOverviewPage() {
             {/* Charts Row 2 — Status Tagihan & Laporan Kerusakan */}
             <div className="grid gap-6 lg:grid-cols-5">
                 {/* Status Tagihan — lebih kecil (2/5) */}
-                <div className="lg:col-span-2 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                <div className="lg:col-span-2 rounded-2xl border-2 border-[#2C2825]/12 bg-white p-6 shadow-sm hover:border-[#2C2825]/20 transition-all">
                     <div className="mb-5">
                         <h3 className="text-lg font-bold text-[#1E1B18]">
                             Status Tagihan
@@ -178,7 +181,7 @@ export default async function AdminOverviewPage() {
                 </div>
 
                 {/* Laporan Kerusakan — lebih lebar (3/5) */}
-                <div className="lg:col-span-3 rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm">
+                <div className="lg:col-span-3 rounded-2xl border-2 border-[#2C2825]/12 bg-white p-6 shadow-sm hover:border-[#2C2825]/20 transition-all">
                     <div className="mb-5">
                         <h3 className="text-lg font-bold text-[#1E1B18]">
                             Tren Laporan Kerusakan
@@ -196,7 +199,7 @@ export default async function AdminOverviewPage() {
             {/* Third Row — Widgets */}
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* Aktivitas Terbaru */}
-                <div className="rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm flex flex-col h-full">
+                <div className="rounded-2xl border-2 border-[#2C2825]/12 bg-white p-6 shadow-sm hover:border-[#2C2825]/20 transition-all flex flex-col h-full">
                     <div className="mb-6">
                         <h3 className="text-lg font-bold text-[#1E1B18]">
                             Aktivitas Terbaru
@@ -209,7 +212,7 @@ export default async function AdminOverviewPage() {
                 </div>
 
                 {/* Kamar Akan Habis Kontrak */}
-                <div className="rounded-2xl border border-[#2C2825]/10 bg-white p-6 shadow-sm flex flex-col h-full">
+                <div className="rounded-2xl border-2 border-[#2C2825]/12 bg-white p-6 shadow-sm hover:border-[#2C2825]/20 transition-all flex flex-col h-full">
                     <div className="mb-6">
                         <h3 className="text-lg font-bold text-[#1E1B18]">
                             Akan Habis Kontrak (&lt; 30 Hari)

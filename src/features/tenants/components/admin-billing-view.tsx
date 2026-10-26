@@ -137,13 +137,14 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
     }
   }
 
-  async function handleRejectPaid(invoiceId: string) {
-    if (!rejectReason) {
+  async function handleRejectPaid(invoiceId: string, reasonOverride?: string) {
+    const reasonToUse = reasonOverride || rejectReason;
+    if (!reasonToUse) {
       toast.error("Alasan penolakan wajib diisi");
       return;
     }
     setLoadingInvoiceId(invoiceId);
-    const result = await rejectInvoicePaymentAction(invoiceId, rejectReason);
+    const result = await rejectInvoicePaymentAction(invoiceId, reasonToUse);
     setLoadingInvoiceId(null);
     if (result.success) {
       toast.success("Pembayaran berhasil ditolak!");
@@ -513,25 +514,76 @@ export function AdminBillingView({ data }: AdminBillingViewProps) {
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10 text-xs h-8 px-2"
+                                        className="border-[#714A23]/30 text-[#714A23] hover:bg-[#714A23]/10 text-xs h-8 px-2 gap-1"
                                       >
                                         <Eye className="h-3.5 w-3.5" />
+                                        <span className="hidden sm:inline">Bukti</span>
                                       </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="border-zinc-800 bg-zinc-950 p-0 overflow-hidden sm:max-w-md">
-                                      <DialogHeader className="p-4 pb-0 bg-zinc-900 border-b border-zinc-800">
-                                        <DialogTitle className="text-zinc-100 flex items-center gap-2 text-sm">
-                                          Bukti Transfer Manual
+                                    <DialogContent className="border-[#2C2825]/15 bg-white p-0 overflow-hidden sm:max-w-md text-[#1E1B18]">
+                                      <DialogHeader className="p-4 bg-[#FAF8F5] border-b border-[#2C2825]/10">
+                                        <DialogTitle className="text-[#1E1B18] flex items-center justify-between text-sm font-bold">
+                                          <span>Bukti Transfer Manual</span>
+                                          <span className="text-xs text-[#714A23] font-bold">
+                                            {formatRupiah(inv.amount)}
+                                          </span>
                                         </DialogTitle>
+                                        <div className="text-xs text-[#757069] mt-1 flex items-center gap-2">
+                                          <span>{tenantName}</span>
+                                          <span>•</span>
+                                          <span>Kamar {roomNumber}</span>
+                                        </div>
+                                        {inv.adminNote && (
+                                          <div className="mt-2 text-xs bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg text-amber-900">
+                                            <span className="font-bold">Catatan:</span> {inv.adminNote}
+                                          </div>
+                                        )}
                                       </DialogHeader>
-                                      <div className="relative w-full aspect-[9/16] max-h-[70vh]">
+
+                                      <div className="relative w-full aspect-[9/12] max-h-[55vh] bg-[#FAF8F5]">
                                         <Image
                                           src={inv.proofUrl}
                                           alt="Bukti Transfer"
                                           fill
-                                          className="object-contain bg-black/50"
+                                          className="object-contain"
                                         />
                                       </div>
+
+                                      {inv.status === "PENDING" && (
+                                        <div className="p-4 bg-[#FAF8F5] border-t border-[#2C2825]/10 space-y-2">
+                                          <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              onClick={() => handleMarkPaid(inv.id)}
+                                              disabled={loadingInvoiceId === inv.id}
+                                              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 cursor-pointer"
+                                            >
+                                              {loadingInvoiceId === inv.id ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                                              ) : (
+                                                <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" />
+                                              )}
+                                              Setujui Pembayaran (Lunas)
+                                            </Button>
+
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                const reason = prompt("Masukkan alasan penolakan bukti bayar:");
+                                                if (reason && reason.trim()) {
+                                                  handleRejectPaid(inv.id, reason.trim());
+                                                }
+                                              }}
+                                              disabled={loadingInvoiceId === inv.id}
+                                              className="border-red-500/30 text-red-600 hover:bg-red-50 text-xs h-9 cursor-pointer"
+                                            >
+                                              <CircleX className="h-3.5 w-3.5 mr-1" />
+                                              Tolak
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
                                     </DialogContent>
                                   </Dialog>
                                 )}

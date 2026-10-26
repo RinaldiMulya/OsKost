@@ -23,6 +23,13 @@ export async function GET(req: NextRequest) {
             whereClause.lease = {
                 userId: authUser.id,
             };
+            // On-demand reconciliation jaring pengaman Midtrans
+            try {
+                const { reconcilePendingInvoices } = await import("@/features/payment/payment-service");
+                await reconcilePendingInvoices({ userId: authUser.id });
+            } catch (reconErr) {
+                console.error("[INVOICES_RECON_ERROR]", reconErr);
+            }
         } else if (authUser.propertyId) {
             whereClause.propertyId = authUser.propertyId;
         }
@@ -35,8 +42,10 @@ export async function GET(req: NextRequest) {
             prisma.invoice.findMany({
                 where: whereClause,
                 include: {
+                    property: true,
                     lease: {
                         include: {
+                            property: true,
                             room: {
                                 select: {
                                     id: true,
@@ -132,6 +141,17 @@ export async function GET(req: NextRequest) {
                 paymentUrl: inv.paymentUrl,
                 receiptPdfUrl: inv.receiptPdfUrl,
                 paidAt: inv.paidAt,
+                proofUrl: inv.proofUrl,
+                adminNote: inv.adminNote,
+                paymentGateway: {
+                    isMidtransActive: (inv.property || inv.lease?.property)?.isMidtransActive ?? false,
+                    midtransClientKey: (inv.property || inv.lease?.property)?.midtransClientKey ?? null,
+                    bankName: (inv.property || inv.lease?.property)?.bankName ?? null,
+                    bankAccountNumber: (inv.property || inv.lease?.property)?.bankAccountNumber ?? null,
+                    bankAccountHolder: (inv.property || inv.lease?.property)?.bankAccountHolder ?? null,
+                    bankAccountInfo: (inv.property || inv.lease?.property)?.bankAccountInfo ?? null,
+                    qrisImageUrl: (inv.property || inv.lease?.property)?.qrisImageUrl ?? null,
+                },
                 room: inv.lease.room,
                 createdAt: inv.createdAt,
             })),

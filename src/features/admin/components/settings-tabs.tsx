@@ -6,17 +6,15 @@ import { PasswordForm } from "./password-form";
 import { PropertyForm } from "./property-form";
 import { AdminDocs } from "./admin-docs";
 import { NotificationPanel } from "./notification-panel";
-import { User, Home, BookOpen, Bell } from "lucide-react";
+import { PaymentSettingsForm } from "./payment-settings-form";
+import { SubscriptionCard } from "./subscription-card";
+import { User, Home, BookOpen, Bell, CreditCard, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { PropertyProfile } from "../admin-service";
 
 interface SettingsTabsProps {
   currentEmail: string;
-  property: {
-    id: string;
-    name: string;
-    address: string;
-    features?: Record<string, unknown> | null;
-  } | null;
+  property: PropertyProfile | null;
   notificationStats: {
     totalSent: number;
     totalUnread: number;
@@ -29,9 +27,13 @@ export function SettingsTabs({
   property,
   notificationStats,
 }: SettingsTabsProps) {
-  const [activeTab, setActiveTab] = useState<"profile" | "property" | "docs" | "notifications">("profile");
+  const [activeTab, setActiveTab] = useState<
+    "profile" | "property" | "bank" | "subscription" | "docs" | "notifications"
+  >("subscription");
 
   const tabs = [
+    { id: "subscription", label: "Paket Langganan SaaS", icon: Zap },
+    { id: "bank", label: "Metode Pembayaran Sewa", icon: CreditCard },
     { id: "profile", label: "Profil & Keamanan", icon: User },
     { id: "property", label: "Profil Properti Kost", icon: Home },
     { id: "docs", label: "Panduan & Aturan", icon: BookOpen },
@@ -65,6 +67,53 @@ export function SettingsTabs({
       {/* Tabs Content Container */}
       <div className="min-h-[400px]">
         <AnimatePresence mode="wait">
+          {activeTab === "subscription" && (
+            <motion.div
+              key="subscription"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="w-full"
+            >
+              <SubscriptionCard
+                subscription={property?.subscription}
+                roomsCount={property?.roomsCount ?? 11}
+              />
+            </motion.div>
+          )}
+
+          {activeTab === "bank" && (
+            <motion.div
+              key="bank"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="max-w-4xl mx-auto w-full"
+            >
+              {property ? (
+                <PaymentSettingsForm
+                  propertyId={property.id}
+                  initialBankName={property.bankName}
+                  initialBankAccountNumber={property.bankAccountNumber}
+                  initialBankAccountHolder={property.bankAccountHolder}
+                  initialBankAccountInfo={property.bankAccountInfo}
+                  initialQrisImageUrl={property.qrisImageUrl}
+                  initialIsMidtransActive={property.isMidtransActive}
+                  initialMidtransMerchantId={property.midtransMerchantId}
+                  initialMidtransClientKey={property.midtransClientKey}
+                  hasMidtransServerKey={property.hasMidtransServerKey}
+                  maskedMidtransServerKey={property.maskedMidtransServerKey}
+                />
+              ) : (
+                <div className="text-center py-10 bg-white border border-[#2C2825]/10 rounded-2xl shadow-sm">
+                  <p className="text-sm font-medium text-[#4A453F]">Properti belum dikonfigurasi.</p>
+                </div>
+              )}
+            </motion.div>
+          )}
+
           {activeTab === "profile" && (
             <motion.div
               key="profile"

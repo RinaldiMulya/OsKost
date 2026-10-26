@@ -1,8 +1,9 @@
 "use server";
 
-import { signIn, signOut } from "@/auth";
+import { signIn, signOut, auth } from "@/auth";
 import { AuthError } from "next-auth";
 import { z } from "zod";
+import { logAuditEvent } from "@/lib/audit-log";
 
 const loginSchema = z.object({
     identifier: z.string().min(1, "Email/No HP harus diisi"),
@@ -41,5 +42,16 @@ export async function authenticate(
 }
 
 export async function logout() {
+    const session = await auth();
+    if (session?.user) {
+        await logAuditEvent({
+            actorId: session.user.id,
+            actorEmail: session.user.email,
+            actorRole: session.user.role,
+            action: "LOGOUT",
+            category: "AUTH",
+        });
+    }
     await signOut({ redirectTo: "/login" });
 }
+

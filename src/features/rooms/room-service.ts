@@ -394,8 +394,50 @@ export const getRoomsForAdmin = cache(async (params: {
 });
 
 // ============================================
-// CREATE
+// QUOTA GUARD & VALIDATION
 // ============================================
+
+export async function checkRoomQuota(propertyId?: string) {
+    const property = propertyId
+        ? await prisma.property.findUnique({
+            where: { id: propertyId },
+            include: { subscription: true, _count: { select: { rooms: true } } }
+        })
+        : await prisma.property.findFirst({
+            include: { subscription: true, _count: { select: { rooms: true } } }
+        });
+
+    if (!property) {
+        return {
+            allowed: false,
+            currentRooms: 0,
+            maxRooms: 0,
+            planTier: "STARTER",
+            message: "Properti tidak ditemukan.",
+        };
+    }
+
+    const currentRooms = property._count.rooms;
+    const maxRooms = property.subscription?.maxRooms ?? 10;
+    const planTier = property.subscription?.planTier ?? "STARTER";
+
+    if (currentRooms >= maxRooms) {
+        return {
+            allowed: false,
+            currentRooms,
+            maxRooms,
+            planTier,
+            message: `Batas kuota kamar tercapai (${currentRooms}/${maxRooms} kamar pada paket ${planTier}). Silakan upgrade paket langganan SaaS Anda untuk menambah kamar baru.`,
+        };
+    }
+
+    return {
+        allowed: true,
+        currentRooms,
+        maxRooms,
+        planTier,
+    };
+}
 
 export async function createRoom(data: {
     number: string;
@@ -413,6 +455,12 @@ export async function createRoom(data: {
         userId: string;
     }[];
 }) {
+    // Quota Guard: Validasi batas kuota paket sebelum pembuatan kamar
+    const quota = await checkRoomQuota();
+    if (!quota.allowed) {
+        throw new Error(quota.message ?? "Batas kuota kamar tercapai. Silakan upgrade paket langganan Anda.");
+    }
+
     // Get the default property
     const property = await prisma.property.findFirst();
     if (!property) {

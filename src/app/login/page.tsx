@@ -139,8 +139,8 @@ export default function LoginPage() {
         {/* Brand hero: Big headline */}
         <div className="login-brand-hero">
           <h2 className="login-big-headline">
-            Dari buku tulis penuh coretan, jadi{" "}
-            <span className="accent">dashboard yang rapi.</span>
+            Dari pembukuan manual, jadi{" "}
+            <span className="accent">ekosistem properti cerdas.</span>
           </h2>
         </div>
 
@@ -148,21 +148,20 @@ export default function LoginPage() {
         <div className="login-brand-bottom">
           <div className="login-stat-row">
             <div className="login-stat-chip">
-              <b>11</b>
-              <span>PINTU KOST</span>
+              <b>MULTI</b>
+              <span>PROPERTY</span>
             </div>
             <div className="login-stat-chip">
-              <b>1</b>
-              <span>LOKASI</span>
+              <b>AUTO</b>
+              <span>BILLING</span>
             </div>
             <div className="login-stat-chip">
               <b>24/7</b>
-              <span>AKSES</span>
+              <span>TELEMETRI</span>
             </div>
           </div>
           <p className="login-footer-note">
-            Area <b>Pulo Jahe, Cakung</b> — dekat Pabrik Yamaha &amp; Stasiun
-            Buaran.
+            Platform terpadu untuk <b>Pemilik Kost mandiri</b>, pengelola multi-cabang, dan operasional hunian modern.
           </p>
         </div>
       </aside>

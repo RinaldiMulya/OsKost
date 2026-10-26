@@ -7,11 +7,20 @@ declare module "next-auth" {
         user: {
             id: string;
             role: UserRole;
+            impersonating?: {
+                ownerId: string;
+                ownerEmail: string;
+            };
         } & DefaultSession["user"];
     }
 
     interface User {
         role: UserRole;
         phoneNumber?: string | null;
+        impersonating?: {
+            ownerId: string;
+            ownerEmail: string;
+        };
     }
 }
+

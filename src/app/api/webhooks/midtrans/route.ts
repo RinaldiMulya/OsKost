@@ -59,10 +59,48 @@ export async function POST(req: NextRequest) {
 
   const payload = parsed.data;
 
-  // 3. Verifikasi signature SHA-512
-  const serverKey = process.env.MIDTRANS_SERVER_KEY;
-  if (!serverKey) {
-    log.error("MIDTRANS_SERVER_KEY tidak dikonfigurasi di environment");
+  // 3. Verifikasi signature SHA-512 dinamis per properti (Direct Merchant Architecture)
+  const baseExternalId = payload.order_id.split("-").slice(0, 4).join("-");
+  const targetInvoice = await prisma.invoice.findFirst({
+    where: {
+      OR: [
+        { providerRef: payload.order_id },
+        { externalId: baseExternalId },
+      ],
+    },
+    include: {
+      property: true,
+      lease: {
+        include: {
+          property: true,
+        },
+      },
+    },
+  });
+
+  const property = targetInvoice?.property || targetInvoice?.lease?.property;
+  let effectiveServerKey: string | null = null;
+
+  if (property?.midtransServerKey) {
+    try {
+      const { decryptPaymentKey } = await import("@/lib/security/payment-crypto");
+      effectiveServerKey = decryptPaymentKey(property.midtransServerKey, property.id);
+    } catch (err) {
+      log.error({ err, propertyId: property.id }, "Gagal mendekripsi midtransServerKey properti pada webhook");
+    }
+  }
+
+  // Fallback ke server env jika tidak ada di level properti
+  if (!effectiveServerKey) {
+    effectiveServerKey = process.env.MIDTRANS_SERVER_KEY || null;
+  }
+
+  if (!effectiveServerKey) {
+    log.error("MIDTRANS_SERVER_KEY tidak dikonfigurasi di database properti maupun environment");
+    await prisma.webhookLog.update({
+      where: { id: webhookLog.id },
+      data: { httpStatusSent: 500 },
+    });
     return NextResponse.json(
       { message: "Konfigurasi server error" },
       { status: 500 }
@@ -75,14 +113,14 @@ export async function POST(req: NextRequest) {
       payload.order_id +
         payload.status_code +
         payload.gross_amount +
-        serverKey
+        effectiveServerKey
     )
     .digest("hex");
 
   if (expectedSignature !== payload.signature_key) {
     log.warn(
-      { logId: webhookLog.id, orderId: payload.order_id },
-      "Signature webhook Midtrans TIDAK VALID — kemungkinan serangan"
+      { logId: webhookLog.id, orderId: payload.order_id, propertyId: property?.id },
+      "Signature webhook Midtrans TIDAK VALID — kemungkinan serangan atau kunci salah"
     );
     await prisma.webhookLog.update({
       where: { id: webhookLog.id },

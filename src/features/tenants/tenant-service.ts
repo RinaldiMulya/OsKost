@@ -406,44 +406,21 @@ export async function createTenant(data: {
             externalId: string;
         }[] = [];
 
-        if (end) {
-            let idx = 0;
-            let cur = new Date(start);
-            while (cur <= end) {
-                const period = toPeriod(cur);
-                invoicesToCreate.push({
-                    leaseId: lease.id,
-                    propertyId: targetRoom.propertyId,
-                    dueDate: new Date(cur),
-                    amount: totalAmount,
-                    rentAmount: rentAmt,
-                    utilityAmount: utilAmt,
-                    otherAmount: otherAmt,
-                    status: "UNPAID",
-                    externalId: `INV-${lease.id}-${period}`,
-                });
-                idx++;
-                cur = addMonths(start, idx);
-                if (idx > 36) break; // safety cap 3 tahun
-            }
-        } else {
-            const period = toPeriod(start);
-            invoicesToCreate.push({
-                leaseId: lease.id,
-                propertyId: targetRoom.propertyId,
-                dueDate: new Date(start),
-                amount: totalAmount,
-                rentAmount: rentAmt,
-                utilityAmount: utilAmt,
-                otherAmount: otherAmt,
-                status: "UNPAID",
-                externalId: `INV-${lease.id}-${period}`,
-            });
-        }
+        // Buat invoice periode bulan pertama sewa saat pendaftaran tenant baru
+        const period = toPeriod(start);
+        const firstInvoice = {
+            leaseId: lease.id,
+            propertyId: targetRoom.propertyId,
+            dueDate: new Date(start),
+            amount: totalAmount,
+            rentAmount: rentAmt,
+            utilityAmount: utilAmt,
+            otherAmount: otherAmt,
+            status: "UNPAID" as const,
+            externalId: `INV-${lease.id}-${period}`,
+        };
 
-        for (const inv of invoicesToCreate) {
-            await tx.invoice.create({ data: inv });
-        }
+        await tx.invoice.create({ data: firstInvoice });
 
         return user;
     });
@@ -600,12 +577,14 @@ export async function resetTenantPassword(userId: string, newPassword: string) {
 
 import { sendNotification } from "@/features/notifications/notification-service";
 
-export async function markInvoicePaid(invoiceId: string) {
+export async function markInvoicePaid(invoiceId: string, verifiedBy?: string) {
     const updatedInvoice = await prisma.invoice.update({
         where: { id: invoiceId },
         data: {
             status: "PAID",
             paidAt: new Date(),
+            verifiedBy: verifiedBy || null,
+            verifiedAt: new Date(),
             adminNote: null, // Clear note if paid
         },
         include: {
@@ -628,13 +607,15 @@ export async function markInvoicePaid(invoiceId: string) {
     return updatedInvoice;
 }
 
-export async function rejectInvoicePayment(invoiceId: string, reason: string) {
+export async function rejectInvoicePayment(invoiceId: string, reason: string, verifiedBy?: string) {
     const updatedInvoice = await prisma.invoice.update({
         where: { id: invoiceId },
         data: {
             status: "UNPAID",
             proofUrl: null, // Remove rejected proof
             adminNote: reason,
+            verifiedBy: verifiedBy || null,
+            verifiedAt: new Date(),
         },
         include: {
             lease: {

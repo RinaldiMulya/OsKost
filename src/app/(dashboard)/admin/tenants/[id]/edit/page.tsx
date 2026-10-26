@@ -60,10 +60,10 @@ export default async function EditTenantPage({ params }: EditTenantPageProps) {
           </Link>
         </Button>
         <div className="flex flex-col">
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-[#4A453F] tracking-tight">
             Edit Data: {tenant.tenantProfile?.fullName ?? "Penghuni"}
           </h1>
-          <p className="text-xl text-zinc-400 mt-1">
+          <p className="text-xl text-[#4A453F]/80 mt-1">
             Perbarui informasi pribadi penyewa atau pindahkan kamar sewa.
           </p>
         </div>

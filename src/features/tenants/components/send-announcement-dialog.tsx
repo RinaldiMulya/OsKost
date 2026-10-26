@@ -105,7 +105,7 @@ export function SendAnnouncementDialog({ tenants }: SendAnnouncementDialogProps)
       } else {
         toast.error(res.error || "Gagal mengirim pengumuman.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Terjadi kesalahan sistem saat mengirim pengumuman.");
     } finally {
       setIsSubmitting(false);
@@ -117,29 +117,35 @@ export function SendAnnouncementDialog({ tenants }: SendAnnouncementDialogProps)
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="gap-2 border-amber-500/30 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 transition-all font-semibold h-10 px-4 rounded-xl text-base"
+          className="gap-2 border-[#2C2825]/15 bg-white text-[#714A23] hover:bg-[#FAF2EA] hover:border-[#714A23]/30 transition-all font-semibold h-11 px-4 rounded-xl shadow-xs text-sm"
         >
-          <Megaphone className="size-5" />
+          <Megaphone className="size-4" />
           Kirim Pengumuman
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg border-zinc-800 bg-zinc-950 text-white p-6 rounded-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="sm:max-w-xl bg-white border border-[#2C2825]/15 text-[#1E1B18] p-6 sm:p-7 rounded-2xl shadow-2xl max-h-[90vh] flex flex-col">
         <DialogHeader className="space-y-1.5 pb-2">
-          <DialogTitle className="text-xl font-bold flex items-center gap-2 text-amber-400">
-            <Megaphone className="size-5" />
-            Kirim Pengumuman ke Penghuni
-          </DialogTitle>
-          <DialogDescription className="text-zinc-400 text-sm">
-            Kirimkan informasi atau pengumuman yang akan langsung muncul sebagai Banner & Notifikasi Push di HP penyewa.
-          </DialogDescription>
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-[#FAF2EA] text-[#714A23] border border-[#714A23]/20 shadow-2xs">
+              <Megaphone className="size-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-bold text-[#1E1B18]">
+                Kirim Pengumuman ke Penghuni
+              </DialogTitle>
+              <DialogDescription className="text-[#7A7A7A] text-xs mt-0.5">
+                Kirimkan informasi atau pengumuman yang akan langsung muncul sebagai Banner & Notifikasi Push di HP penyewa.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-y-auto pr-1">
           {/* Pilih Penerima */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="text-xs font-bold tracking-wider text-zinc-300 uppercase flex items-center gap-1.5">
-                <Users className="size-4 text-amber-400" />
+              <Label className="text-xs font-bold tracking-wider text-[#1E1B18] uppercase flex items-center gap-1.5">
+                <Users className="size-4 text-[#714A23]" />
                 Pilih Penerima ({selectedUserIds.length}/{validTenants.length})
               </Label>
               <Button
@@ -147,7 +153,7 @@ export function SendAnnouncementDialog({ tenants }: SendAnnouncementDialogProps)
                 variant="ghost"
                 size="sm"
                 onClick={toggleSelectAll}
-                className="h-7 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 px-2 rounded-lg"
+                className="h-7 text-xs text-[#714A23] hover:text-[#5C3B1A] hover:bg-[#FAF2EA] px-2 rounded-lg font-semibold"
               >
                 {isAllSelected ? (
                   <>
@@ -162,9 +168,9 @@ export function SendAnnouncementDialog({ tenants }: SendAnnouncementDialogProps)
             </div>
 
             {/* List Tenant Checkboxes */}
-            <div className="max-h-40 overflow-y-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-2 space-y-1 divide-y divide-zinc-800/50">
+            <div className="max-h-40 overflow-y-auto rounded-xl border border-[#2C2825]/10 bg-[#FAF8F5] p-2 space-y-1 divide-y divide-[#2C2825]/8">
               {validTenants.length === 0 ? (
-                <p className="text-xs text-zinc-500 text-center py-4">
+                <p className="text-xs text-[#7A7A7A] text-center py-4">
                   Belum ada penyewa terdaftar.
                 </p>
               ) : (
@@ -176,19 +182,19 @@ export function SendAnnouncementDialog({ tenants }: SendAnnouncementDialogProps)
                       onClick={() => toggleTenant(tenant.userId)}
                       className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors text-xs ${
                         isChecked
-                          ? "bg-amber-500/10 text-white font-medium"
-                          : "hover:bg-zinc-800/50 text-zinc-300"
+                          ? "bg-[#FAF2EA] text-[#714A23] font-semibold border border-[#714A23]/20"
+                          : "hover:bg-[#F4EDE4] text-[#1E1B18]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <Checkbox
                           checked={isChecked}
                           onCheckedChange={() => toggleTenant(tenant.userId)}
-                          className="border-zinc-700 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                          className="border-[#2C2825]/30 data-[state=checked]:bg-[#714A23] data-[state=checked]:border-[#714A23]"
                         />
                         <span className="truncate">{tenant.name}</span>
                       </div>
-                      <span className="text-[11px] text-zinc-400 font-semibold px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 shrink-0">
+                      <span className="text-[11px] text-[#714A23] font-semibold px-2 py-0.5 rounded-full bg-white border border-[#2C2825]/10 shrink-0">
                         {tenant.roomNumber}
                       </span>
                     </div>
@@ -200,50 +206,50 @@ export function SendAnnouncementDialog({ tenants }: SendAnnouncementDialogProps)
 
           {/* Form Input Judul */}
           <div className="space-y-1.5">
-            <Label htmlFor="title" className="text-xs font-semibold text-zinc-300">
-              Judul Pengumuman <span className="text-red-400">*</span>
+            <Label htmlFor="title" className="text-xs font-bold text-[#1E1B18] uppercase tracking-wider">
+              Judul Pengumuman <span className="text-red-500">*</span>
             </Label>
             <Input
               id="title"
               placeholder="Contoh: Paket Datang / Pemadaman Listrik"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 focus:border-amber-500 rounded-xl text-sm"
+              className="h-11 rounded-xl border-[#2C2825]/15 bg-white text-[#1E1B18] placeholder:text-[#7A7A7A] focus-visible:border-[#714A23] focus-visible:ring-[#714A23]/20 shadow-2xs text-sm"
               maxLength={100}
             />
           </div>
 
           {/* Form Input Pesan */}
           <div className="space-y-1.5">
-            <Label htmlFor="message" className="text-xs font-semibold text-zinc-300">
-              Isi Pesan / Informasi <span className="text-red-400">*</span>
+            <Label htmlFor="message" className="text-xs font-bold text-[#1E1B18] uppercase tracking-wider">
+              Isi Pesan / Informasi <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="message"
               placeholder="Tuliskan informasi lengkap yang ingin disampaikan ke penyewa..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500 focus:border-amber-500 rounded-xl min-h-[90px] text-sm resize-none"
+              className="rounded-xl border-[#2C2825]/15 bg-white text-[#1E1B18] placeholder:text-[#7A7A7A] focus-visible:border-[#714A23] focus-visible:ring-[#714A23]/20 shadow-2xs min-h-[95px] text-sm resize-none p-3"
               maxLength={500}
             />
-            <p className="text-[11px] text-zinc-500 text-right">
+            <p className="text-[11px] text-[#7A7A7A] text-right">
               {message.length}/500 karakter
             </p>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-3 border-t border-[#2C2825]/10 flex gap-2">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="border-zinc-800 text-zinc-400 hover:bg-zinc-900 rounded-xl"
+              className="rounded-xl border-[#2C2825]/15 text-[#4A453F] hover:bg-[#F4EDE4]"
             >
               Batal
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting || selectedUserIds.length === 0}
-              className="bg-amber-500 text-zinc-950 font-bold hover:bg-amber-400 transition-all rounded-xl gap-2 shadow-[0_4px_12px_rgba(245,158,11,0.2)]"
+              className="rounded-xl bg-[#714A23] hover:bg-[#5C3B1A] text-white font-bold shadow-xs gap-2 px-6"
             >
               <Send className="size-4" />
               {isSubmitting ? "Mengirim..." : `Kirim (${selectedUserIds.length})`}

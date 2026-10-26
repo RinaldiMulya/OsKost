@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, SaaSPlanTier } from "@prisma/client";
 import bcryptjs from "bcryptjs";
 
 type RoomStatus = "AVAILABLE" | "OCCUPIED" | "MAINTENANCE";
@@ -16,30 +16,31 @@ interface SeedRoom {
   images: string[];
 }
 
+// 11 Kamar Asli OSkost Pulo Jahe (Semua Status Awal: AVAILABLE)
 const seedRooms: SeedRoom[] = [
   {
     number: "001",
     name: "Standard A",
     price: 850000,
     status: "AVAILABLE",
-    description: "Kamar mandi luar, cocok untuk yang simple.",
-    facilities: ["Basic Wifi", "3x4 Area", "Kasur Single"],
+    description: "Kamar mandi luar, sirkulasi udara lancar, nyaman & tenang.",
+    facilities: ["Basic Wifi", "3x4 Area", "Kasur Single", "Lemari"],
     images: ["/images/rooms/room-1.webp"],
   },
   {
     number: "002",
     name: "Standard B",
     price: 1250000,
-    status: "OCCUPIED",
+    status: "AVAILABLE",
     description: "Kamar mandi dalam, lebih privat dan nyaman.",
-    facilities: ["AC", "Wifi", "3x4 Area", "Kamar Mandi Dalam"],
+    facilities: ["AC", "Wifi High Speed", "3x4 Area", "Kamar Mandi Dalam"],
     images: ["/images/rooms/room-2.webp"],
   },
   {
     number: "003",
     name: "Premium A",
     price: 1500000,
-    status: "OCCUPIED",
+    status: "AVAILABLE",
     description: "Fully furnished, tinggal bawa badan.",
     facilities: [
       "AC",
@@ -54,18 +55,30 @@ const seedRooms: SeedRoom[] = [
     number: "004",
     name: "Premium B",
     price: 1800000,
-    status: "OCCUPIED",
-    description: "Space lebih luas dengan balkon pribadi.",
-    facilities: ["AC", "Private Balcony", "King Size Bed", "Work Desk"],
+    status: "AVAILABLE",
+    description: "Space lebih luas dengan meja kerja & balkon pribadi.",
+    facilities: [
+      "AC",
+      "Private Balcony",
+      "King Size Bed",
+      "Work Desk",
+      "Water Heater",
+    ],
     images: ["/images/rooms/room-2.webp"],
   },
   {
     number: "005",
     name: "VIP Suite",
     price: 2500000,
-    status: "MAINTENANCE",
-    description: "Experience kemewahan anak kost sultan.",
-    facilities: ["Full Kitchen", "Living Room", "Bathtub", "Garage"],
+    status: "AVAILABLE",
+    description: "Kamar tipe suite dengan fasilitas terlengkap.",
+    facilities: [
+      "AC",
+      "Kitchenette",
+      "Water Heater",
+      "Smart TV",
+      "Living Area",
+    ],
     images: ["/images/rooms/room-1.webp"],
   },
   {
@@ -73,8 +86,14 @@ const seedRooms: SeedRoom[] = [
     name: "Standard C",
     price: 900000,
     status: "AVAILABLE",
-    description: "Budget friendly dengan jendela besar.",
-    facilities: ["Basic Wifi", "Natural Light", "Token Listrik Sendiri"],
+    description:
+      "Budget friendly dengan pencahayaan alami & token listrik mandiri.",
+    facilities: [
+      "Basic Wifi",
+      "Natural Light",
+      "Token Listrik Sendiri",
+      "Kasur Single",
+    ],
     images: ["/images/rooms/room-3.webp"],
   },
   {
@@ -90,9 +109,9 @@ const seedRooms: SeedRoom[] = [
     number: "008",
     name: "VIP Suite",
     price: 2500000,
-    status: "MAINTENANCE",
-    description: "Experience kemewahan anak kost sultan.",
-    facilities: ["Full Kitchen", "Living Room", "Bathtub", "Garage"],
+    status: "AVAILABLE",
+    description: "Kamar eksklusif lantai atas dengan ventilasi maksimal.",
+    facilities: ["AC", "Water Heater", "Smart TV", "Work Desk", "Balkon"],
     images: ["/images/rooms/room-1.webp"],
   },
   {
@@ -100,7 +119,7 @@ const seedRooms: SeedRoom[] = [
     name: "Standard C",
     price: 900000,
     status: "AVAILABLE",
-    description: "Budget friendly dengan jendela besar.",
+    description: "Budget friendly dengan jendela besar & udara sejuk.",
     facilities: ["Basic Wifi", "Natural Light", "Token Listrik Sendiri"],
     images: ["/images/rooms/room-3.webp"],
   },
@@ -108,9 +127,9 @@ const seedRooms: SeedRoom[] = [
     number: "010",
     name: "VIP Suite",
     price: 2500000,
-    status: "MAINTENANCE",
-    description: "Experience kemewahan anak kost sultan.",
-    facilities: ["Full Kitchen", "Living Room", "Bathtub", "Garage"],
+    status: "AVAILABLE",
+    description: "Kamar luas dengan peredam suara & tempat tidur premium.",
+    facilities: ["AC", "Water Heater", "Smart TV", "Mini Refrigerator"],
     images: ["/images/rooms/room-1.webp"],
   },
   {
@@ -118,33 +137,47 @@ const seedRooms: SeedRoom[] = [
     name: "Standard C",
     price: 900000,
     status: "AVAILABLE",
-    description: "Budget friendly dengan jendela besar.",
+    description: "Budget friendly, simpel dan tenang untuk istirahat.",
     facilities: ["Basic Wifi", "Natural Light", "Token Listrik Sendiri"],
     images: ["/images/rooms/room-3.webp"],
   },
 ];
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const connectionString = (process.env.DATABASE_URL || "").split("?")[0];
+const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("Start seeding...");
+  console.log("==================================================");
+  console.log("🧹 OSKOST PRODUCTION-READY CLEAN SEED");
+  console.log("Mempersiapkan data riil OSkost Pulo Jahe (11 Kamar)");
+  console.log("==================================================");
 
-  console.log("Cleaning up database...");
+  // 1. Pembersihan total data dummy & transaksi sebelumnya
+  console.log("Step 1: Membersihkan seluruh data dummy & log lama...");
   await prisma.webhookLog.deleteMany({});
-  await prisma.paymentMethod.deleteMany({});
-  await prisma.discountPreset.deleteMany({});
-  await prisma.invoice.deleteMany({});
+  await prisma.auditLog.deleteMany({});
+  await prisma.saaSTransaction.deleteMany({});
+  await prisma.notification.deleteMany({});
+  await prisma.discountClaim.deleteMany({});
   await prisma.report.deleteMany({});
-  await prisma.panoramaImage.deleteMany({});
+  await prisma.invoice.deleteMany({});
   await prisma.lease.deleteMany({});
+  await prisma.panoramaImage.deleteMany({});
   await prisma.room.deleteMany({});
   await prisma.tenantProfile.deleteMany({});
-  await prisma.user.deleteMany({ where: { role: "TENANT" } });
+  await prisma.refreshToken.deleteMany({});
+  await prisma.passwordResetToken.deleteMany({});
+  await prisma.pushSubscription.deleteMany({});
+  await prisma.saaSSubscription.deleteMany({});
+  await prisma.property.deleteMany({});
+  await prisma.user.deleteMany({});
 
-  // 00. Seed Default Payment Methods & Discount Presets
-  console.log("Seeding Payment Methods & Discount Presets...");
+  console.log("✅ Seluruh data dummy berhasil dibersihkan.");
+
+  // 2. Seed Metode Pembayaran Resmi Midtrans
+  console.log("Step 2: Menyiapkan Master Metode Pembayaran...");
   const paymentMethods = [
     {
       methodCode: "BCA_VA",
@@ -196,18 +229,22 @@ async function main() {
     });
   }
 
+  // 3. Seed Preset Diskon Sewa
+  console.log("Step 3: Menyiapkan Preset Diskon Promosi...");
   const discountPresets = [
     {
       code: "GOOGLE_REVIEW",
       label: "Bebas Biaya Admin (Review Google Maps Bintang 5)",
-      description: "Gratis biaya admin sewa bulan ini setelah memberikan rating Bintang 5 di Google Maps OsKost.",
+      description:
+        "Gratis biaya admin sewa bulan ini setelah memberikan rating Bintang 5 di Google Maps OsKost.",
       type: "FIXED",
       amount: 2000,
     },
     {
       code: "EARLY_BIRD",
       label: "Diskon Bayar Tepat Waktu (H-3)",
-      description: "Potongan Rp 10.000 jika melunasi sewa minimal 3 hari sebelum tanggal jatuh tempo.",
+      description:
+        "Potongan Rp 10.000 jika melunasi sewa minimal 3 hari sebelum tanggal jatuh tempo.",
       type: "FIXED",
       amount: 10000,
     },
@@ -221,338 +258,218 @@ async function main() {
     });
   }
 
-  // 0. Seed Admin User
-  const adminPassword = "adminpassword123!"; // Default admin password
-  const hashedPassword = await bcryptjs.hash(adminPassword, 10);
+  // 4. Seed SaaS Plan Tiers (Katalog Paket Harga B2B SaaS)
+  console.log("Step 4: Menyiapkan Katalog Paket SaaS (SaaSPlan)...");
+  const planSeeds = [
+    {
+      tier: "FREE" as SaaSPlanTier,
+      name: "Starter Trial / Free",
+      description:
+        "Cocok untuk kost mini pemula 1-5 kamar tanpa biaya berlangganan.",
+      monthlyPrice: 0,
+      annualPrice: 0,
+      maxRooms: 5,
+      maxProperties: 1,
+      isPopular: false,
+      features: {
+        adminDashboard: true,
+        midtransGateway: false,
+        photo360Tour: false,
+        smartLock: false,
+        customDomain: false,
+        exportReports: false,
+        dedicatedSupport: false,
+      },
+    },
+    {
+      tier: "STARTER" as SaaSPlanTier,
+      name: "Starter Juragan",
+      description:
+        "Pilihan pas untuk kost berkembang 6-15 unit kamar dengan pembukuan rapi.",
+      monthlyPrice: 69000,
+      annualPrice: 690000,
+      maxRooms: 15,
+      maxProperties: 1,
+      isPopular: false,
+      features: {
+        adminDashboard: true,
+        midtransGateway: true,
+        photo360Tour: false,
+        smartLock: false,
+        customDomain: false,
+        exportReports: true,
+        dedicatedSupport: false,
+      },
+    },
+    {
+      tier: "GROWTH" as SaaSPlanTier,
+      name: "Growth Residence",
+      description:
+        "Solusi lengkap kost 16-40 unit dengan fitur Virtual Tour 360 & multi-staff.",
+      monthlyPrice: 179000,
+      annualPrice: 1790000,
+      maxRooms: 40,
+      maxProperties: 2,
+      isPopular: true,
+      features: {
+        adminDashboard: true,
+        midtransGateway: true,
+        photo360Tour: true,
+        smartLock: false,
+        customDomain: false,
+        exportReports: true,
+        dedicatedSupport: false,
+      },
+    },
+    {
+      tier: "PRO" as SaaSPlanTier,
+      name: "Pro Scale",
+      description:
+        "Solusi profesional skala 41-100 kamar dengan dukungan IoT Smart Lock.",
+      monthlyPrice: 349000,
+      annualPrice: 3490000,
+      maxRooms: 100,
+      maxProperties: 5,
+      isPopular: false,
+      features: {
+        adminDashboard: true,
+        midtransGateway: true,
+        photo360Tour: true,
+        smartLock: true,
+        customDomain: true,
+        exportReports: true,
+        dedicatedSupport: true,
+      },
+    },
+    {
+      tier: "ENTERPRISE" as SaaSPlanTier,
+      name: "Enterprise Multi-Branch",
+      description:
+        "Paket kustom jaringan kost besar >100 kamar dengan SLA & integrasi kustom.",
+      monthlyPrice: 1000000,
+      annualPrice: 10000000,
+      maxRooms: 250,
+      maxProperties: 10,
+      isPopular: false,
+      features: {
+        adminDashboard: true,
+        midtransGateway: true,
+        photo360Tour: true,
+        smartLock: true,
+        customDomain: true,
+        exportReports: true,
+        dedicatedSupport: true,
+      },
+    },
+  ];
 
-  const adminUser = await prisma.user.upsert({
-    where: { email: "admin@oskost.com" },
-    update: {},
-    create: {
+  for (const p of planSeeds) {
+    await prisma.saaSPlan.upsert({
+      where: { tier: p.tier },
+      update: p,
+      create: p,
+    });
+  }
+
+  // 5. Seed Super Admin (Pengelola Platform OsKost)
+  console.log("Step 5: Menyiapkan Akun Super Admin...");
+  const hashedSuperAdminPassword = await bcryptjs.hash(
+    "PasswordSuperAdmin123!",
+    10,
+  );
+  const superAdmin = await prisma.user.create({
+    data: {
+      email: "superadmin@oskost.id",
+      phoneNumber: "081199001122",
+      passwordHash: hashedSuperAdminPassword,
+      role: "SUPER_ADMIN",
+      isActive: true,
+    },
+  });
+  console.log(`✅ Super Admin created: ${superAdmin.email}`);
+
+  // 6. Seed Admin / Owner Asli OSkost Pulo Jahe
+  console.log("Step 6: Menyiapkan Akun Pemilik OSkost Pulo Jahe...");
+  const hashedAdminPassword = await bcryptjs.hash("adminpassword123!", 10);
+  const adminOwner = await prisma.user.create({
+    data: {
       email: "admin@oskost.com",
-      passwordHash: hashedPassword,
+      phoneNumber: "081234567890",
+      passwordHash: hashedAdminPassword,
       role: "ADMIN",
+      isActive: true,
     },
   });
-  console.log(`Admin user created/found with id: ${adminUser.id}`);
+  console.log(`✅ Admin OSkost Pulo Jahe created: ${adminOwner.email}`);
 
-  // 1. Setup Property
-  const property = await prisma.property.upsert({
-    where: { name: "OSkost Pulo Jahe" },
-    update: {},
-    create: {
+  // 7. Setup Properti Riil OSkost Pulo Jahe
+  console.log("Step 7: Mendaftarkan Properti OSkost Pulo Jahe...");
+  const propertyPuloJahe = await prisma.property.create({
+    data: {
       name: "OSkost Pulo Jahe",
-      address: "Jl. Pulo Jahe, Jakarta Timur",
+      slug: "pulo-jahe",
+      address:
+        "Jl. Kp. Pulo Jahe No.104b, RT.03/RW.05, Jatinegara, Kec. Cakung, Jakarta Timur 13930",
+      mapsLink: "https://maps.google.com/?q=-6.1952196,106.92452",
+      ownerId: adminOwner.id,
+      primaryColorHex: "#8C6239", // Wabi-Sabi Terracotta
+      accentColorHex: "#5D6654", // Koke Moss
+      managerPhone: "087890976782", // Ibu Ayu (Pengelola)
+      guardPhone: "08123456789", // Pos Jaga
+      emergencyPhone: "112",
+      features: {
+        hasSmartLock: false,
+        hasSosButton: true,
+      },
     },
   });
-  console.log(`Property created/found with id: ${property.id}`);
+  console.log(
+    `✅ Property created: ${propertyPuloJahe.name} (${propertyPuloJahe.id})`,
+  );
 
-  // 2. Insert Rooms
-  const dbRooms: Record<string, any> = {};
+  // 8. Setup SaaS Subscription Aktif untuk Pulo Jahe
+  console.log("Step 8: Mengaktifkan Paket SaaS OSkost Pulo Jahe...");
+  await prisma.saaSSubscription.create({
+    data: {
+      propertyId: propertyPuloJahe.id,
+      planTier: "STARTER",
+      status: "ACTIVE",
+      monthlyPrice: 69000,
+      maxRooms: 15,
+      currentPeriodStart: new Date(),
+      notes: "Properti Pilot #1 - OSkost Pulo Jahe",
+    },
+  });
+  console.log("✅ SaaS Subscription aktif (Tier: STARTER, Kuota: 15 Kamar).");
+
+  // 9. Setup 11 Kamar Asli OSkost Pulo Jahe
+  console.log("Step 9: Menyiapkan 11 Kamar OSkost Pulo Jahe...");
   for (const room of seedRooms) {
-    const createdRoom = await prisma.room.upsert({
-      where: {
-        number_propertyId: {
-          number: room.number,
-          propertyId: property.id,
-        },
-      },
-      update: {
-        name: room.name,
-        price: room.price,
-        status: room.status,
-        description: room.description,
-        facilities: room.facilities,
-        images: room.images,
-      },
-      create: {
+    await prisma.room.create({
+      data: {
         number: room.number,
         name: room.name,
         price: room.price,
-        status: room.status,
+        status: room.status, // AVAILABLE
         description: room.description,
         facilities: room.facilities,
         images: room.images,
-        propertyId: property.id,
+        propertyId: propertyPuloJahe.id,
       },
     });
-    dbRooms[room.number] = createdRoom;
-    console.log(`Seeded room ${room.number} (${room.name})`);
+    console.log(
+      `   - Kamar ${room.number}: ${room.name} (Rp ${room.price.toLocaleString("id-ID")}) -> AVAILABLE`,
+    );
   }
 
-  // 3. Seed Tenants
-  const tenantPassword = await bcryptjs.hash("oskost123", 10);
-
-  // Tenant 1: Sarah Wijaya (Paid active lease)
-  console.log("Seeding Sarah Wijaya...");
-  const userSarah = await prisma.user.create({
-    data: {
-      email: "sarah.wijaya@gmail.com",
-      phoneNumber: "081234567890",
-      passwordHash: tenantPassword,
-      role: "TENANT",
-      tenantProfile: {
-        create: {
-          fullName: "Sarah Wijaya",
-          ktpNumber: "3175012345670001",
-          address: "Jl. Diponegoro No. 12, Bandung",
-          emergencyContactName: "Hendra Wijaya (Father)",
-          emergencyContactNumber: "+62 812-1111-2222",
-        },
-      },
-    },
-  });
-
-  const leaseSarah = await prisma.lease.create({
-    data: {
-      userId: userSarah.id,
-      roomId: dbRooms["002"].id,
-      startDate: new Date("2025-08-01T00:00:00Z"),
-      endDate: new Date("2026-08-01T00:00:00Z"),
-      isActive: true,
-    },
-  });
-
-  // Invoices for Sarah: Aug 2025 - Jun 2026 (Paid)
-  for (let month = 8; month <= 12; month++) {
-    await prisma.invoice.create({
-      data: {
-        leaseId: leaseSarah.id,
-        dueDate: new Date(
-          `2025-${month.toString().padStart(2, "0")}-01T00:00:00Z`,
-        ),
-        amount: 1250000,
-        rentAmount: 1250000,
-        status: "PAID",
-        paidAt: new Date(
-          `2025-${month.toString().padStart(2, "0")}-02T00:00:00Z`,
-        ),
-      },
-    });
-  }
-  for (let month = 1; month <= 6; month++) {
-    await prisma.invoice.create({
-      data: {
-        leaseId: leaseSarah.id,
-        dueDate: new Date(
-          `2026-${month.toString().padStart(2, "0")}-01T00:00:00Z`,
-        ),
-        amount: 1250000,
-        rentAmount: 1250000,
-        status: "PAID",
-        paidAt: new Date(
-          `2026-${month.toString().padStart(2, "0")}-02T00:00:00Z`,
-        ),
-      },
-    });
-  }
-
-  // Tenant 2: Budi Santoso (Unpaid active lease)
-  console.log("Seeding Budi Santoso...");
-  const userBudi = await prisma.user.create({
-    data: {
-      email: "budi.santoso@gmail.com",
-      phoneNumber: "081298765432",
-      passwordHash: tenantPassword,
-      role: "TENANT",
-      tenantProfile: {
-        create: {
-          fullName: "Budi Santoso",
-          ktpNumber: "3175012345670002",
-          address: "Jl. Merdeka No. 45, Jakarta",
-          emergencyContactName: "Siti Santoso (Mother)",
-          emergencyContactNumber: "+62 812-9876-5432",
-        },
-      },
-    },
-  });
-
-  const leaseBudi = await prisma.lease.create({
-    data: {
-      userId: userBudi.id,
-      roomId: dbRooms["003"].id,
-      startDate: new Date("2025-09-01T00:00:00Z"),
-      endDate: new Date("2026-09-01T00:00:00Z"),
-      isActive: true,
-    },
-  });
-
-  // Invoices for Budi: Sep 2025 - Apr 2026 (Paid)
-  for (let month = 9; month <= 12; month++) {
-    await prisma.invoice.create({
-      data: {
-        leaseId: leaseBudi.id,
-        dueDate: new Date(
-          `2025-${month.toString().padStart(2, "0")}-01T00:00:00Z`,
-        ),
-        amount: 1500000,
-        rentAmount: 1500000,
-        status: "PAID",
-        paidAt: new Date(
-          `2025-${month.toString().padStart(2, "0")}-02T00:00:00Z`,
-        ),
-      },
-    });
-  }
-  for (let month = 1; month <= 4; month++) {
-    await prisma.invoice.create({
-      data: {
-        leaseId: leaseBudi.id,
-        dueDate: new Date(
-          `2026-${month.toString().padStart(2, "0")}-01T00:00:00Z`,
-        ),
-        amount: 1500000,
-        rentAmount: 1500000,
-        status: "PAID",
-        paidAt: new Date(
-          `2026-${month.toString().padStart(2, "0")}-02T00:00:00Z`,
-        ),
-      },
-    });
-  }
-  // Unpaid Invoices: May 2026, Jun 2026
-  await prisma.invoice.create({
-    data: {
-      leaseId: leaseBudi.id,
-      dueDate: new Date("2026-05-01T00:00:00Z"),
-      amount: 1800000,
-      rentAmount: 1500000,
-      utilityAmount: 200000,
-      otherAmount: 100000,
-      status: "UNPAID",
-    },
-  });
-  await prisma.invoice.create({
-    data: {
-      leaseId: leaseBudi.id,
-      dueDate: new Date("2026-06-01T00:00:00Z"),
-      amount: 1800000,
-      rentAmount: 1500000,
-      utilityAmount: 200000,
-      otherAmount: 100000,
-      status: "UNPAID",
-    },
-  });
-
-  // Tenant 3: Andi Pratama (Active lease expiring soon)
-  console.log("Seeding Andi Pratama...");
-  const userAndi = await prisma.user.create({
-    data: {
-      email: "andi.pratama@gmail.com",
-      phoneNumber: "081255554444",
-      passwordHash: tenantPassword,
-      role: "TENANT",
-      tenantProfile: {
-        create: {
-          fullName: "Andi Pratama",
-          ktpNumber: "3175012345670003",
-          address: "Jl. Sudirman No. 88, Surabaya",
-          emergencyContactName: "Rudi Pratama (Brother)",
-          emergencyContactNumber: "+62 812-7777-8888",
-        },
-      },
-    },
-  });
-
-  // Expires on July 5, 2026 (29 days from June 6, 2026)
-  const leaseAndi = await prisma.lease.create({
-    data: {
-      userId: userAndi.id,
-      roomId: dbRooms["004"].id,
-      startDate: new Date("2025-07-06T00:00:00Z"),
-      endDate: new Date("2026-07-05T00:00:00Z"),
-      isActive: true,
-    },
-  });
-
-  // Invoices for Andi: Jul 2025 - Jun 2026 (Paid)
-  for (let month = 7; month <= 12; month++) {
-    await prisma.invoice.create({
-      data: {
-        leaseId: leaseAndi.id,
-        dueDate: new Date(
-          `2025-${month.toString().padStart(2, "0")}-06T00:00:00Z`,
-        ),
-        amount: 1800000,
-        rentAmount: 1800000,
-        status: "PAID",
-        paidAt: new Date(
-          `2025-${month.toString().padStart(2, "0")}-07T00:00:00Z`,
-        ),
-      },
-    });
-  }
-  for (let month = 1; month <= 6; month++) {
-    await prisma.invoice.create({
-      data: {
-        leaseId: leaseAndi.id,
-        dueDate: new Date(
-          `2026-${month.toString().padStart(2, "0")}-06T00:00:00Z`,
-        ),
-        amount: 1800000,
-        rentAmount: 1800000,
-        status: "PAID",
-        paidAt: new Date(
-          `2026-${month.toString().padStart(2, "0")}-07T00:00:00Z`,
-        ),
-      },
-    });
-  }
-
-  // Tenant 4: Siti Rahma (Inactive / Checked-out Tenant)
-  console.log("Seeding Siti Rahma...");
-  const userSiti = await prisma.user.create({
-    data: {
-      email: "siti.rahma@gmail.com",
-      phoneNumber: "081211112222",
-      passwordHash: tenantPassword,
-      role: "TENANT",
-      tenantProfile: {
-        create: {
-          fullName: "Siti Rahma",
-          ktpNumber: "3175012345670004",
-          address: "Jl. Kartini No. 3, Semarang",
-          emergencyContactName: "Ahmad (Husband)",
-          emergencyContactNumber: "+62 812-4444-5555",
-        },
-      },
-    },
-  });
-
-  const leaseSiti = await prisma.lease.create({
-    data: {
-      userId: userSiti.id,
-      roomId: dbRooms["001"].id,
-      startDate: new Date("2024-01-01T00:00:00Z"),
-      endDate: new Date("2025-01-01T00:00:00Z"),
-      isActive: false,
-      exitReason: "Selesai Kontrak",
-    },
-  });
-
-  // Invoices for Siti (All Paid)
-  for (let month = 1; month <= 12; month++) {
-    await prisma.invoice.create({
-      data: {
-        leaseId: leaseSiti.id,
-        dueDate: new Date(
-          `2024-${month.toString().padStart(2, "0")}-01T00:00:00Z`,
-        ),
-        amount: 850000,
-        rentAmount: 850000,
-        status: "PAID",
-        paidAt: new Date(
-          `2024-${month.toString().padStart(2, "0")}-02T00:00:00Z`,
-        ),
-      },
-    });
-  }
-
-  console.log("Seeding finished successfully.");
+  console.log("==================================================");
+  console.log("🎉 SEEDING SELESAI!");
+  console.log("1. Super Admin: superadmin@oskost.id / PasswordSuperAdmin123!");
+  console.log("2. Admin Pulo Jahe: admin@oskost.com / adminpassword123!");
+  console.log("3. Properti: OSkost Pulo Jahe (11 Kamar Siap Huni)");
+  console.log("4. Penghuni: KOSONG BERSIH (0 Dummy Tenants/Invoices)");
+  console.log("==================================================");
 }
-/*
-AnthropicPunyaRenal11#
-*/
 
 main()
   .then(async () => {
@@ -560,7 +477,7 @@ main()
     await pool.end();
   })
   .catch(async (e) => {
-    console.error(e);
+    console.error("❌ Error saat seeding:", e);
     await prisma.$disconnect();
     await pool.end();
     process.exit(1);

@@ -48,11 +48,11 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
     const pathname = usePathname();
 
     return (
-        <Sidebar className="border-r border-[#2C2825]/8 bg-[#FFFFFF]">
+        <Sidebar className="border-r-2 border-[#2C2825]/10 bg-[#FFFFFF]">
             {/* Logo / Brand */}
             <SidebarHeader className="p-4">
                 <Link href="/admin" className="flex items-center gap-3 group">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#A45A3D]/10 border border-[#A45A3D]/20 p-1.5 transition-colors group-hover:bg-[#A45A3D]/20">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#A45A3D]/10 border-2 border-[#A45A3D]/25 p-1.5 transition-colors group-hover:bg-[#A45A3D]/20 shadow-2xs">
                         <Image
                             src="/images/logo-icon.png"
                             alt="OsKost Mark"
@@ -72,7 +72,7 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
                 </Link>
             </SidebarHeader>
 
-            <Separator className="bg-[#2C2825]/8" />
+            <Separator className="bg-[#2C2825]/10 h-[1.5px]" />
 
             {/* Navigation */}
             <SidebarContent className="bg-[#FFFFFF]">
@@ -94,10 +94,10 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
                                         <SidebarMenuButton
                                             asChild
                                             isActive={isActive}
-                                            className={`transition-colors font-medium text-sm ${
+                                            className={`transition-all font-medium text-sm rounded-xl ${
                                                 isActive
-                                                    ? "bg-[#A45A3D]/10 text-[#A45A3D] font-bold"
-                                                    : "text-[#38332E] hover:text-[#1E1B18] hover:bg-[#FAF2EA]"
+                                                    ? "bg-[#A45A3D]/10 text-[#A45A3D] font-bold border-2 border-[#A45A3D]/25 shadow-2xs"
+                                                    : "text-[#38332E] hover:text-[#1E1B18] hover:bg-[#FAF2EA] border-2 border-transparent"
                                             }`}
                                         >
                                             <Link href={item.href}>

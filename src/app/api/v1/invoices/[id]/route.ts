@@ -16,9 +16,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
         const { id: invoiceId } = await params;
 
-        const invoice = await prisma.invoice.findUnique({
+        let currentInvoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
             include: {
+                property: true,
                 lease: {
                     include: {
                         room: true,
@@ -36,9 +37,44 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             },
         });
 
-        if (!invoice) {
+        if (!currentInvoice) {
             return apiError("NOT_FOUND", "Tagihan tidak ditemukan", 404);
         }
+
+        // On-demand reconciliation jika invoice masih PENDING dan menggunakan Midtrans
+        if (currentInvoice.status === "PENDING" && currentInvoice.provider === "MIDTRANS") {
+            try {
+                const { reconcilePendingInvoices } = await import("@/features/payment/payment-service");
+                await reconcilePendingInvoices({ invoiceId: currentInvoice.id });
+                const refreshed = await prisma.invoice.findUnique({
+                    where: { id: invoiceId },
+                    include: {
+                        property: true,
+                        lease: {
+                            include: {
+                                room: true,
+                                property: true,
+                                user: {
+                                    select: {
+                                        id: true,
+                                        email: true,
+                                        phoneNumber: true,
+                                        tenantProfile: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+                if (refreshed) {
+                    currentInvoice = refreshed;
+                }
+            } catch (reconErr) {
+                console.error("[INVOICE_ID_RECON_ERROR]", reconErr);
+            }
+        }
+
+        const invoice = currentInvoice;
 
         // Cek izin akses: tenant yang bersangkutan atau owner/pengelola properti
         if (authUser.role === "TENANT" && invoice.lease.userId !== authUser.id) {
@@ -53,6 +89,8 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         ) {
             return apiError("FORBIDDEN", "Anda tidak memiliki akses ke tagihan properti ini", 403);
         }
+
+        const prop = invoice.property || invoice.lease.property;
 
         return apiSuccess({
             id: invoice.id,
@@ -80,7 +118,18 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             expiredAt: invoice.expiredAt,
             proofUrl: invoice.proofUrl,
             adminNote: invoice.adminNote,
+            verifiedBy: invoice.verifiedBy,
+            verifiedAt: invoice.verifiedAt,
             createdAt: invoice.createdAt,
+            paymentGateway: {
+                isMidtransActive: prop?.isMidtransActive ?? false,
+                midtransClientKey: prop?.midtransClientKey ?? null,
+                bankName: prop?.bankName ?? null,
+                bankAccountNumber: prop?.bankAccountNumber ?? null,
+                bankAccountHolder: prop?.bankAccountHolder ?? null,
+                bankAccountInfo: prop?.bankAccountInfo ?? null,
+                qrisImageUrl: prop?.qrisImageUrl ?? null,
+            },
             room: {
                 id: invoice.lease.room.id,
                 number: invoice.lease.room.number,
@@ -88,14 +137,14 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
                 type: invoice.lease.room.type,
                 price: invoice.lease.room.price,
             },
-            property: invoice.lease.property
+            property: prop
                 ? {
-                      id: invoice.lease.property.id,
-                      name: invoice.lease.property.name,
-                      slug: invoice.lease.property.slug,
-                      address: invoice.lease.property.address,
-                      managerPhone: invoice.lease.property.managerPhone,
-                      guardPhone: invoice.lease.property.guardPhone,
+                      id: prop.id,
+                      name: prop.name,
+                      slug: prop.slug,
+                      address: prop.address,
+                      managerPhone: prop.managerPhone,
+                      guardPhone: prop.guardPhone,
                   }
                 : null,
             tenant: {

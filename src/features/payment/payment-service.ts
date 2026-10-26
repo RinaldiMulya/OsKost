@@ -3,28 +3,67 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { CACHE_TAGS } from "@/lib/cache-tags";
+import { decryptPaymentKey } from "@/lib/security/payment-crypto";
 import logger from "@/lib/logger";
 
 const log = logger.child({ module: "payment-service" });
 
 // ============================================
-// Konfigurasi Midtrans
+// Konfigurasi Midtrans Dinamis Per Properti
 // ============================================
 
-const MIDTRANS_SERVER_KEY = process.env.MIDTRANS_SERVER_KEY!;
-const MIDTRANS_IS_PRODUCTION = process.env.MIDTRANS_IS_PRODUCTION === "true";
-const MIDTRANS_BASE_URL = MIDTRANS_IS_PRODUCTION
-  ? "https://app.midtrans.com"
-  : "https://app.sandbox.midtrans.com";
-const MIDTRANS_API_URL = MIDTRANS_IS_PRODUCTION
-  ? "https://api.midtrans.com"
-  : "https://api.sandbox.midtrans.com";
+export interface MidtransPropertyConfig {
+  id?: string;
+  isMidtransActive?: boolean | null;
+  midtransServerKey?: string | null;
+  midtransClientKey?: string | null;
+}
 
 /**
- * Helper: Encode server key ke Base64 untuk Authorization header Midtrans
+ * Mendapatkan konfigurasi Midtrans dinamis per properti kost.
+ * Menggunakan kredensial terenkripsi AES-256-GCM milik owner (Direct Merchant),
+ * atau fallback ke kredensial env server jika properti belum aktifkan Midtrans.
  */
-function getMidtransAuthHeader(): string {
-  return `Basic ${Buffer.from(MIDTRANS_SERVER_KEY + ":").toString("base64")}`;
+export function getPropertyMidtransConfig(property?: MidtransPropertyConfig | null) {
+  const isProduction = process.env.MIDTRANS_IS_PRODUCTION === "true";
+  const baseUrl = isProduction
+    ? "https://app.midtrans.com"
+    : "https://app.sandbox.midtrans.com";
+  const apiUrl = isProduction
+    ? "https://api.midtrans.com"
+    : "https://api.sandbox.midtrans.com";
+
+  if (property && property.isMidtransActive && property.midtransServerKey && property.id) {
+    try {
+      const decryptedServerKey = decryptPaymentKey(property.midtransServerKey, property.id);
+      const authHeader = `Basic ${Buffer.from(decryptedServerKey + ":").toString("base64")}`;
+      return {
+        serverKey: decryptedServerKey,
+        clientKey: property.midtransClientKey || null,
+        authHeader,
+        baseUrl,
+        apiUrl,
+        isCustomMerchant: true,
+      };
+    } catch (err) {
+      log.error({ err, propertyId: property.id }, "Gagal mendekripsi midtransServerKey properti");
+    }
+  }
+
+  // Fallback ke server env
+  const fallbackServerKey = process.env.MIDTRANS_SERVER_KEY;
+  if (!fallbackServerKey) {
+    throw new Error("Metode pembayaran online (Midtrans) belum diaktifkan atau dikonfigurasi untuk kost ini.");
+  }
+
+  return {
+    serverKey: fallbackServerKey,
+    clientKey: process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || null,
+    authHeader: `Basic ${Buffer.from(fallbackServerKey + ":").toString("base64")}`,
+    baseUrl,
+    apiUrl,
+    isCustomMerchant: false,
+  };
 }
 
 // ============================================
@@ -81,12 +120,14 @@ export async function createMidtransTransaction(
   invoiceId: string,
   paymentMethodCode: string
 ) {
-  // 1. Ambil invoice beserta data tenant
+  // 1. Ambil invoice beserta data tenant dan properti
   const invoice = await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
+      property: true,
       lease: {
         include: {
+          property: true,
           user: {
             select: {
               id: true,
@@ -234,11 +275,14 @@ export async function createMidtransTransaction(
     ],
   };
 
-  const res = await fetch(`${MIDTRANS_BASE_URL}/snap/v1/transactions`, {
+  const targetProperty = invoice.property || invoice.lease?.property;
+  const midtransConfig = getPropertyMidtransConfig(targetProperty);
+
+  const res = await fetch(`${midtransConfig.baseUrl}/snap/v1/transactions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: getMidtransAuthHeader(),
+      Authorization: midtransConfig.authHeader,
     },
     body: JSON.stringify(midtransPayload),
   });
@@ -383,28 +427,66 @@ export function mapMidtransStatus(
 // Cron: Rekonsiliasi invoice PENDING
 // ============================================
 
+export interface ReconcileFilter {
+  invoiceId?: string;
+  userId?: string;
+  propertyId?: string;
+}
+
 /**
  * Mengecek status invoice PENDING di Midtrans API
- * sebagai jaring pengaman jika webhook gagal terkirim.
+ * sebagai jaring pengaman jika webhook gagal terkirim atau pengujian lokal.
  */
-export async function reconcilePendingInvoices() {
+export async function reconcilePendingInvoices(filter?: ReconcileFilter) {
+  const whereClause: Record<string, unknown> = {
+    status: "PENDING",
+    provider: "MIDTRANS",
+    OR: [
+      { providerRef: { not: null } },
+      { externalId: { not: null } },
+    ],
+  };
+
+  if (filter?.invoiceId) {
+    whereClause.id = filter.invoiceId;
+  }
+  if (filter?.userId) {
+    whereClause.lease = { userId: filter.userId };
+  }
+  if (filter?.propertyId) {
+    whereClause.propertyId = filter.propertyId;
+  }
+
   const pendingInvoices = await prisma.invoice.findMany({
-    where: {
-      status: "PENDING",
-      provider: "MIDTRANS",
-      externalId: { not: null },
+    where: whereClause,
+    include: {
+      property: true,
+      lease: {
+        include: {
+          property: true,
+        },
+      },
     },
   });
 
   let reconciled = 0;
 
   for (const invoice of pendingInvoices) {
+    const targetProp = invoice.property || invoice.lease?.property;
+    let midtransConfig;
     try {
+      midtransConfig = getPropertyMidtransConfig(targetProp);
+    } catch {
+      continue;
+    }
+
+    try {
+      const orderRef = invoice.providerRef || invoice.externalId;
       const res = await fetch(
-        `${MIDTRANS_API_URL}/v2/${invoice.externalId}/status`,
+        `${midtransConfig.apiUrl}/v2/${orderRef}/status`,
         {
           headers: {
-            Authorization: getMidtransAuthHeader(),
+            Authorization: midtransConfig.authHeader,
           },
         }
       );
@@ -424,12 +506,15 @@ export async function reconcilePendingInvoices() {
       );
 
       if (nextStatus !== "PENDING" && nextStatus !== invoice.status) {
+        const paidAtDate = data.settlement_time ? new Date(data.settlement_time) : new Date();
+        const paymentMethod = data.payment_type ? data.payment_type.toUpperCase() : undefined;
+
         await prisma.invoice.update({
           where: { id: invoice.id },
           data: {
             status: nextStatus,
-            providerRef: data.transaction_id,
-            paidAt: nextStatus === "PAID" ? new Date() : undefined,
+            paidAt: nextStatus === "PAID" ? paidAtDate : undefined,
+            ...(paymentMethod ? { paymentMethod } : {}),
           },
         });
 
@@ -570,15 +655,17 @@ export async function createAccumulatedMidtransTransaction(
   userId: string,
   paymentMethodCode: string = "QRIS"
 ) {
-  // 1. Ambil seluruh invoice UNPAID / OVERDUE dari tenant
+  // 1. Ambil seluruh invoice UNPAID / OVERDUE dari tenant beserta data properti
   const invoices = await prisma.invoice.findMany({
     where: {
       lease: { userId },
       status: { in: ["UNPAID", "OVERDUE"] },
     },
     include: {
+      property: true,
       lease: {
         include: {
+          property: true,
           user: {
             select: {
               id: true,
@@ -709,11 +796,14 @@ export async function createAccumulatedMidtransTransaction(
     "Membuat transaksi akumulasi Midtrans"
   );
 
-  const res = await fetch(`${MIDTRANS_BASE_URL}/snap/v1/transactions`, {
+  const targetProperty = invoices[0].property || invoices[0].lease?.property;
+  const midtransConfig = getPropertyMidtransConfig(targetProperty);
+
+  const res = await fetch(`${midtransConfig.baseUrl}/snap/v1/transactions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: getMidtransAuthHeader(),
+      Authorization: midtransConfig.authHeader,
     },
     body: JSON.stringify(midtransPayload),
   });

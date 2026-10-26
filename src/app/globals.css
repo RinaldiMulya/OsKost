@@ -163,6 +163,21 @@ html {
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  /* OsKost Japandi / Wabi-Sabi Sanctuary Custom Tokens */
+  --color-canvas-alabaster: var(--canvas-alabaster);
+  --color-surface-porcelain: var(--surface-porcelain);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-hover: var(--terracotta-hover);
+  --color-koke-moss: var(--koke-moss);
+  --color-koke-moss-light: var(--koke-moss-light);
+  --color-amber-ochre: var(--amber-ochre);
+  --color-sumi: var(--text-sumi);
+  --color-slate-text: var(--text-slate);
+  --color-border-subtle: var(--border-subtle);
+
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);

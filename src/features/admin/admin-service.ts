@@ -3,6 +3,11 @@ import { cache } from "react";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 import bcryptjs from "bcryptjs";
+import {
+  encryptPaymentKey,
+  decryptPaymentKey,
+  maskApiKey,
+} from "@/lib/security/payment-crypto";
 
 // ============================================
 // Types
@@ -107,6 +112,25 @@ export interface PropertyProfile {
     name: string;
     address: string;
     features?: Record<string, unknown> | null;
+    bankName?: string | null;
+    bankAccountNumber?: string | null;
+    bankAccountHolder?: string | null;
+    bankAccountInfo?: string | null;
+    qrisImageUrl?: string | null;
+    midtransMerchantId?: string | null;
+    midtransClientKey?: string | null;
+    isMidtransActive?: boolean;
+    hasMidtransServerKey?: boolean;
+    maskedMidtransServerKey?: string | null;
+    subscription?: {
+        planTier: string;
+        status: string;
+        maxRooms: number;
+        monthlyPrice: number;
+        currentPeriodEnd?: Date | null;
+        trialEndsAt?: Date | null;
+    } | null;
+    roomsCount?: number;
 }
 
 export async function getPropertyProfile(): Promise<PropertyProfile | null> {
@@ -116,9 +140,63 @@ export async function getPropertyProfile(): Promise<PropertyProfile | null> {
             name: true,
             address: true,
             features: true,
+            bankName: true,
+            bankAccountNumber: true,
+            bankAccountHolder: true,
+            bankAccountInfo: true,
+            qrisImageUrl: true,
+            midtransMerchantId: true,
+            midtransServerKey: true,
+            midtransClientKey: true,
+            isMidtransActive: true,
+            subscription: {
+                select: {
+                    planTier: true,
+                    status: true,
+                    maxRooms: true,
+                    monthlyPrice: true,
+                    currentPeriodEnd: true,
+                    trialEndsAt: true,
+                },
+            },
+            _count: {
+                select: {
+                    rooms: true,
+                },
+            },
         },
     });
-    return property as PropertyProfile | null;
+
+    if (!property) return null;
+
+    let maskedMidtransServerKey: string | null = null;
+    if (property.midtransServerKey) {
+        try {
+            const plain = decryptPaymentKey(property.midtransServerKey, property.id);
+            maskedMidtransServerKey = maskApiKey(plain);
+        } catch {
+            maskedMidtransServerKey = "••••••••••••";
+        }
+    }
+
+    return {
+        id: property.id,
+        name: property.name,
+        address: property.address,
+        features: property.features as Record<string, unknown> | null,
+        bankName: property.bankName,
+        bankAccountNumber: property.bankAccountNumber,
+        bankAccountHolder: property.bankAccountHolder,
+        bankAccountInfo: property.bankAccountInfo,
+        qrisImageUrl: property.qrisImageUrl,
+        midtransMerchantId: property.midtransMerchantId,
+        midtransClientKey: property.midtransClientKey,
+        isMidtransActive: property.isMidtransActive,
+        hasMidtransServerKey: !!property.midtransServerKey,
+        maskedMidtransServerKey,
+        subscription: property.subscription,
+        roomsCount: property._count.rooms,
+    };
 }
 
 export async function updatePropertyProfile(
@@ -133,6 +211,59 @@ export async function updatePropertyProfile(
             name,
             address,
             ...(features !== undefined ? { features: features as object } : {}),
+        },
+    });
+}
+
+export async function updatePropertyBankAccount(
+    id: string,
+    bankName: string,
+    bankAccountNumber: string,
+    bankAccountHolder: string
+) {
+    return prisma.property.update({
+        where: { id },
+        data: {
+            bankName,
+            bankAccountNumber,
+            bankAccountHolder,
+        },
+    });
+}
+
+export interface UpdatePaymentSettingsInput {
+    bankName?: string | null;
+    bankAccountNumber?: string | null;
+    bankAccountHolder?: string | null;
+    bankAccountInfo?: string | null;
+    qrisImageUrl?: string | null;
+    midtransMerchantId?: string | null;
+    midtransClientKey?: string | null;
+    isMidtransActive?: boolean;
+    newMidtransServerKey?: string | null;
+}
+
+export async function updatePropertyPaymentSettings(
+    id: string,
+    data: UpdatePaymentSettingsInput
+) {
+    let midtransServerKeyToSave: string | undefined = undefined;
+    if (data.newMidtransServerKey && data.newMidtransServerKey.trim()) {
+        midtransServerKeyToSave = encryptPaymentKey(data.newMidtransServerKey.trim(), id);
+    }
+
+    return prisma.property.update({
+        where: { id },
+        data: {
+            bankName: data.bankName,
+            bankAccountNumber: data.bankAccountNumber,
+            bankAccountHolder: data.bankAccountHolder,
+            bankAccountInfo: data.bankAccountInfo,
+            qrisImageUrl: data.qrisImageUrl,
+            midtransMerchantId: data.midtransMerchantId,
+            midtransClientKey: data.midtransClientKey,
+            isMidtransActive: data.isMidtransActive ?? false,
+            ...(midtransServerKeyToSave ? { midtransServerKey: midtransServerKeyToSave } : {}),
         },
     });
 }

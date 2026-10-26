@@ -80,7 +80,7 @@ const getDashboardStatsQuery = unstable_cache(
     };
   },
   ["dashboard-stats"],
-  { tags: [CACHE_TAGS.DASHBOARD_STATS] },
+  { tags: [CACHE_TAGS.DASHBOARD_STATS], revalidate: 15 },
 );
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -105,9 +105,16 @@ const getRecentActivitiesQuery = unstable_cache(
         lease: {
           include: {
             user: {
-              select: { id: true, email: true, phoneNumber: true, role: true, createdAt: true, tenantProfile: true }
+              select: {
+                id: true,
+                email: true,
+                phoneNumber: true,
+                role: true,
+                createdAt: true,
+                tenantProfile: true,
+              },
             },
-            room: true
+            room: true,
           },
         },
       },
@@ -120,9 +127,16 @@ const getRecentActivitiesQuery = unstable_cache(
       take: 20,
       include: {
         user: {
-          select: { id: true, email: true, phoneNumber: true, role: true, createdAt: true, tenantProfile: true }
+          select: {
+            id: true,
+            email: true,
+            phoneNumber: true,
+            role: true,
+            createdAt: true,
+            tenantProfile: true,
+          },
         },
-        room: true
+        room: true,
       },
     });
 
@@ -135,9 +149,16 @@ const getRecentActivitiesQuery = unstable_cache(
         lease: {
           include: {
             user: {
-              select: { id: true, email: true, phoneNumber: true, role: true, createdAt: true, tenantProfile: true }
+              select: {
+                id: true,
+                email: true,
+                phoneNumber: true,
+                role: true,
+                createdAt: true,
+                tenantProfile: true,
+              },
             },
-            room: true
+            room: true,
           },
         },
       },
@@ -211,9 +232,16 @@ const getExpiringLeasesQuery = unstable_cache(
       },
       include: {
         user: {
-          select: { id: true, email: true, phoneNumber: true, role: true, createdAt: true, tenantProfile: true }
+          select: {
+            id: true,
+            email: true,
+            phoneNumber: true,
+            role: true,
+            createdAt: true,
+            tenantProfile: true,
+          },
         },
-        room: true
+        room: true,
       },
       orderBy: { endDate: "asc" },
       take: 10,
@@ -291,8 +319,18 @@ const getRevenueChartDataQuery = unstable_cache(
 
     // Kelompokkan per bulan
     const monthNames = [
-      "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-      "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
     ];
 
     const monthlyMap = new Map<string, number>();
@@ -362,7 +400,14 @@ const getPaymentStatusChartDataQuery = unstable_cache(
   async (): Promise<PaymentStatusChartItem[]> => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+    );
 
     const groups = await prisma.invoice.groupBy({
       by: ["status"],
@@ -390,7 +435,9 @@ const getPaymentStatusChartDataQuery = unstable_cache(
   { tags: [CACHE_TAGS.DASHBOARD_STATS] },
 );
 
-export async function getPaymentStatusChartData(): Promise<PaymentStatusChartItem[]> {
+export async function getPaymentStatusChartData(): Promise<
+  PaymentStatusChartItem[]
+> {
   return getPaymentStatusChartDataQuery();
 }
 
@@ -412,8 +459,18 @@ const getMaintenanceChartDataQuery = unstable_cache(
     });
 
     const monthNames = [
-      "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
-      "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
     ];
 
     // Inisialisasi 6 bulan terakhir
@@ -442,6 +499,8 @@ const getMaintenanceChartDataQuery = unstable_cache(
   { tags: [CACHE_TAGS.DASHBOARD_STATS, CACHE_TAGS.REPORTS_ALL] },
 );
 
-export async function getMaintenanceChartData(): Promise<MaintenanceChartItem[]> {
+export async function getMaintenanceChartData(): Promise<
+  MaintenanceChartItem[]
+> {
   return getMaintenanceChartDataQuery();
 }
