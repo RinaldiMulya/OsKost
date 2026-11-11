@@ -35,12 +35,16 @@ interface CatalogClientViewProps {
         status: string;
         search: string;
     };
+    showSaaSPromo?: boolean;
+    homeHref?: string;
 }
 
 export function CatalogClientView({
     property,
     initialRooms,
     initialParams,
+    showSaaSPromo = true,
+    homeHref = "/",
 }: CatalogClientViewProps) {
     const router = useRouter();
 
@@ -159,7 +163,7 @@ export function CatalogClientView({
                ======================================================== */}
             <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2 text-xs text-[#757069]">
-                    <Link href="/" className="hover:text-[#A45A3D] transition-colors">Home</Link>
+                    <Link href={homeHref} className="hover:text-[#A45A3D] transition-colors">Home</Link>
                     <span>/</span>
                     <span className="text-[#1E1B18] font-semibold">Katalog Kamar</span>
                 </div>
@@ -449,32 +453,34 @@ export function CatalogClientView({
             )}
 
             {/* ========================================================
-                4. SAAS OWNER CALLOUT BANNER
+                4. SAAS OWNER CALLOUT BANNER (Hanya di domain utama)
                ======================================================== */}
-            <div className="bg-[#FAF2EA] rounded-3xl p-6 sm:p-10 border border-[#2C2825]/8 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6 text-center lg:text-left mt-6">
-                <div className="flex flex-col gap-2 max-w-2xl">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EFE7DE] text-[#A45A3D] w-fit mx-auto lg:mx-0">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span className="text-[11px] font-bold uppercase tracking-wider">
-                            Untuk Pemilik Kost &amp; Investor
-                        </span>
+            {showSaaSPromo && (
+                <div className="bg-[#FAF2EA] rounded-3xl p-6 sm:p-10 border border-[#2C2825]/8 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-6 text-center lg:text-left mt-6">
+                    <div className="flex flex-col gap-2 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EFE7DE] text-[#A45A3D] w-fit mx-auto lg:mx-0">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span className="text-[11px] font-bold uppercase tracking-wider">
+                                Untuk Pemilik Kost &amp; Investor
+                            </span>
+                        </div>
+                        <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-[#1E1B18]">
+                            Punya Properti Kost di Kawasan Cakung atau Sekitarnya?
+                        </h3>
+                        <p className="font-ui text-xs sm:text-sm text-[#757069] leading-relaxed">
+                            Kelola penagihan uang sewa otomatis, pembukuan digital, dan pasarkan seluruh unit kamar Anda langsung di etalase OsKost tanpa potongan komisi sewa.
+                        </p>
                     </div>
-                    <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-[#1E1B18]">
-                        Punya Properti Kost di Kawasan Cakung atau Sekitarnya?
-                    </h3>
-                    <p className="font-ui text-xs sm:text-sm text-[#757069] leading-relaxed">
-                        Kelola penagihan uang sewa otomatis, pembukuan digital, dan pasarkan seluruh unit kamar Anda langsung di etalase OsKost tanpa potongan komisi sewa.
-                    </p>
-                </div>
 
-                <Link
-                    href="/#pemilik-kost"
-                    className="px-6 py-3.5 rounded-xl bg-[#A45A3D] hover:bg-[#864327] text-white font-ui text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg whitespace-nowrap flex items-center gap-2"
-                >
-                    <span>Mulai Coba OsKost SaaS (14 Hari)</span>
-                    <ArrowRight className="w-4 h-4" />
-                </Link>
-            </div>
+                    <Link
+                        href="/#pemilik-kost"
+                        className="px-6 py-3.5 rounded-xl bg-[#A45A3D] hover:bg-[#864327] text-white font-ui text-xs sm:text-sm font-bold transition-all shadow-md hover:shadow-lg whitespace-nowrap flex items-center gap-2"
+                    >
+                        <span>Mulai Coba OsKost SaaS (14 Hari)</span>
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+            )}
 
             {/* ========================================================
                 MODAL: DETAIL & BOOKING VIA WHATSAPP KE PENGELOLA

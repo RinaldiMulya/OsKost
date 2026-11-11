@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import { 
     Building2, 
@@ -16,7 +17,8 @@ import {
     ShoppingBag, 
     Clock,
     ExternalLink,
-    HeartPulse
+    HeartPulse,
+    Sparkles
 } from "lucide-react";
 import type L from "leaflet";
 import type { LocationPoint } from "./interactive-map";
@@ -281,6 +283,14 @@ export function MapsSection() {
                                 <Navigation className="w-4 h-4" />
                                 <span>Petunjuk Rute Google Maps</span>
                             </button>
+
+                            <Link
+                                href="/radar"
+                                className="w-full bg-[#00529C]/10 hover:bg-[#00529C]/15 text-[#00529C] border border-[#00529C]/20 py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all mt-2.5"
+                            >
+                                <Sparkles className="w-4 h-4 text-[#00529C]" />
+                                <span>Buka OsRadar Spatial AI (3 Cincin Zona) &rarr;</span>
+                            </Link>
                         </div>
                     </div>
 

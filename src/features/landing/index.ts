@@ -1,4 +1,9 @@
 export { HeroSection } from "./hero-section";
+export { B2bHeroSection } from "./b2b-hero-section";
+export { CommissionCalculator } from "./commission-calculator";
+export { PropertiesShowcaseSection } from "./properties-showcase-section";
+export { PropertyHeroSection } from "./property-hero-section";
+export { FloatingWhatsApp } from "./floating-whatsapp";
 export { TourSection } from "./tour-section";
 export { ClusterRoomsSection } from "./cluster-rooms-section";
 export { FeaturesSection } from "./features-section";

@@ -165,7 +165,7 @@ export function ClusterRoomsSection({
             </div>
             <div className="flex flex-col gap-1">
               <span className="font-ui text-xs font-bold text-[#C98A2C] uppercase tracking-wider">
-                Potongan Rp 250.000 / Bulan
+                Potongan Rp 150.000 / Bulan
               </span>
               <h4 className="font-editorial text-lg sm:text-xl font-bold text-[#1E1B18]">
                 Paket Kontrak 6+ Bulan

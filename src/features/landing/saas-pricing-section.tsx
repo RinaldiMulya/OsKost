@@ -58,8 +58,8 @@ const plans = [
       "Pembayaran Otomatis QRIS & Virtual Account Bank",
       "Download Laporan Keuangan Rapi (Excel/CSV)",
     ],
-    ctaText: "Pilih Paket Starter",
-    ctaHref: "/login?plan=starter",
+    ctaText: "Mulai 14 Hari Coba Gratis",
+    ctaHref: "https://wa.me/6287890976782?text=Halo%20OsKost%2C%20saya%20tertarik%20mencoba%20coba%20gratis%2014%20hari%20Paket%20Starter%20(6-15%20Kamar).",
   },
   {
     name: "Growth",
@@ -80,8 +80,8 @@ const plans = [
       "Rekap Pajak Usaha Kost Otomatis (PPh Final 0.5%)",
       "Catatan Riwayat Uang & Aktivitas Staf Lengkap",
     ],
-    ctaText: "Mulai 14 Hari Uji Coba Gratis",
-    ctaHref: "/login?plan=growth",
+    ctaText: "Mulai 14 Hari Coba Gratis",
+    ctaHref: "https://wa.me/6287890976782?text=Halo%20OsKost%2C%20saya%20tertarik%20mencoba%20coba%20gratis%2014%20hari%20Paket%20Growth%20(16-40%20Kamar).",
   },
   {
     name: "Pro Residence",
@@ -102,8 +102,8 @@ const plans = [
       "Bantuan Layanan Cepat Prioritas",
       "Format Surat Perjanjian Sewa Digital",
     ],
-    ctaText: "Pilih Paket Pro",
-    ctaHref: "/login?plan=pro",
+    ctaText: "Mulai 14 Hari Coba Gratis",
+    ctaHref: "https://wa.me/6287890976782?text=Halo%20OsKost%2C%20saya%20tertarik%20mencoba%20coba%20gratis%2014%20hari%20Paket%20Pro%20Residence%20(41-100%20Kamar).",
   },
 ];
 
@@ -111,7 +111,7 @@ export function SaasPricingSection() {
   return (
     <section
       id="pemilik-kost"
-      className="w-full bg-[#FFFFFF] py-10 sm:py-14 lg:py-16 border-b border-[#2C2825]/6"
+      className="w-full bg-[#FFFFFF] py-10 sm:py-14 lg:py-16 border-b border-[#2C2825]/6 scroll-mt-20"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
@@ -138,12 +138,14 @@ export function SaasPricingSection() {
               Baru punya <strong>1 - 5 kamar</strong>? Nikmati seluruh kemudahan
               OsKost <strong>100% GRATIS</strong> selamanya.
             </span>
-            <Link
-              href="/login?plan=free"
+            <a
+              href="https://wa.me/6287890976782?text=Halo%20OsKost%2C%20saya%20memiliki%201-5%20kamar%20kost%20dan%20ingin%20mendaftar%20Paket%20Free%20Rp%200%20selamanya."
+              target="_blank"
+              rel="noopener noreferrer"
               className="font-bold underline hover:text-[#14261C] inline-flex items-center gap-1 ml-1"
             >
               Daftar Gratis <ArrowRight className="w-4 h-4" />
-            </Link>
+            </a>
           </div>
         </div>
 
