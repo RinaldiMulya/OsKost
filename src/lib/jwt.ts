@@ -11,10 +11,14 @@ export interface AccessTokenPayload {
 export const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 
 function getJwtSecretKey(): Uint8Array {
-    const secret =
-        process.env.JWT_SECRET ||
-        process.env.AUTH_SECRET ||
-        "oskost-secure-jwt-secret-for-mobile-auth-token-rotation-32-bytes";
+    const secret = process.env.JWT_SECRET || process.env.AUTH_SECRET;
+    if (!secret) {
+        if (process.env.NODE_ENV === "production") {
+            throw new Error("FATAL: JWT_SECRET or AUTH_SECRET must be defined in production environment!");
+        }
+        console.warn("[SECURITY WARN] JWT_SECRET is unset. Using temporary development fallback.");
+        return new TextEncoder().encode("oskost-secure-jwt-secret-for-mobile-auth-token-rotation-32-bytes");
+    }
     return new TextEncoder().encode(secret);
 }
 

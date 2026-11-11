@@ -3,6 +3,7 @@
 import { signIn, signOut, auth } from "@/auth";
 import { AuthError } from "next-auth";
 import { z } from "zod";
+import { prisma } from "@/lib/db";
 import { logAuditEvent } from "@/lib/audit-log";
 
 const loginSchema = z.object({
@@ -21,12 +22,29 @@ export async function authenticate(
             return parsed.error.issues[0].message;
         }
 
-        // Redirect based on role after successful login:
-        // ADMIN → /admin, TENANT → /dashboard
-        // NextAuth will handle the actual redirect via the signIn callback
+        const { identifier } = parsed.data;
+
+        // Cek role user di database untuk menentukan rute dashboard yang sesuai:
+        // SUPER_ADMIN → /super-admin
+        // ADMIN / PROPERTY_OWNER → /admin
+        // TENANT → /dashboard
+        const user = await prisma.user.findFirst({
+            where: identifier.includes("@")
+                ? { email: identifier }
+                : { phoneNumber: identifier },
+            select: { role: true },
+        });
+
+        let targetUrl = "/admin";
+        if (user?.role === "SUPER_ADMIN") {
+            targetUrl = "/super-admin";
+        } else if (user?.role === "TENANT") {
+            targetUrl = "/dashboard";
+        }
+
         await signIn("credentials", {
             ...parsed.data,
-            redirectTo: "/admin", // Default redirect, auth.config.ts signIn callback can override
+            redirectTo: targetUrl,
         });
     } catch (error) {
         if (error instanceof AuthError) {
@@ -54,4 +72,3 @@ export async function logout() {
     }
     await signOut({ redirectTo: "/login" });
 }
-

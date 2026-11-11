@@ -7,6 +7,9 @@ declare module "next-auth" {
         user: {
             id: string;
             role: UserRole;
+            propertyId?: string;
+            propertyName?: string;
+            propertySlug?: string;
             impersonating?: {
                 ownerId: string;
                 ownerEmail: string;
@@ -17,6 +20,9 @@ declare module "next-auth" {
     interface User {
         role: UserRole;
         phoneNumber?: string | null;
+        propertyId?: string | null;
+        propertyName?: string | null;
+        propertySlug?: string | null;
         impersonating?: {
             ownerId: string;
             ownerEmail: string;

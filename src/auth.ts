@@ -59,10 +59,22 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                             category: "AUTH",
                         });
 
+                        // Ambil properti aktif milik user untuk multi-tenant scoping
+                        const userProperty = await prisma.property.findFirst({
+                            where: { ownerId: user.id },
+                            select: { id: true, name: true, slug: true },
+                        }) || await prisma.property.findFirst({
+                            where: { slug: "pulo-jahe" },
+                            select: { id: true, name: true, slug: true },
+                        });
+
                         return {
                             id: user.id,
                             email: user.email,
                             role: user.role,
+                            propertyId: userProperty?.id || null,
+                            propertyName: userProperty?.name || null,
+                            propertySlug: userProperty?.slug || null,
                         };
                     } else {
                         await logAuditEvent({
