@@ -1,0 +1,157 @@
+================================================================================
+          RINGKASAN PROYEK, CARA KERJA, FITUR, DAN TEKNOLOGI
+                       FAMILY GUARD (PARENTAL CONTROL)
+================================================================================
+
+1. RINGKASAN PROYEK (PROJECT OVERVIEW)
+--------------------------------------------------------------------------------
+Family Guard adalah aplikasi Parental Control komprehensif berbasis Flutter dan 
+Android Native (Kotlin). Aplikasi ini dirancang untuk membantu orang tua memantau, 
+mendampingi, dan membatasi aktivitas smartphone anak secara real-time.
+
+Aplikasi ini menggunakan arsitektur dual-role (Orang Tua dan Anak) dalam satu 
+basis kode terpadu. Pada mode anak, aplikasi diperkuat dengan integrasi native 
+tingkat sistem operasi (Device Administrator, Accessibility Service, Foreground 
+Service, dan Kiosk Mode) sehingga proteksi tidak dapat dengan mudah dimatikan, 
+dikelabui, atau di-uninstall oleh anak tanpa izin orang tua.
+
+
+2. CARA KERJA SISTEM (HOW IT WORKS)
+--------------------------------------------------------------------------------
+A. Penautan Perangkat (Device Pairing)
+   1. Orang tua mendaftar/login menggunakan akun Firebase di dashboard aplikasi.
+   2. Orang tua menambahkan profil anak dan sistem menghasilkan Kode Pairing 
+      6 digit acak yang unik.
+   3. Di ponsel anak, aplikasi dibuka dalam mode anak dan kode pairing dimasukkan.
+   4. ID perangkat hardware anak secara otomatis terikat secara permanen dengan 
+      akun orang tua pada database Cloud Firestore.
+
+B. Sinkronisasi Data Real-Time & Jalur Komando (Command Loop)
+   1. Cloud Firestore bertindak sebagai data-bus waktu-nyata untuk sinkronisasi 
+      status, statistik, sensor, telemetri, lokasi, dan pembatasan.
+   2. Firebase Cloud Messaging (FCM) mengirimkan payload data prioritas tinggi 
+      ketika ada perintah mendesak dari orang tua (kunci, deringkan, mirror).
+   3. Siklus Perintah:
+      Orang Tua kirim command -> Terbit di sub-koleksi 'commands' -> Didengar 
+      oleh SyncService di ponsel anak -> Dieksekusi melalui NativeBridgeHandler 
+      (MethodChannel Flutter-Kotlin) -> Status perintah dilaporkan balik 
+      (acknowledged / completed / failed).
+
+C. Mekanisme Proteksi & Penegakan Sistem (Android Native Layer)
+   1. Accessibility Service (FamilyGuardAccessibilityService):
+      - Memantau jendela dan nama paket aplikasi (package) yang sedang aktif di layar.
+      - Jika anak membuka aplikasi terblokir, sistem langsung menendang ke 
+        Layar Utama (Home) dan menampilkan overlay peringatan (FloatingBlockedActivity).
+      - Mencegah uninstalasi: Jika anak membuka Pengaturan (Settings) untuk mencopot 
+        aplikasi atau menonaktifkan Device Admin, Accessibility Service langsung 
+        mengklik tombol Cancel/Batal dan kembali ke Home.
+      - Membaca teks pada layar untuk mendeteksi pengetikan kata sensitif (judi, 
+        pornografi, kata kasar) secara lokal.
+      - Menangkap cuplikan layar tanpa dialog (headless) via Android 11+ takeScreenshot 
+        untuk fitur Screen Mirroring.
+   2. Mode Kiosk & Penguncian Layar (KioskSecurityHelper):
+      - Layar anak dikunci penuh dari jarak jauh dengan pesan dan PIN pembuka.
+      - Tombol navigasi (Back, Home, Recent Apps) dicegat dan dinonaktifkan.
+      - Penyimpanan PIN menggunakan hashing kriptografis aman (SHA-256 + Salt).
+   3. Layanan Latar Belakang & Persistensi (Self-Healing System):
+      - Berjalan sebagai Foreground Service bertipe 'specialUse' dengan status STICKY.
+      - Jika dibunuh paksa oleh sistem operasi atau task-killer, AlarmManager 
+        menjadwalkan restart otomatis dalam 1 detik.
+      - BootReceiver memastikan Family Guard langsung aktif otomatis sesaat setelah 
+        ponsel selesai dinyalakan (BOOT_COMPLETED) atau saat layar menyala.
+
+
+3. DAFTAR SEMUA FITUR (BERDASARKAN KATEGORI)
+--------------------------------------------------------------------------------
+[A] Kontrol & Kunci Perangkat Jarak Jauh (Remote Device Control)
+    - Kunci Layar Penuh (Kiosk Lock Mode): Mengunci ponsel secara permanen dari jauh.
+    - Buka Kunci Jarak Jauh: Membuka kunci perangkat via dashboard atau input PIN.
+    - Deringkan Ponsel Darurat (Ring Device): Membunyikan alarm kencang dengan opsi:
+      Alarm Keras, Sirene Polisi, Bel Darurat, atau Sonar Radar.
+    - Lampu Senter Berkedip (Flashlight): Membantu menemukan ponsel dalam kegelapan.
+    - Pesan Darurat Instan: Menampilkan pesan teks popup prioritas tinggi di layar anak.
+
+[B] Pembatasan Aplikasi & Manajemen Waktu Layar (App Limits & Screen Time)
+    - Pemblokiran Aplikasi Spesifik: Blokir game, medsos, atau browser via package name.
+    - Overlay Peringatan Terblokir: Dialog antarmuka ramah anak saat membuka aplikasi terlarang.
+    - Jadwal Rutin Otomatis: Jam Belajar (School Hours) dan Jam Tidur (Bedtime).
+    - Pelacak Waktu Layar (Screen Time): Total pemakaian ponsel harian vs batas kuota.
+    - Rincian Statistik Aplikasi: Durasi tiap aplikasi diakses menggunakan UsageStatsManager.
+    - Hadiah & Tugas Harian (Reward System): Orang tua dapat memberi tugas harian dan 
+      bonus kuota waktu layar tambahan jika anak berhasil menyelesaikannya.
+
+[C] Pengawasan Layar Real-Time (Screen Mirroring)
+    - Live Screen Mirroring: Streaming cuplikan layar anak ke layar ponsel orang tua.
+    - Indikator Aplikasi Aktif: Menampilkan judul dan nama paket aplikasi yang sedang dibuka anak.
+    - Headless Capture: Pengambilan gambar otomatis tanpa memunculkan dialog persetujuan berulang.
+
+[D] Keamanan Lingkungan & Sensor Cerdas (Smart Sensors & Telemetry)
+    - Pemantau Kebisingan Suara (Ambient Noise): Mengukur intensitas suara sekitar (desibel/dB) 
+      lewat mikrofon untuk mendeteksi lingkungan berbahaya atau gaduh.
+    - Sensor Jarak Layar (Proximity Eye-Care): Peringatan jika layar HP terlalu dekat dengan mata.
+    - Deteksi Kartu SIM: Memantau operator seluler dan memberi peringatan jika SIM dicopot/diganti.
+    - Penghitung Buka Kunci (Daily Unlock Counter): Menghitung berapa kali layar HP dibuka per hari.
+    - Pemantau Daya: Persentase baterai, status pengisian daya, dan kesehatan baterai (battery health).
+
+[E] Pelacakan Lokasi & Anti-Tamper GPS
+    - Pelacakan GPS Real-Time: Posisi koordinat garis lintang dan bujur serta tingkat akurasi.
+    - Peringatan GPS Dimatikan (GPS Tamper Alert): Membunyikan sirene dan mengarahkan kembali 
+      ke menu aktivasi lokasi jika anak sengaja mematikan GPS.
+    - Riwayat Lokasi (Location History): Rekam jejak perjalanan anak sepanjang hari.
+
+[F] Deteksi Konten & Riwayat Keamanan (Audit Logs)
+    - Deteksi Kata Sensitif: Mendeteksi pengetikan/tampilan kata terlarang (pornografi, kekerasan, 
+      kata kasar, judi online) secara otomatis.
+    - Catatan Keamanan (Security Audit Logs): Log peristiwa penting terkait keselamatan perangkat.
+
+[G] Proteksi Sistem & Anti-Uninstall (Tamper-Proofing)
+    - Blokir Halaman Pengaturan & Uninstall: Mencegah anak menghapus aplikasi Family Guard.
+    - Integrasi Device Administrator: Akses administrator perangkat untuk mencegah penghapusan sepihak.
+    - Kontrol Izin Uninstall Resmi: Orang tua dapat melepas proteksi uninstall langsung dari dashboard 
+      jika memang ingin mencopot aplikasi secara resmi.
+
+
+4. TEKNOLOGI YANG DIGUNAKAN (BERDASARKAN KATEGORI)
+--------------------------------------------------------------------------------
+[A] Framework & Bahasa Pemrograman
+    - Flutter (SDK ^3.13.3)      : Framework UI cross-platform modern untuk Parent dan Child.
+    - Dart (v3.x)                : Bahasa pemrograman utama antarmuka & logika bisnis aplikasi.
+    - Kotlin                     : Bahasa native Android untuk background services, accessibility, 
+                                   dan kontrol perangkat keras tingkat rendah (OS).
+
+[B] Arsitektur & State Management
+    - Provider (^6.1.2)          : State management reaktif (ChangeNotifier, MultiProvider).
+    - Repository Pattern         : Abstraksi layer data (auth, device, command, pairing).
+    - Service Layer              : Pemisahan logika native (SyncService, NativeBridgeService).
+
+[C] Layanan Cloud & Backend (Firebase Suite)
+    - Cloud Firestore (^5.6.0)   : Basis data NoSQL real-time untuk sinkronisasi state & command bus.
+    - Firebase Auth (^5.4.0)     : Autentikasi aman akun orang tua (Email/Password).
+    - Firebase Messaging (^15.2) : Push notification & pesan latar belakang berprioritas tinggi.
+    - Firebase Crashlytics       : Pelaporan crash aplikasi native dan Flutter.
+    - Firebase Analytics         : Analitik interaksi dan penggunaan fitur.
+    - Firebase App Check         : Melindungi backend Firebase dari penyalahgunaan pihak ketiga.
+
+[D] Android Native API & Komponen Sistem
+    - AccessibilityService       : Pemantauan aplikasi aktif, anti-uninstall, dan takeScreenshot.
+    - DevicePolicyManager        : Integrasi Device Administrator dan Kiosk Lock Task.
+    - ForegroundService          : Layanan latar belakang persisten dengan notifikasi permanen.
+    - BroadcastReceiver          : Menangkap event BOOT_COMPLETED, USER_PRESENT, SCREEN_ON.
+    - UsageStatsManager          : Membaca statistik durasi pemakaian aplikasi sistem.
+    - SensorManager              : Membaca data proximity sensor (jarak layar).
+    - AudioRecord                : Menganalisa gelombang suara mentah PCM 16-bit untuk desibel (dB).
+    - TelephonyManager           : Membaca status SIM card dan operator seluler.
+    - AlarmManager & WorkManager : Penjadwalan restart otomatis dan sinkronisasi berkala.
+
+[E] Plugin & Pustaka Flutter (pub.dev)
+    - geolocator (^13.0.2)       : Pengambilan koordinat GPS dan status sensor lokasi.
+    - fl_chart (^0.70.0)         : Menampilkan grafik analitik penggunaan waktu layar (screen time).
+    - flutter_local_notifications: Notifikasi darurat dan pengingat lokal di perangkat anak.
+    - shared_preferences (^2.5.5): Cache lokal untuk status kunci, hash PIN, dan preferensi.
+    - device_info_plus           : Mengambil informasi hardware dan ID unik perangkat Android.
+    - permission_handler         : Memeriksa dan meminta izin runtime Android.
+
+[F] Keamanan & Kriptografi
+    - SHA-256 + Salt Kiosk Hash  : Pengamanan PIN kunci perangkat dengan salt acak (SecureRandom).
+================================================================================
+

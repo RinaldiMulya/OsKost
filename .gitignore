@@ -73,3 +73,5 @@ Docs/Product/
 # Testing trash
 /prisma/seed.ts
 scratch/
+# Firebase Service Account
+*firebase-service-account*.json

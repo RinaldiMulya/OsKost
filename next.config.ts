@@ -76,6 +76,7 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   devIndicators: false,
   // Turbopack: menonaktifkan warning karena @ducanh2912/next-pwa menambahkan config webpack.
   // PWA plugin hanya aktif di production build (webpack), tidak di dev (Turbopack).

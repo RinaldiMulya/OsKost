@@ -152,9 +152,26 @@ Pada endpoint `GET /api/v1/me`, backend wajib merespons dengan metadata properti
 - `property.name`, `property.logoUrl`, `property.primaryColorHex`, `property.accentColorHex`.
 Flutter akan membaca token ini untuk mengubah tema visual secara dinamis.
 
+### 🛑 Rule #7: Reserved Slug Blacklist Validation
+DILARANG mengizinkan pendaftaran atau pengubahan `slug` properti kost yang bentrok dengan nama sistem reserved (misal: `app`, `api`, `admin`, `super-admin`, `oskost`, `login`, `register`, `dashboard`, `mail`, `docs`, `billing`, `webhook`, `www`). Seluruh validasi slug WAJIB memeriksa daftar hitam di `src/lib/constants/reserved-slugs.ts`.
+
+### 💰 Rule #8: Dual Cashflow & Direct Merchant Isolation
+- **SaaS Subscription (Owner ➔ Platform)**: Diproses melalui webhook `/api/webhooks/saas-subscription` ke rekening OsKost pusat.
+- **Uang Sewa Kamar (Tenant ➔ Owner)**: Diproses via Direct Merchant Midtrans atau transfer manual bank owner langsung ke rekening masing-masing pemilik kost tanpa penampungan/escrow pusat (`/api/webhooks/midtrans`).
+
 ---
 
-## 4. Panduan Verifikasi & Quality Check
+## 4. Pelacakan Milestone & Kesiapan Rilis (Single Source of Truth)
+
+Seluruh pelacakan milestone, roadmap, dan daftar centang kesiapan peluncuran (launch checklist) **TERPUSAT 100%** di:  
+👉 [Docs/06_PRODUCTION_CHECKLIST_AND_ROADMAP.md](file:///d:/Local-Project/Docs/06_PRODUCTION_CHECKLIST_AND_ROADMAP.md)
+
+*Dilarang membuat file checklist atau milestone lokal terpisah di folder `oskost/`!*
+
+---
+
+## 5. Panduan Verifikasi & Quality Check
 Setelah mengubah atau membuat kode baru di repositori web:
-1. Jalankan `pnpm build` atau lint check untuk memastikan tidak ada kesalahan tipe TypeScript.
-2. Pastikan relasi model baru di `prisma/schema.prisma` konsisten dengan `Docs/SCHEMA_DRAFT_V2_SAAS_MOBILE.prisma`.
+1. Jalankan `pnpm exec tsc --noEmit` di folder `oskost/` untuk memastikan tidak ada kesalahan tipe TypeScript.
+2. Pastikan relasi model baru di `prisma/schema.prisma` konsisten dengan `Docs/01_MASTER_ARCHITECTURE.md`.
+
