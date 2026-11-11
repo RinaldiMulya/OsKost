@@ -86,10 +86,11 @@ export interface ActiveLeaseForSelect {
  * Ambil semua laporan keluhan untuk admin.
  * Menggunakan select agar hanya mengambil field yang dibutuhkan.
  */
-export const getAllReports = cache(async (): Promise<ReportForAdmin[]> => {
+export const getAllReports = cache(async (propertyId?: string): Promise<ReportForAdmin[]> => {
   return unstable_cache(
     async () => {
       const reports = await prisma.report.findMany({
+        where: propertyId ? { propertyId } : undefined,
         select: {
           id: true,
           title: true,
@@ -138,7 +139,7 @@ export const getAllReports = cache(async (): Promise<ReportForAdmin[]> => {
       });
       return reports as unknown as ReportForAdmin[];
     },
-    ["reports-all"],
+    [`reports-all-${propertyId || "all"}`],
     { tags: [CACHE_TAGS.REPORTS_ALL], revalidate: 3 }
   )();
 });
@@ -147,11 +148,14 @@ export const getAllReports = cache(async (): Promise<ReportForAdmin[]> => {
  * Ambil laporan keluhan berdasarkan status tertentu.
  */
 export const getReportsByStatus = cache(
-  async (status: "OPEN" | "IN_PROGRESS" | "RESOLVED"): Promise<ReportForAdmin[]> => {
+  async (status: "OPEN" | "IN_PROGRESS" | "RESOLVED", propertyId?: string): Promise<ReportForAdmin[]> => {
     return unstable_cache(
       async () => {
         const reports = await prisma.report.findMany({
-          where: { status },
+          where: {
+            status,
+            ...(propertyId ? { propertyId } : {}),
+          },
           select: {
             id: true,
             title: true,
@@ -200,7 +204,7 @@ export const getReportsByStatus = cache(
         });
         return reports as unknown as ReportForAdmin[];
       },
-      [`reports-status-${status}`],
+      [`reports-status-${status}-${propertyId || "all"}`],
       { tags: [CACHE_TAGS.REPORTS_BY_STATUS(status)], revalidate: 3 }
     )();
   }
@@ -273,11 +277,14 @@ export const getReportById = cache(
  * Digunakan di form admin untuk memilih tenant saat membuat laporan baru.
  */
 export const getActiveLeases = cache(
-  async (): Promise<ActiveLeaseForSelect[]> => {
+  async (propertyId?: string): Promise<ActiveLeaseForSelect[]> => {
     return unstable_cache(
       async () => {
         const leases = await prisma.lease.findMany({
-          where: { isActive: true },
+          where: {
+            isActive: true,
+            ...(propertyId ? { propertyId } : {}),
+          },
           select: {
             id: true,
             userId: true,
@@ -315,7 +322,7 @@ export const getActiveLeases = cache(
           roomName: lease.room.name,
         }));
       },
-      ["active-leases-for-reports"],
+      [`active-leases-for-reports-${propertyId || "all"}`],
       { tags: [CACHE_TAGS.ADMIN_TENANTS] }
     )();
   }

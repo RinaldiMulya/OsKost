@@ -121,6 +121,11 @@ export async function POST(req: NextRequest) {
                 userId: authUser.id,
                 isActive: true,
             },
+            include: {
+                room: {
+                    select: { number: true },
+                },
+            },
         });
 
         if (!activeLease) {
@@ -147,6 +152,38 @@ export async function POST(req: NextRequest) {
                 propertyId: activeLease.propertyId,
             },
         });
+
+        // Kirim In-App Notification ke Owner
+        if (activeLease.propertyId) {
+            try {
+                const property = await prisma.property.findUnique({
+                    where: { id: activeLease.propertyId },
+                    select: { ownerId: true },
+                });
+
+                const roomNumber = activeLease.room?.number || "Hunian";
+
+                if (property?.ownerId) {
+                    await prisma.notification.create({
+                        data: {
+                            userId: property.ownerId,
+                            title: `Laporan Baru • Kamar ${roomNumber}`,
+                            message: `${title}: ${description}`,
+                            type: "MAINTENANCE",
+                            category: "pemeliharaan",
+                            tag: `Kamar ${roomNumber}`,
+                            actionLabel: "Lihat Laporan",
+                            actionUrl: "/admin/reports",
+                            propertyId: activeLease.propertyId,
+                            isRead: false,
+                        },
+                    });
+                    updateTag(CACHE_TAGS.userNotifications(property.ownerId));
+                }
+            } catch (notifErr) {
+                console.error("[REPORT_NOTIF_ERROR]", notifErr);
+            }
+        }
 
         // Invalidate Next.js cache so Admin & Tenant dashboards update immediately
         try {

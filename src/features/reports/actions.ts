@@ -23,8 +23,8 @@ import {
 
 async function requireAdmin() {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    throw new Error("Akses ditolak: hanya Admin yang diizinkan");
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "PROPERTY_OWNER" && session.user.role !== "SUPER_ADMIN")) {
+    throw new Error("Akses ditolak: hanya Admin atau Pemilik Kost yang diizinkan");
   }
   return session;
 }
@@ -60,11 +60,12 @@ export async function getReportsAction(
   status?: "OPEN" | "IN_PROGRESS" | "RESOLVED"
 ) {
   try {
-    await requireAdmin();
+    const session = await requireAdmin();
+    const propertyId = session.user.propertyId;
 
     const reports = status
-      ? await getReportsByStatus(status)
-      : await getAllReports();
+      ? await getReportsByStatus(status, propertyId)
+      : await getAllReports(propertyId);
 
     return { success: true as const, data: reports };
   } catch (error: unknown) {
@@ -101,8 +102,8 @@ export async function getReportByIdAction(id: string) {
  */
 export async function getActiveLeasesAction() {
   try {
-    await requireAdmin();
-    const leases = await getActiveLeases();
+    const session = await requireAdmin();
+    const leases = await getActiveLeases(session.user.propertyId);
     return { success: true as const, data: leases };
   } catch (error: unknown) {
     const message =

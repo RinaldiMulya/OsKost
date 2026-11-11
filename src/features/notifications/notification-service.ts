@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import webpush from "web-push";
 import logger from "@/lib/logger";
+import { sendFCMNotification } from "@/lib/firebase-admin";
 
 const log = logger.child({ module: "notification-service" });
 
@@ -23,6 +24,12 @@ export interface NotificationPayload {
   message: string;
   type?: "BILLING" | "MAINTENANCE" | "SYSTEM" | "INFO" | "ANNOUNCEMENT";
   url?: string;
+  category?: string;
+  tag?: string;
+  extraNote?: string;
+  actionLabel?: string;
+  actionUrl?: string;
+  propertyId?: string;
 }
 
 // ============================================
@@ -99,11 +106,23 @@ export async function markAllNotificationsAsRead(userId: string) {
 }
 
 // ============================================
-// CENTRALIZED SERVICE - Send Notification (In-App + Web Push)
+// CENTRALIZED SERVICE - Send Notification (In-App + FCM Mobile + Web Push)
 // ============================================
 
 export async function sendNotification(payload: NotificationPayload) {
-  const { userId, title, message, type = "INFO", url = "/dashboard" } = payload;
+  const {
+    userId,
+    title,
+    message,
+    type = "INFO",
+    url = "/dashboard",
+    category = "all",
+    tag,
+    extraNote,
+    actionLabel,
+    actionUrl,
+    propertyId,
+  } = payload;
 
   // 0. Bersihkan pengumuman kadaluarsa (> 3 hari) secara pasif jika ada
   if (type === "ANNOUNCEMENT") {
@@ -117,6 +136,12 @@ export async function sendNotification(payload: NotificationPayload) {
       title,
       message,
       type,
+      category,
+      tag,
+      extraNote,
+      actionLabel,
+      actionUrl: actionUrl || (url !== "/dashboard" ? url : undefined),
+      propertyId,
       isRead: false,
     },
   });
@@ -124,47 +149,85 @@ export async function sendNotification(payload: NotificationPayload) {
   // Invalidate In-App Notification cache for user
   updateTag(CACHE_TAGS.userNotifications(userId));
 
-  // 2. Query Push Subscriptions for user and send Web Push
-  if (vapidPublicKey && vapidPrivateKey) {
+  // 2. Query Push Subscriptions for user
+  try {
     const subscriptions = await prisma.pushSubscription.findMany({
       where: { userId },
     });
 
     if (subscriptions.length > 0) {
-      const pushPayload = JSON.stringify({
-        title,
-        message,
-        url,
-        type,
-      });
+      // A. Kirim ke Mobile App via FCM (Android / iOS)
+      const mobileSubs = subscriptions.filter(
+        (sub) => sub.platform === "android" || sub.platform === "ios" || (!sub.p256dh && sub.endpoint)
+      );
+      const fcmTokens = mobileSubs.map((s) => s.endpoint).filter(Boolean);
 
-      const pushPromises = subscriptions.map(async (sub) => {
-        try {
-          await webpush.sendNotification(
-            {
-              endpoint: sub.endpoint,
-              keys: {
-                p256dh: sub.p256dh,
-                auth: sub.auth,
+      if (fcmTokens.length > 0) {
+        sendFCMNotification({
+          tokens: fcmTokens,
+          title,
+          body: message,
+          data: {
+            url: url || "",
+            type: type || "INFO",
+            notificationId: notification.id,
+          },
+        })
+          .then(async (res) => {
+            if (res.invalidTokens.length > 0) {
+              log.info({ count: res.invalidTokens.length }, "Membersihkan token FCM yang kadaluarsa");
+              await prisma.pushSubscription.deleteMany({
+                where: { endpoint: { in: res.invalidTokens } },
+              }).catch(() => {});
+            }
+          })
+          .catch((err) => {
+            log.error({ err }, "Gagal broadcast notifikasi FCM mobile");
+          });
+      }
+
+      // B. Kirim ke Web Browser Push (PWA Web) jika VAPID terkonfigurasi
+      const webSubs = subscriptions.filter(
+        (sub) => sub.platform === "web" && sub.p256dh && sub.auth
+      );
+
+      if (vapidPublicKey && vapidPrivateKey && webSubs.length > 0) {
+        const pushPayload = JSON.stringify({
+          title,
+          message,
+          url,
+          type,
+        });
+
+        const pushPromises = webSubs.map(async (sub) => {
+          try {
+            await webpush.sendNotification(
+              {
+                endpoint: sub.endpoint,
+                keys: {
+                  p256dh: sub.p256dh,
+                  auth: sub.auth,
+                },
               },
-            },
-            pushPayload
-          );
-        } catch (error: any) {
-          // If subscription has expired or is invalid (404/410), delete it from DB
-          if (error.statusCode === 404 || error.statusCode === 410) {
-            log.info({ endpoint: sub.endpoint }, "Menghapus push subscription kadaluarsa");
-            await prisma.pushSubscription.delete({
-              where: { id: sub.id },
-            }).catch(() => {});
-          } else {
-            log.error({ err: error, endpoint: sub.endpoint }, "Gagal mengirim web push");
+              pushPayload
+            );
+          } catch (error: any) {
+            if (error.statusCode === 404 || error.statusCode === 410) {
+              log.info({ endpoint: sub.endpoint }, "Menghapus web push subscription kadaluarsa");
+              await prisma.pushSubscription.delete({
+                where: { id: sub.id },
+              }).catch(() => {});
+            } else {
+              log.error({ err: error, endpoint: sub.endpoint }, "Gagal mengirim web push");
+            }
           }
-        }
-      });
+        });
 
-      await Promise.all(pushPromises);
+        await Promise.all(pushPromises);
+      }
     }
+  } catch (pushErr) {
+    log.error({ err: pushErr }, "Error dispatching push notifications");
   }
 
   return notification;

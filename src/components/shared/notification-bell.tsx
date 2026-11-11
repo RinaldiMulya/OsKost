@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Bell, CheckCheck, CreditCard, Wrench, Info, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Bell, CheckCheck, CreditCard, Wrench, Info, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -52,13 +52,13 @@ export function NotificationBell({ notifications: initialNotifications }: Notifi
   const getIcon = (type: string) => {
     switch (type) {
       case "BILLING":
-        return <CreditCard className="h-4 w-4 text-emerald-400" />;
+        return <CreditCard className="h-4 w-4 text-secondary" />;
       case "MAINTENANCE":
-        return <Wrench className="h-4 w-4 text-amber-400" />;
+        return <Wrench className="h-4 w-4 text-amber-ochre" />;
       case "SYSTEM":
-        return <ShieldAlert className="h-4 w-4 text-red-400" />;
+        return <ShieldAlert className="h-4 w-4 text-destructive" />;
       default:
-        return <Info className="h-4 w-4 text-blue-400" />;
+        return <Info className="h-4 w-4 text-primary" />;
     }
   };
 
@@ -78,12 +78,12 @@ export function NotificationBell({ notifications: initialNotifications }: Notifi
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-zinc-400 hover:text-white hover:bg-zinc-800/60 rounded-full"
+          className="relative text-[#4A453F] hover:text-[#1E1B18] hover:bg-[#F2EDE9] rounded-xl transition-colors cursor-pointer"
           aria-label="Notifikasi"
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm animate-pulse">
+            <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white shadow-xs animate-pulse">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -91,15 +91,15 @@ export function NotificationBell({ notifications: initialNotifications }: Notifi
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-80 sm:w-96 border-zinc-800 bg-zinc-950/95 text-white p-0 shadow-2xl backdrop-blur-xl"
+        className="w-80 sm:w-96 border-[#2C2825]/15 bg-white text-[#1E1B18] p-0 shadow-2xl rounded-2xl overflow-hidden"
       >
-        <div className="flex items-center justify-between border-b border-zinc-800 p-3 px-4">
+        <div className="flex items-center justify-between border-b border-[#2C2825]/10 p-3 px-4 bg-[#FAF8F5]/80">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold tracking-wide text-zinc-200">
+            <h3 className="text-sm font-bold tracking-wide text-[#1E1B18]">
               Notifikasi
             </h3>
             {unreadCount > 0 && (
-              <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold text-secondary">
+              <span className="rounded-full bg-secondary/15 px-2 py-0.5 text-[10px] font-bold text-secondary">
                 {unreadCount} baru
               </span>
             )}
@@ -111,19 +111,19 @@ export function NotificationBell({ notifications: initialNotifications }: Notifi
               size="sm"
               onClick={handleMarkAllRead}
               disabled={isPending}
-              className="h-7 text-xs text-zinc-400 hover:text-white px-2"
+              className="h-7 text-xs text-[#5C564E] hover:text-[#1E1B18] hover:bg-[#F2EDE9] px-2 rounded-lg cursor-pointer"
             >
-              <CheckCheck className="mr-1 h-3.5 w-3.5" /> Tandai dibaca
+              <CheckCheck className="mr-1 h-3.5 w-3.5 text-secondary" /> Tandai dibaca
             </Button>
           )}
         </div>
 
         {/* Prompt to Enable Push Notifications if not subscribed */}
         {isSupported && !isSubscribed && permission !== "denied" && (
-          <div className="bg-gradient-to-r from-secondary/10 to-amber-500/10 p-3 border-b border-zinc-800/80 flex items-center justify-between text-xs">
+          <div className="bg-[#FAF2EA]/60 p-3 border-b border-[#2C2825]/10 flex items-center justify-between text-xs">
             <div className="space-y-0.5">
-              <p className="font-semibold text-white">Aktifkan Push Notif</p>
-              <p className="text-[11px] text-zinc-400">
+              <p className="font-bold text-[#1E1B18]">Aktifkan Push Notif</p>
+              <p className="text-[11px] text-[#5C564E]">
                 Dapatkan notifikasi di layar HP saat tagihan terbit.
               </p>
             </div>
@@ -131,7 +131,7 @@ export function NotificationBell({ notifications: initialNotifications }: Notifi
               size="sm"
               onClick={subscribeToPush}
               disabled={pushLoading}
-              className="h-7 text-xs bg-secondary text-zinc-950 hover:bg-secondary/90 font-bold shrink-0 ml-2"
+              className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90 font-bold shrink-0 ml-2 rounded-lg shadow-2xs cursor-pointer"
             >
               {pushLoading ? "..." : "Aktifkan"}
             </Button>
@@ -139,7 +139,7 @@ export function NotificationBell({ notifications: initialNotifications }: Notifi
         )}
 
         {/* Notifications List */}
-        <div className="max-h-80 overflow-y-auto divide-y divide-zinc-900/60 scrollbar-thin scrollbar-thumb-zinc-800">
+        <div className="max-h-80 overflow-y-auto divide-y divide-[#2C2825]/8">
           {notifications.length > 0 ? (
             notifications.map((item) => (
               <div
@@ -147,30 +147,30 @@ export function NotificationBell({ notifications: initialNotifications }: Notifi
                 onClick={() => !item.isRead && handleMarkAsRead(item.id)}
                 className={`p-3 px-4 flex gap-3 items-start transition-colors cursor-pointer ${
                   item.isRead
-                    ? "bg-transparent opacity-60 hover:opacity-100"
-                    : "bg-zinc-900/40 hover:bg-zinc-900/70"
+                    ? "bg-transparent opacity-65 hover:opacity-100 hover:bg-[#FAF8F5]"
+                    : "bg-[#FAF2EA]/35 hover:bg-[#FAF2EA]/70"
                 }`}
               >
-                <div className="mt-0.5 shrink-0 p-1.5 rounded-lg bg-zinc-900 border border-zinc-800">
+                <div className="mt-0.5 shrink-0 p-1.5 rounded-lg bg-white border border-[#2C2825]/10 shadow-2xs">
                   {getIcon(item.type)}
                 </div>
                 <div className="space-y-1 flex-1 min-w-0">
                   <div className="flex justify-between items-baseline gap-2">
-                    <p className="text-xs font-semibold text-zinc-200 truncate">
+                    <p className="text-xs font-bold text-[#1E1B18] truncate">
                       {item.title}
                     </p>
-                    <span className="text-[10px] text-zinc-500 shrink-0">
+                    <span className="text-[10px] font-medium text-[#7A7369] shrink-0">
                       {formatDate(item.createdAt)}
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
+                  <p className="text-xs text-[#5C564E] leading-relaxed line-clamp-2">
                     {item.message}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <div className="p-8 text-center text-zinc-500 text-xs">
+            <div className="p-8 text-center text-[#7A7369] text-xs font-medium">
               Belum ada notifikasi saat ini.
             </div>
           )}

@@ -43,16 +43,22 @@ const announcementSchema = z.object({
   userIds: z.array(z.string()).min(1, "Pilih minimal 1 penyewa"),
   title: z.string().min(1, "Judul pengumuman harus diisi").max(100, "Judul maksimal 100 karakter"),
   message: z.string().min(1, "Isi pengumuman harus diisi").max(500, "Pesan maksimal 500 karakter"),
+  category: z.string().optional(),
+  tag: z.string().optional(),
+  extraNote: z.string().optional(),
 });
 
 export async function sendAnnouncementAction(input: {
   userIds: string[];
   title: string;
   message: string;
+  category?: string;
+  tag?: string;
+  extraNote?: string;
 }) {
   const session = await auth();
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
-    return { success: false, error: "Akses ditolak. Membutuhkan hak akses Admin." };
+  if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "PROPERTY_OWNER" && session.user.role !== "SUPER_ADMIN")) {
+    return { success: false, error: "Akses ditolak. Membutuhkan hak akses Admin atau Pemilik Kost." };
   }
 
   const parsed = announcementSchema.safeParse(input);
@@ -61,7 +67,7 @@ export async function sendAnnouncementAction(input: {
   }
 
   try {
-    const { userIds, title, message } = parsed.data;
+    const { userIds, title, message, category, tag, extraNote } = parsed.data;
 
     await Promise.all(
       userIds.map((userId) =>
@@ -70,7 +76,11 @@ export async function sendAnnouncementAction(input: {
           title,
           message,
           type: "ANNOUNCEMENT",
+          category: category || "penting",
+          tag: tag || "Pengumuman Gedung",
+          extraNote,
           url: "/dashboard",
+          propertyId: (session.user as any).propertyId,
         })
       )
     );
