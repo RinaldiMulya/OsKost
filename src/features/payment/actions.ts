@@ -70,8 +70,8 @@ export async function applyDiscountAction(
   discountPresetCode: string
 ) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "PROPERTY_OWNER" && session.user.role !== "SUPER_ADMIN")) {
+    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin atau Pemilik Kost." };
   }
 
   const parsed = applyDiscountSchema.safeParse({ invoiceId, discountPresetCode });
@@ -116,8 +116,8 @@ export async function applyDiscountAction(
 
 export async function removeDiscountAction(invoiceId: string) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "PROPERTY_OWNER" && session.user.role !== "SUPER_ADMIN")) {
+    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin atau Pemilik Kost." };
   }
 
   try {

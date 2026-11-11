@@ -66,8 +66,8 @@ export async function approvePromoClaimAction(
   adminNote?: string
 ) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "PROPERTY_OWNER" && session.user.role !== "SUPER_ADMIN")) {
+    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin atau Pemilik Kost." };
   }
 
   try {
@@ -100,8 +100,8 @@ export async function rejectPromoClaimAction(
   adminNote: string
 ) {
   const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
+  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "PROPERTY_OWNER" && session.user.role !== "SUPER_ADMIN")) {
+    return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin atau Pemilik Kost." };
   }
 
   if (!adminNote) {

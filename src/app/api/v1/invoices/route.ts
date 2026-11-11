@@ -23,13 +23,6 @@ export async function GET(req: NextRequest) {
             whereClause.lease = {
                 userId: authUser.id,
             };
-            // On-demand reconciliation jaring pengaman Midtrans
-            try {
-                const { reconcilePendingInvoices } = await import("@/features/payment/payment-service");
-                await reconcilePendingInvoices({ userId: authUser.id });
-            } catch (reconErr) {
-                console.error("[INVOICES_RECON_ERROR]", reconErr);
-            }
         } else if (authUser.propertyId) {
             whereClause.propertyId = authUser.propertyId;
         }

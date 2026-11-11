@@ -61,6 +61,20 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return apiError("ALREADY_PAID", "Tagihan ini sudah lunas", 400);
     }
 
+    // Idempotency check: jika bukti yang sama sudah dikirim dan status masih PENDING
+    if (invoice.status === "PENDING" && invoice.provider === "MANUAL" && invoice.proofUrl === parsed.data.proofUrl) {
+      return apiSuccess(
+        {
+          id: invoice.id,
+          status: invoice.status,
+          provider: invoice.provider,
+          proofUrl: invoice.proofUrl,
+          adminNote: invoice.adminNote,
+        },
+        { message: "Bukti pembayaran sudah tersimpan sebelumnya. Menunggu verifikasi pengelola kost." }
+      );
+    }
+
     // Update status tagihan menjadi PENDING (MANUAL)
     const updatedInvoice = await prisma.invoice.update({
       where: { id: invoiceId },

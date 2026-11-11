@@ -19,11 +19,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         let currentInvoice = await prisma.invoice.findUnique({
             where: { id: invoiceId },
             include: {
-                property: true,
+                property: {
+                    include: { subscription: true }
+                },
                 lease: {
                     include: {
                         room: true,
-                        property: true,
+                        property: {
+                            include: { subscription: true }
+                        },
                         user: {
                             select: {
                                 id: true,
@@ -49,11 +53,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
                 const refreshed = await prisma.invoice.findUnique({
                     where: { id: invoiceId },
                     include: {
-                        property: true,
+                        property: {
+                            include: { subscription: true }
+                        },
                         lease: {
                             include: {
                                 room: true,
-                                property: true,
+                                property: {
+                                    include: { subscription: true }
+                                },
                                 user: {
                                     select: {
                                         id: true,
@@ -91,6 +99,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         }
 
         const prop = invoice.property || invoice.lease.property;
+        const planTier = prop?.subscription?.planTier ?? "STARTER";
+        const isFreeTier = planTier === "FREE";
+        const isStarterTier = planTier === "STARTER";
+        const canUseMidtrans = !isFreeTier && !isStarterTier;
+        const canUseStaticQris = !isFreeTier;
 
         return apiSuccess({
             id: invoice.id,
@@ -122,13 +135,13 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
             verifiedAt: invoice.verifiedAt,
             createdAt: invoice.createdAt,
             paymentGateway: {
-                isMidtransActive: prop?.isMidtransActive ?? false,
-                midtransClientKey: prop?.midtransClientKey ?? null,
+                isMidtransActive: canUseMidtrans ? (prop?.isMidtransActive ?? false) : false,
+                midtransClientKey: canUseMidtrans ? (prop?.midtransClientKey ?? null) : null,
                 bankName: prop?.bankName ?? null,
                 bankAccountNumber: prop?.bankAccountNumber ?? null,
                 bankAccountHolder: prop?.bankAccountHolder ?? null,
                 bankAccountInfo: prop?.bankAccountInfo ?? null,
-                qrisImageUrl: prop?.qrisImageUrl ?? null,
+                qrisImageUrl: canUseStaticQris ? (prop?.qrisImageUrl ?? null) : null,
             },
             room: {
                 id: invoice.lease.room.id,

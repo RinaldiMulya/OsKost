@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCorsHeaders } from "./cors";
 
 export interface ApiMeta {
     timestamp: string;
@@ -21,7 +22,8 @@ export interface ApiResponse<T = unknown> {
 export function apiSuccess<T = unknown>(
     data: T,
     meta?: Record<string, unknown>,
-    status = 200
+    status = 200,
+    headers?: HeadersInit
 ): NextResponse<ApiResponse<T>> {
     const responsePayload: ApiResponse<T> = {
         data,
@@ -32,7 +34,15 @@ export function apiSuccess<T = unknown>(
         error: null,
     };
 
-    return NextResponse.json(responsePayload, { status });
+    const corsHeaders = getCorsHeaders(null);
+
+    return NextResponse.json(responsePayload, {
+        status,
+        headers: {
+            ...corsHeaders,
+            ...Object.fromEntries(new Headers(headers).entries()),
+        },
+    });
 }
 
 export function apiError(
@@ -40,7 +50,8 @@ export function apiError(
     message: string,
     status = 400,
     details?: unknown,
-    meta?: Record<string, unknown>
+    meta?: Record<string, unknown>,
+    headers?: HeadersInit
 ): NextResponse<ApiResponse<null>> {
     const responsePayload: ApiResponse<null> = {
         data: null,
@@ -55,5 +66,13 @@ export function apiError(
         },
     };
 
-    return NextResponse.json(responsePayload, { status });
+    const corsHeaders = getCorsHeaders(null);
+
+    return NextResponse.json(responsePayload, {
+        status,
+        headers: {
+            ...corsHeaders,
+            ...Object.fromEntries(new Headers(headers).entries()),
+        },
+    });
 }
