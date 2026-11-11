@@ -3,6 +3,7 @@ import { ArrowLeft, ChevronRight, Home, UserPlus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TenantForm } from "@/features/tenants/components/tenant-form";
 import { createTenantAction } from "@/features/tenants/actions";
+import { requireOwnerSession } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 import type { Metadata } from "next";
 
@@ -11,9 +12,14 @@ export const metadata: Metadata = {
 };
 
 export default async function CreateTenantPage() {
-  // Fetch only rooms that are currently AVAILABLE for check-in
+  const user = await requireOwnerSession();
+
+  // Fetch only rooms that are currently AVAILABLE in this property for check-in
   const availableRooms = await prisma.room.findMany({
-    where: { status: "AVAILABLE" },
+    where: {
+      propertyId: user.propertyId,
+      status: "AVAILABLE",
+    },
     orderBy: { number: "asc" },
   });
 

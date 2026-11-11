@@ -19,7 +19,7 @@ export function MobileNavToggle({ navLinks }: MobileNavToggleProps) {
     return (
         <div className="lg:hidden">
             <button
-                className="p-2 text-[#1E1B18] hover:text-[#A45A3D] transition-colors rounded-lg bg-[#EFE7DE]/50"
+                className="p-2 text-[#1E1B18] hover:text-[#A45A3D] transition-colors rounded-lg bg-[#EFE7DE]/50 cursor-pointer"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Toggle menu"
             >
@@ -41,18 +41,26 @@ export function MobileNavToggle({ navLinks }: MobileNavToggleProps) {
                         ))}
                         <div className="pt-2 flex flex-col gap-2.5">
                             <Link
+                                href="/radar"
+                                className="inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-[#00529C]/10 text-[#00529C] font-bold text-sm border border-[#00529C]/20"
+                                onClick={() => setIsMenuOpen(false)}
+                            >
+                                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                                <span>✨ OsRadar Spatial AI</span>
+                            </Link>
+                            <Link
                                 href="/login"
                                 className="text-[#1E1B18] hover:text-[#A45A3D] font-semibold text-sm py-2"
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                Masuk ke Portal Penghuni
+                                Masuk Dashboard Owner
                             </Link>
                             <Link
-                                href="#kamar"
-                                className="w-full bg-[#A45A3D] text-white text-center font-semibold py-3 rounded-xl shadow-md"
+                                href="/#pemilik-kost"
+                                className="w-full bg-[#A45A3D] hover:bg-[#864327] text-white text-center font-semibold py-3 rounded-xl shadow-md text-sm transition-colors"
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                Cek Kamar Tersedia
+                                Coba Gratis 14 Hari
                             </Link>
                         </div>
                     </div>

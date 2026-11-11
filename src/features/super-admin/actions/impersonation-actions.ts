@@ -14,7 +14,7 @@ export interface ImpersonationData {
     startedAt: string;
 }
 
-export const IMPERSONATION_COOKIE_NAME = "oskost_impersonation_session";
+const IMPERSONATION_COOKIE_NAME = "oskost_impersonation_session";
 
 /**
  * Super Admin starts impersonating a specific property owner.

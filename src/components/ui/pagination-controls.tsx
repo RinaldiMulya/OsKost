@@ -34,28 +34,44 @@ export function PaginationControls({
   const startItem = (currentPage - 1) * limit + 1;
   const endItem = Math.min(currentPage * limit, totalCount);
 
+  if (totalCount === 0) {
+    return null;
+  }
+
   return (
-    <div className="p-4 border-t border-zinc-800/80 bg-zinc-950/30 flex justify-between items-center text-sm text-zinc-400">
-      <span>
-        Menampilkan {totalCount === 0 ? 0 : startItem} - {endItem} dari{" "}
-        {totalCount} data
+    <div className="px-5 py-3.5 border-t border-[#2C2825]/10 bg-[#FAF8F5]/90 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+      <span className="text-[#5C564E] font-medium text-xs sm:text-sm">
+        Menampilkan{" "}
+        <strong className="font-bold text-[#1E1B18]">
+          {startItem} - {endItem}
+        </strong>{" "}
+        dari{" "}
+        <strong className="font-bold text-[#1E1B18]">{totalCount}</strong>{" "}
+        data
       </span>
 
-      {totalCount > limit && (
-        <div className="flex gap-2">
+      {totalPages > 1 && (
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
+            type="button"
             onClick={() => handleNavigate(currentPage - 1)}
             disabled={currentPage <= 1}
-            className="p-1.5 hover:bg-zinc-800/60 rounded-md disabled:opacity-50 transition-colors text-zinc-300 hover:text-white"
-            aria-label="Previous page"
+            className="inline-flex items-center justify-center size-8 rounded-xl border border-[#2C2825]/15 bg-white text-[#4A453F] shadow-2xs transition-all hover:bg-[#FAF2EA] hover:border-[#714A23]/40 hover:text-[#714A23] active:scale-95 disabled:pointer-events-none disabled:opacity-30 cursor-pointer"
+            aria-label="Halaman sebelumnya"
           >
             <ChevronLeft className="size-4" />
           </button>
+
+          <span className="px-2.5 py-1 text-xs font-bold text-[#1E1B18] bg-white border border-[#2C2825]/10 rounded-lg shadow-2xs select-none">
+            {currentPage} / {totalPages}
+          </span>
+
           <button
+            type="button"
             onClick={() => handleNavigate(currentPage + 1)}
             disabled={currentPage >= totalPages}
-            className="p-1.5 hover:bg-zinc-800/60 rounded-md disabled:opacity-50 transition-colors text-zinc-300 hover:text-white"
-            aria-label="Next page"
+            className="inline-flex items-center justify-center size-8 rounded-xl border border-[#2C2825]/15 bg-white text-[#4A453F] shadow-2xs transition-all hover:bg-[#FAF2EA] hover:border-[#714A23]/40 hover:text-[#714A23] active:scale-95 disabled:pointer-events-none disabled:opacity-30 cursor-pointer"
+            aria-label="Halaman berikutnya"
           >
             <ChevronRight className="size-4" />
           </button>

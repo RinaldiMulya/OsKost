@@ -77,12 +77,18 @@ export const resetPasswordSchema = z.object({
 // READ - All Tenants
 // ============================================
 
-export const getAllTenants = cache(async (): Promise<TenantForAdmin[]> => {
-    const parsedId = "all"; // Static identifier for global list cache
+export const getAllTenants = cache(async (propertyId?: string): Promise<TenantForAdmin[]> => {
     return unstable_cache(
         async () => {
             const users = await prisma.user.findMany({
-                where: { role: "TENANT" },
+                where: {
+                    role: "TENANT",
+                    ...(propertyId ? {
+                        leases: {
+                            some: { propertyId }
+                        }
+                    } : {})
+                },
                 orderBy: { createdAt: "desc" },
                 select: {
                     id: true,
@@ -92,6 +98,7 @@ export const getAllTenants = cache(async (): Promise<TenantForAdmin[]> => {
                     createdAt: true,
                     tenantProfile: true,
                     leases: {
+                        ...(propertyId ? { where: { propertyId } } : {}),
                         include: {
                             room: true,
                             invoices: {
@@ -104,7 +111,7 @@ export const getAllTenants = cache(async (): Promise<TenantForAdmin[]> => {
             });
             return users as unknown as TenantForAdmin[];
         },
-        ["admin-tenants"],
+        [`admin-tenants-${propertyId || "all"}`],
         { tags: [CACHE_TAGS.ADMIN_TENANTS], revalidate: 120 }
     )();
 });

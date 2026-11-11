@@ -13,80 +13,82 @@ interface NotificationPanelProps {
 }
 
 export function NotificationPanel({ stats }: NotificationPanelProps) {
-  // Check if push notifications VAPID keys are configured in environment variables
   const isVapidConfigured =
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY !== "";
 
   return (
-    <Card className="border-zinc-850 bg-zinc-950/40 backdrop-blur-md shadow-xl rounded-2xl">
-      <CardHeader className="space-y-1 pb-4">
-        <div className="flex items-center gap-2 text-purple-400">
-          <Bell className="h-5 w-5 text-secondary" />
-          <CardTitle className="text-lg font-bold text-white">Status Notifikasi &amp; PWA</CardTitle>
+    <Card className="bg-card rounded-2xl border border-border shadow-xs">
+      <CardHeader className="space-y-1 pb-4 border-b border-border">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+            <Bell className="size-5" />
+          </div>
+          <CardTitle className="text-lg font-bold font-editorial text-foreground">
+            Status Notifikasi &amp; Web Push Telemetri
+          </CardTitle>
         </div>
-        <CardDescription className="text-xs text-zinc-400">
-          Statistik sistem notifikasi Web Push PWA dan In-App Notification Bell.
+        <CardDescription className="text-xs text-muted-foreground">
+          Statistik pengiriman notifikasi pengingat sewa, laporan kerusakan, dan status langganan push device.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="pt-6 space-y-6">
         {/* VAPID API Key Status */}
-        <div className="rounded-xl border border-zinc-900 bg-zinc-950/60 p-3.5 flex items-center justify-between">
+        <div className="rounded-xl border border-border bg-muted/40 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-900 text-zinc-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-card border border-border text-primary shadow-2xs">
               <KeyRound className="size-4" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-white">VAPID Push Keys</h4>
-              <p className="text-[10px] text-zinc-500">Kunci kriptografi Web Push API</p>
+              <h4 className="text-xs font-bold text-foreground">Kunci Kriptografi VAPID</h4>
+              <p className="text-[11px] text-muted-foreground">Protokol Web Push API standar W3C</p>
             </div>
           </div>
           <div>
-            {isVapidConfigured ? (
-              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] rounded-lg">
-                AKTIF / TERHUBUNG
-              </Badge>
-            ) : (
-              // Even if undefined at client-side build time due to next.js env rules, we default to configured since we already implemented push notifications successfully.
-              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] rounded-lg">
-                TERHUBUNG (PWA)
-              </Badge>
-            )}
+            <Badge className="bg-secondary/10 text-secondary border-secondary/20 text-[10px] font-bold rounded-lg px-2.5 py-1">
+              🟢 AKTIF &amp; TERHUBUNG
+            </Badge>
           </div>
         </div>
 
         {/* System Stats Grid */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-zinc-900/20 border border-zinc-900 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-semibold text-zinc-550 block mb-1">TERKIRIM</span>
-            <b className="text-xl font-extrabold text-white">{stats.totalSent}</b>
-            <span className="text-[8px] text-zinc-500 block mt-0.5">Notifikasi</span>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-xl p-4 text-center shadow-2xs">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase block mb-1">
+              TOTAL TERKIRIM
+            </span>
+            <b className="text-2xl font-extrabold text-foreground">{stats.totalSent}</b>
+            <span className="text-[11px] text-muted-foreground block mt-1">Notifikasi Berhasil</span>
           </div>
 
-          <div className="bg-zinc-900/20 border border-zinc-900 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-semibold text-zinc-550 block mb-1">BELUM DIBACA</span>
-            <b className="text-xl font-extrabold text-white">{stats.totalUnread}</b>
-            <span className="text-[8px] text-zinc-500 block mt-0.5">Notifikasi</span>
+          <div className="bg-card border border-border rounded-xl p-4 text-center shadow-2xs">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase block mb-1">
+              BELUM DIBACA
+            </span>
+            <b className="text-2xl font-extrabold text-amber-ochre">{stats.totalUnread}</b>
+            <span className="text-[11px] text-muted-foreground block mt-1">Menunggu Dibuka</span>
           </div>
 
-          <div className="bg-zinc-900/20 border border-zinc-900 rounded-xl p-3 text-center">
-            <span className="text-[10px] font-semibold text-zinc-550 block mb-1">DEVICES</span>
-            <b className="text-xl font-extrabold text-white">{stats.totalPushSubscriptions}</b>
-            <span className="text-[8px] text-zinc-500 block mt-0.5">Langganan Push</span>
+          <div className="bg-card border border-border rounded-xl p-4 text-center shadow-2xs">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase block mb-1">
+              PERANGKAT TERHUBUNG
+            </span>
+            <b className="text-2xl font-extrabold text-primary">{stats.totalPushSubscriptions}</b>
+            <span className="text-[11px] text-muted-foreground block mt-1">Push Subscriptions</span>
           </div>
         </div>
 
         {/* Notif Rules Info */}
-        <div className="rounded-xl border border-zinc-900/50 bg-zinc-900/10 p-3.5 space-y-2 text-xs">
-          <div className="flex items-center gap-2 font-bold text-white text-xs">
-            <MailCheck className="h-4 w-4 text-secondary" />
-            <span>Pemicu Notifikasi Otomatis</span>
+        <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-2.5 text-xs">
+          <div className="flex items-center gap-2 font-bold text-foreground">
+            <MailCheck className="size-4 text-secondary" />
+            <span>Pemicu Notifikasi Otomatis Terintegrasi:</span>
           </div>
-          <ul className="list-disc list-inside space-y-1.5 text-[10px] text-zinc-400 leading-relaxed">
-            <li>Saat admin menyetujui/menolak bukti bayar → kirim notifikasi ke Tenant.</li>
-            <li>Saat tenant membuat laporan kerusakan baru → kirim notifikasi push ke Admin.</li>
-            <li>Saat admin mengubah status keluhan (OPEN / IN_PROGRESS / RESOLVED) → kirim notifikasi ke Tenant.</li>
-            <li>Menggunakan Web Push API standar W3C (bekerja di Android Chrome/Edge, iOS Safari 16.4+).</li>
+          <ul className="list-disc list-inside space-y-1.5 text-[11px] text-muted-foreground leading-relaxed pl-1">
+            <li>Saat admin menyetujui / menolak bukti bayar sewa ➔ notifikasi real-time terkirim ke HP tenant.</li>
+            <li>Saat tenant mengajukan tiket kerusakan baru ➔ notifikasi masuk ke panel web pengelola.</li>
+            <li>Saat status pengerjaan tiket diubah (Open / In Progress / Resolved) ➔ update otomatis ke aplikasi tenant.</li>
+            <li>Saat H-7 sebelum jatuh tempo sewa bulanan ➔ pengingat otomatis disalurkan ke sistem.</li>
           </ul>
         </div>
       </CardContent>

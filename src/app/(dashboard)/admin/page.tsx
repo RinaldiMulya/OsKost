@@ -22,6 +22,7 @@ import { RecentActivities } from "@/features/dashboard/recent-activities";
 import { ExpiringLeases } from "@/features/dashboard/expiring-leases";
 import { ExportDashboardButton } from "@/features/dashboard/export-dashboard-button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { requireOwnerSession } from "@/lib/auth-guard";
 
 // Chart components (sudah "use client" — Next.js auto code-split di boundary ini)
 import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
@@ -45,7 +46,9 @@ export const metadata = {
 };
 
 export default async function AdminOverviewPage() {
-    // Fetch semua data secara paralel (termasuk chart data)
+    const user = await requireOwnerSession();
+
+    // Fetch semua data secara paralel (scoped by property)
     const [
         stats,
         activities,
@@ -55,13 +58,13 @@ export default async function AdminOverviewPage() {
         paymentStatusData,
         maintenanceData,
     ] = await Promise.all([
-        getDashboardStats(),
-        getRecentActivities(),
-        getExpiringLeases(),
-        getRevenueChartData(),
-        getOccupancyChartData(),
-        getPaymentStatusChartData(),
-        getMaintenanceChartData(),
+        getDashboardStats(user.propertyId),
+        getRecentActivities(user.propertyId),
+        getExpiringLeases(user.propertyId),
+        getRevenueChartData(user.propertyId),
+        getOccupancyChartData(user.propertyId),
+        getPaymentStatusChartData(user.propertyId),
+        getMaintenanceChartData(user.propertyId),
     ]);
 
     return (
@@ -70,7 +73,7 @@ export default async function AdminOverviewPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl sm:text-3xl font-bold text-[#1E1B18] tracking-tight">
-                        Selamat Datang, Admin 👋
+                        Selamat Datang, {user.propertyName || user.name || "Owner"} 👋
                     </h2>
                     <p className="text-sm sm:text-base text-[#4A453F] font-medium mt-1">
                         Berikut ringkasan kondisi kost Anda hari ini.

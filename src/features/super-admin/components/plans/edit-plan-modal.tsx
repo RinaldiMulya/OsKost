@@ -23,14 +23,16 @@ interface EditPlanModalProps {
     onSuccess?: () => void;
 }
 
-export function EditPlanModal({
+export function EditPlanModal(props: EditPlanModalProps) {
+    if (!props.isOpen || !props.plan) return null;
+    return <EditPlanModalContent {...props} plan={props.plan} />;
+}
+
+function EditPlanModalContent({
     plan,
-    isOpen,
     onClose,
     onSuccess,
-}: EditPlanModalProps) {
-    if (!isOpen || !plan) return null;
-
+}: EditPlanModalProps & { plan: SaaSPlanItem }) {
     const [name, setName] = useState(plan.name);
     const [description, setDescription] = useState(plan.description || "");
     const [monthlyPrice, setMonthlyPrice] = useState(plan.monthlyPrice);

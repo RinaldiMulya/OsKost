@@ -13,11 +13,12 @@ import { CACHE_TAGS } from "@/lib/cache-tags";
  * 3. Daftar Pengajuan Klaim Promo Menunggu Verifikasi
  */
 
-export const getAdminBillingOverview = cache(async (query?: string, statusFilter?: string) => {
+export const getAdminBillingOverview = cache(async (query?: string, statusFilter?: string, propertyId?: string) => {
   return unstable_cache(
     async () => {
-      // 1. Fetch All Active & Past Invoices
+      // 1. Fetch Invoices Scoped by Property
       const invoices = await prisma.invoice.findMany({
+        where: propertyId ? { propertyId } : undefined,
         include: {
           lease: {
             include: {
@@ -106,7 +107,10 @@ export const getAdminBillingOverview = cache(async (query?: string, statusFilter
 
       // 4. Fetch Pending Promo Claims
       const pendingPromoClaims = await prisma.discountClaim.findMany({
-        where: { status: "PENDING" },
+        where: {
+          status: "PENDING",
+          ...(propertyId ? { invoice: { propertyId } } : {}),
+        },
         include: {
           invoice: {
             select: {
@@ -153,7 +157,7 @@ export const getAdminBillingOverview = cache(async (query?: string, statusFilter
         pendingPromoClaims,
       };
     },
-    [`admin-billing-overview-${query || ""}-${statusFilter || "ALL"}`],
+    [`admin-billing-overview-${propertyId || "all"}-${query || ""}-${statusFilter || "ALL"}`],
     {
       tags: [
         CACHE_TAGS.DASHBOARD_STATS,

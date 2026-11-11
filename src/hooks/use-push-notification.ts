@@ -14,18 +14,20 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export function usePushNotification() {
-  const [isSupported, setIsSupported] = useState(false);
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
-  const [permission, setPermission] = useState<NotificationPermission>("default");
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
-      setIsSupported(true);
-      setPermission(Notification.permission);
-      registerServiceWorkerAndCheckSubscription();
+  const [isSupported] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return "serviceWorker" in navigator && "PushManager" in window;
     }
-  }, []);
+    return false;
+  });
+  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [permission, setPermission] = useState<NotificationPermission>(() => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      return Notification.permission;
+    }
+    return "default";
+  });
+  const [loading, setLoading] = useState(false);
 
   const registerServiceWorkerAndCheckSubscription = async () => {
     try {
@@ -38,6 +40,12 @@ export function usePushNotification() {
       console.error("Error registering Service Worker for push:", error);
     }
   };
+
+  useEffect(() => {
+    if (isSupported) {
+      registerServiceWorkerAndCheckSubscription();
+    }
+  }, [isSupported]);
 
   const subscribeToPush = async () => {
     if (!isSupported) return false;

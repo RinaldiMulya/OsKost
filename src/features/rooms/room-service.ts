@@ -164,6 +164,132 @@ export async function getActivePropertyWithStats(): Promise<PropertyWithStats | 
     };
 }
 
+export interface PropertyShowcaseItem {
+    id: string;
+    name: string;
+    slug: string | null;
+    address: string;
+    mapsLink: string | null;
+    logoUrl: string | null;
+    primaryColorHex: string;
+    accentColorHex: string;
+    totalRooms: number;
+    availableRooms: number;
+    minPrice: number;
+    thumbnailUrl: string;
+    managerPhone: string | null;
+    features: any;
+}
+
+export async function getAllActivePropertiesForShowcase(): Promise<PropertyShowcaseItem[]> {
+    const properties = await prisma.property.findMany({
+        include: {
+            rooms: {
+                select: {
+                    price: true,
+                    status: true,
+                    images: true,
+                },
+                orderBy: { price: "asc" }
+            }
+        },
+        orderBy: { name: "asc" }
+    });
+
+    return properties.map((p) => {
+        const totalRooms = p.rooms.length;
+        const availableRooms = p.rooms.filter(r => r.status === "AVAILABLE").length;
+        const minPrice = p.rooms.length > 0 ? Math.min(...p.rooms.map(r => r.price)) : 0;
+        const firstRoomWithImage = p.rooms.find(r => r.images.length > 0);
+        const thumbnailUrl = firstRoomWithImage?.images[0] || p.logoUrl || "/images/hero-bg.webp";
+
+        return {
+            id: p.id,
+            name: p.name,
+            slug: p.slug,
+            address: p.address,
+            mapsLink: p.mapsLink,
+            logoUrl: p.logoUrl,
+            primaryColorHex: p.primaryColorHex,
+            accentColorHex: p.accentColorHex,
+            totalRooms,
+            availableRooms,
+            minPrice,
+            thumbnailUrl,
+            managerPhone: p.managerPhone,
+            features: p.features,
+        };
+    });
+}
+
+export interface PropertyPublicDetail extends PropertyWithStats {
+    mapsLink: string | null;
+    logoUrl: string | null;
+    primaryColorHex: string;
+    accentColorHex: string;
+    emergencyPhone: string | null;
+    features: any;
+    rooms: RoomDetail[];
+}
+
+export async function getPropertyPublicBySlug(slug: string): Promise<PropertyPublicDetail | null> {
+    const property = await prisma.property.findFirst({
+        where: { slug },
+        include: {
+            rooms: {
+                orderBy: { number: "asc" },
+                select: {
+                    id: true,
+                    name: true,
+                    number: true,
+                    type: true,
+                    price: true,
+                    status: true,
+                    description: true,
+                    facilities: true,
+                    images: true,
+                    propertyId: true,
+                    panoramaImages: {
+                        select: {
+                            id: true,
+                            title: true,
+                            description: true,
+                            imageUrl: true,
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    if (!property) return null;
+
+    const totalRooms = property.rooms.length;
+    const availableRooms = property.rooms.filter(r => r.status === "AVAILABLE").length;
+    const occupiedRooms = property.rooms.filter(r => r.status === "OCCUPIED").length;
+    const maintenanceRooms = property.rooms.filter(r => r.status === "MAINTENANCE").length;
+
+    return {
+        id: property.id,
+        name: property.name,
+        slug: property.slug,
+        address: property.address,
+        mapsLink: property.mapsLink,
+        logoUrl: property.logoUrl,
+        primaryColorHex: property.primaryColorHex,
+        accentColorHex: property.accentColorHex,
+        managerPhone: property.managerPhone,
+        guardPhone: property.guardPhone,
+        emergencyPhone: property.emergencyPhone,
+        features: property.features,
+        totalRooms,
+        availableRooms,
+        occupiedRooms,
+        maintenanceRooms,
+        rooms: property.rooms as unknown as RoomDetail[],
+    };
+}
+
 // ============================================
 // READ - Filtered Public Catalog Rooms
 // ============================================
@@ -322,15 +448,16 @@ export interface AdminRoomStats {
     uniqueTypes: string[];
 }
 
-export const getAdminRoomStats = cache(async (): Promise<AdminRoomStats> => {
+export const getAdminRoomStats = cache(async (propertyId?: string): Promise<AdminRoomStats> => {
     return unstable_cache(
         async () => {
+            const scope = propertyId ? { propertyId } : {};
             const [total, available, occupied, maintenance, distinctNames] = await Promise.all([
-                prisma.room.count(),
-                prisma.room.count({ where: { status: "AVAILABLE" } }),
-                prisma.room.count({ where: { status: "OCCUPIED" } }),
-                prisma.room.count({ where: { status: "MAINTENANCE" } }),
-                prisma.room.findMany({ distinct: ["name"], select: { name: true } })
+                prisma.room.count({ where: scope }),
+                prisma.room.count({ where: { ...scope, status: "AVAILABLE" } }),
+                prisma.room.count({ where: { ...scope, status: "OCCUPIED" } }),
+                prisma.room.count({ where: { ...scope, status: "MAINTENANCE" } }),
+                prisma.room.findMany({ where: scope, distinct: ["name"], select: { name: true } })
             ]);
 
             return {
@@ -341,7 +468,7 @@ export const getAdminRoomStats = cache(async (): Promise<AdminRoomStats> => {
                 uniqueTypes: distinctNames.map(r => r.name)
             };
         },
-        ["admin-room-stats"],
+        [`admin-room-stats-${propertyId || "all"}`],
         { tags: [CACHE_TAGS.ADMIN_ROOM_STATS], revalidate: 300 }
     )();
 });
@@ -352,14 +479,18 @@ export const getRoomsForAdmin = cache(async (params: {
     type?: string;
     page: number;
     limit: number;
+    propertyId?: string;
 }): Promise<{ data: RoomForAdmin[]; totalCount: number }> => {
-    const { search, status, type, page, limit } = params;
+    const { search, status, type, page, limit, propertyId } = params;
 
     // For search/filtered queries, use unstable_cache with params-specific key
     return unstable_cache(
         async () => {
             const skip = (page - 1) * limit;
             const where: any = {};
+            if (propertyId) {
+                where.propertyId = propertyId;
+            }
             if (search) {
                 where.OR = [
                     { number: { contains: search, mode: "insensitive" } },
@@ -388,7 +519,7 @@ export const getRoomsForAdmin = cache(async (params: {
 
             return { data: rooms as RoomForAdmin[], totalCount };
         },
-        [`admin-rooms-${search || ""}-${status || "ALL"}-${type || "ALL"}-${page}-${limit}`],
+        [`admin-rooms-${propertyId || "all"}-${search || ""}-${status || "ALL"}-${type || "ALL"}-${page}-${limit}`],
         { tags: [CACHE_TAGS.ADMIN_ROOMS], revalidate: 120 }
     )();
 });
@@ -418,8 +549,8 @@ export async function checkRoomQuota(propertyId?: string) {
     }
 
     const currentRooms = property._count.rooms;
-    const maxRooms = property.subscription?.maxRooms ?? 10;
-    const planTier = property.subscription?.planTier ?? "STARTER";
+    const maxRooms = property.subscription?.maxRooms ?? 5;
+    const planTier = property.subscription?.planTier ?? "FREE";
 
     if (currentRooms >= maxRooms) {
         return {
@@ -447,6 +578,7 @@ export async function createRoom(data: {
     description?: string;
     facilities: string[];
     images: string[];
+    propertyId?: string;
     panoramaImages?: {
         title: string;
         description?: string;
@@ -455,16 +587,16 @@ export async function createRoom(data: {
         userId: string;
     }[];
 }) {
-    // Quota Guard: Validasi batas kuota paket sebelum pembuatan kamar
-    const quota = await checkRoomQuota();
-    if (!quota.allowed) {
-        throw new Error(quota.message ?? "Batas kuota kamar tercapai. Silakan upgrade paket langganan Anda.");
+    // Resolve target property
+    const propertyId = data.propertyId || (await prisma.property.findFirst({ select: { id: true } }))?.id;
+    if (!propertyId) {
+        throw new Error("Properti tidak ditemukan. Pastikan properti telah terdaftar.");
     }
 
-    // Get the default property
-    const property = await prisma.property.findFirst();
-    if (!property) {
-        throw new Error("No property found. Please seed the database first.");
+    // Quota Guard: Validasi batas kuota paket sebelum pembuatan kamar
+    const quota = await checkRoomQuota(propertyId);
+    if (!quota.allowed) {
+        throw new Error(quota.message ?? "Batas kuota kamar tercapai. Silakan upgrade paket langganan Anda.");
     }
 
     return prisma.room.create({
@@ -476,7 +608,7 @@ export async function createRoom(data: {
             description: data.description || null,
             facilities: data.facilities,
             images: data.images,
-            propertyId: property.id,
+            propertyId: propertyId,
             panoramaImages: data.panoramaImages ? {
                 create: data.panoramaImages.map(pano => ({
                     title: pano.title,

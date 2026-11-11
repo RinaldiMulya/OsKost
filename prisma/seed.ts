@@ -420,6 +420,8 @@ async function main() {
       features: {
         hasSmartLock: false,
         hasSosButton: true,
+        hasTechnician: true,
+        whiteLabelEnabled: true,
       },
     },
   });
@@ -432,15 +434,15 @@ async function main() {
   await prisma.saaSSubscription.create({
     data: {
       propertyId: propertyPuloJahe.id,
-      planTier: "STARTER",
+      planTier: "GROWTH",
       status: "ACTIVE",
-      monthlyPrice: 69000,
-      maxRooms: 15,
+      monthlyPrice: 179000,
+      maxRooms: 40,
       currentPeriodStart: new Date(),
-      notes: "Properti Pilot #1 - OSkost Pulo Jahe",
+      notes: "Properti Pilot #1 - OSkost Pulo Jahe (Tier Growth + White-Labeling Mobile)",
     },
   });
-  console.log("✅ SaaS Subscription aktif (Tier: STARTER, Kuota: 15 Kamar).");
+  console.log("✅ SaaS Subscription aktif (Tier: GROWTH, Kuota: 40 Kamar).");
 
   // 9. Setup 11 Kamar Asli OSkost Pulo Jahe
   console.log("Step 9: Menyiapkan 11 Kamar OSkost Pulo Jahe...");

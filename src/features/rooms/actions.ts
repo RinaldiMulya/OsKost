@@ -4,6 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { requireOwnerSession } from "@/lib/auth-guard";
 import logger from "@/lib/logger";
 
 const log = logger.child({ module: "room-actions" });
@@ -52,10 +53,7 @@ export async function createRoomAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        const user = await requireOwnerSession();
 
         const raw = Object.fromEntries(formData);
         const parsed = roomFormSchema.safeParse(raw);
@@ -73,6 +71,7 @@ export async function createRoomAction(
         await createRoom({
             ...parseFormToServiceInput(parsed.data),
             panoramaImages,
+            propertyId: user.propertyId,
         });
 
         revalidatePath("/admin/rooms");
@@ -100,10 +99,7 @@ export async function updateRoomAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         const raw = Object.fromEntries(formData);
         const roomId = raw.id as string;
@@ -150,10 +146,7 @@ export async function deleteRoomAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         const roomId = formData.get("id") as string;
 
@@ -192,10 +185,7 @@ export async function addPanoramaAction(data: {
     storagePath: string;
 }) {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            throw new Error("Akses ditolak: Memerlukan hak akses Admin.");
-        }
+        await requireOwnerSession();
 
         const { addPanoramaToRoom } = await import("./room-service");
         await addPanoramaToRoom(data);
@@ -218,10 +208,7 @@ export async function addPanoramaAction(data: {
 
 export async function deletePanoramaAction(panoramaId: string, roomId: string) {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            throw new Error("Akses ditolak: Memerlukan hak akses Admin.");
-        }
+        await requireOwnerSession();
 
         const { deletePanoramaFromRoom } = await import("./room-service");
         await deletePanoramaFromRoom(panoramaId);
@@ -251,10 +238,7 @@ export async function bulkUpdateRoomStatusAction(
     status: "AVAILABLE" | "OCCUPIED" | "MAINTENANCE"
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         if (!roomIds || roomIds.length === 0) {
             return { success: false, error: "Pilih minimal satu kamar." };

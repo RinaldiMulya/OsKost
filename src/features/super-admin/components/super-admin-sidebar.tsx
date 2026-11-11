@@ -189,8 +189,8 @@ export function SuperAdminSidebar({ userEmail }: SuperAdminSidebarProps) {
                     </nav>
                 </div>
 
-                {/* Pro Tip Card */}
-                <div className="p-3.5 rounded-xl bg-gradient-to-b from-[#22223A] to-[#1D1D32] border border-[#2B2B46] text-xs space-y-1.5">
+                {/* Pro Tip Card & Switcher */}
+                <div className="p-3.5 rounded-xl bg-gradient-to-b from-[#22223A] to-[#1D1D32] border border-[#2B2B46] text-xs space-y-2">
                     <div className="flex items-center gap-1.5 text-[#D4A843] font-semibold">
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>SaaS Engine Active</span>
@@ -198,6 +198,15 @@ export function SuperAdminSidebar({ userEmail }: SuperAdminSidebarProps) {
                     <p className="text-[11px] text-[#8686A0] leading-relaxed">
                         Data agregasi MRR, okupansi kamar, dan billing terhitung otomatis dari seluruh node properti.
                     </p>
+                    <div className="pt-2 border-t border-[#2B2B46]">
+                        <Link
+                            href="/admin"
+                            className="flex items-center justify-between text-[11px] text-[#D4A843] hover:text-white font-semibold transition-colors"
+                        >
+                            <span>Lihat Dashboard Kost (/admin)</span>
+                            <span>➔</span>
+                        </Link>
+                    </div>
                 </div>
             </div>
 

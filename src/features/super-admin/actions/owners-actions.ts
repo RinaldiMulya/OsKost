@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import bcryptjs from "bcryptjs";
 import { SaaSPlanTier, SubscriptionStatus } from "@prisma/client";
 import { PLAN_TIER_CONFIG } from "@/features/super-admin/constants/plan-constants";
+import { validatePropertySlug } from "@/lib/constants/reserved-slugs";
 
 export interface OwnerItem {
     id: string;
@@ -152,7 +153,13 @@ export async function createOwnerWithPropertyAction(
             return { success: false, error: "Nomor WhatsApp sudah terdaftar pada akun lain." };
         }
 
-        // Check uniqueness of Slug
+        // Validate Slug format and check against Reserved Slugs
+        const slugValidation = validatePropertySlug(cleanSlug);
+        if (!slugValidation.valid) {
+            return { success: false, error: slugValidation.error || "Slug URL tidak valid." };
+        }
+
+        // Check uniqueness of Slug in Database
         const existingSlug = await prisma.property.findUnique({
             where: { slug: cleanSlug },
         });

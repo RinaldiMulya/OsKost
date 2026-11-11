@@ -145,28 +145,27 @@ export function RoomDetailView({ room }: RoomDetailViewProps) {
             <header className="sticky top-0 z-50 w-full bg-[#F8F6F1]/90 backdrop-blur-xl border-b border-[#2C2825]/8 shadow-[0_2px_12px_rgba(44,40,37,0.03)]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
                     {/* Brand Link */}
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="w-10 h-10 rounded-xl bg-white border border-[#2C2825]/8 shadow-sm flex items-center justify-center p-1 transition-transform group-hover:scale-105">
-                            <Image
-                                src="/images/logo-icon.png"
-                                alt="OsKost"
-                                width={28}
-                                height={28}
-                                className="w-6 h-6 object-contain"
-                            />
+                    <Link href="/" className="flex items-center gap-2.5 group">
+                        <div className="w-9 h-9 rounded-xl bg-[#8C6239] text-white flex items-center justify-center font-bold text-sm shadow-xs group-hover:scale-105 transition-transform">
+                            <Building2 className="w-4 h-4" />
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="font-editorial text-2xl font-bold tracking-tight text-[#1E1B18]">
-                                OsKost
+                        <div className="flex flex-col">
+                            <span className="font-bold text-[#1E1B18] text-sm sm:text-base tracking-tight group-hover:text-[#8C6239] transition-colors leading-tight">
+                                {propertyName}
                             </span>
-                            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-[#C7EBD4] text-[#2C4C3B] text-[10px] font-bold tracking-wider uppercase">
-                                Residences
+                            <span className="text-[10px] text-[#7A7067] font-medium tracking-wide">
+                                Website Resmi Properti
                             </span>
                         </div>
                     </Link>
 
                     {/* Navigation Actions */}
                     <div className="flex items-center gap-3">
+                        <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-semibold border border-emerald-200">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Terdaftar di OsKost</span>
+                        </div>
+
                         <Link
                             href="/kamar"
                             className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-[#2C2825]/8 text-xs font-semibold text-[#54433D] hover:text-[#A45A3D] transition-colors shadow-xs"

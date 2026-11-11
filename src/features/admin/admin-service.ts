@@ -45,8 +45,11 @@ export const passwordSchema = z
 export const getAdminProfile = cache(async (
     userId: string
 ): Promise<AdminProfile | null> => {
-    const user = await prisma.user.findUnique({
-        where: { id: userId, role: "ADMIN" },
+    const user = await prisma.user.findFirst({
+        where: {
+            id: userId,
+            role: { in: ["ADMIN", "PROPERTY_OWNER", "SUPER_ADMIN"] },
+        },
         select: {
             id: true,
             email: true,
@@ -129,43 +132,80 @@ export interface PropertyProfile {
         monthlyPrice: number;
         currentPeriodEnd?: Date | null;
         trialEndsAt?: Date | null;
+        notes?: string | null;
     } | null;
     roomsCount?: number;
 }
 
-export async function getPropertyProfile(): Promise<PropertyProfile | null> {
-    const property = await prisma.property.findFirst({
-        select: {
-            id: true,
-            name: true,
-            address: true,
-            features: true,
-            bankName: true,
-            bankAccountNumber: true,
-            bankAccountHolder: true,
-            bankAccountInfo: true,
-            qrisImageUrl: true,
-            midtransMerchantId: true,
-            midtransServerKey: true,
-            midtransClientKey: true,
-            isMidtransActive: true,
-            subscription: {
-                select: {
-                    planTier: true,
-                    status: true,
-                    maxRooms: true,
-                    monthlyPrice: true,
-                    currentPeriodEnd: true,
-                    trialEndsAt: true,
+export async function getPropertyProfile(propertyId?: string): Promise<PropertyProfile | null> {
+    const property = propertyId
+        ? await prisma.property.findUnique({
+            where: { id: propertyId },
+            select: {
+                id: true,
+                name: true,
+                address: true,
+                features: true,
+                bankName: true,
+                bankAccountNumber: true,
+                bankAccountHolder: true,
+                bankAccountInfo: true,
+                qrisImageUrl: true,
+                midtransMerchantId: true,
+                midtransServerKey: true,
+                midtransClientKey: true,
+                isMidtransActive: true,
+                subscription: {
+                    select: {
+                        planTier: true,
+                        status: true,
+                        maxRooms: true,
+                        monthlyPrice: true,
+                        currentPeriodEnd: true,
+                        trialEndsAt: true,
+                        notes: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        rooms: true,
+                    },
                 },
             },
-            _count: {
-                select: {
-                    rooms: true,
+        })
+        : await prisma.property.findFirst({
+            select: {
+                id: true,
+                name: true,
+                address: true,
+                features: true,
+                bankName: true,
+                bankAccountNumber: true,
+                bankAccountHolder: true,
+                bankAccountInfo: true,
+                qrisImageUrl: true,
+                midtransMerchantId: true,
+                midtransServerKey: true,
+                midtransClientKey: true,
+                isMidtransActive: true,
+                subscription: {
+                    select: {
+                        planTier: true,
+                        status: true,
+                        maxRooms: true,
+                        monthlyPrice: true,
+                        currentPeriodEnd: true,
+                        trialEndsAt: true,
+                        notes: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        rooms: true,
+                    },
                 },
             },
-        },
-    });
+        });
 
     if (!property) return null;
 

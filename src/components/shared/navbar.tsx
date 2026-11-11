@@ -1,14 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
-import { User, Sparkles } from "lucide-react";
 import { MobileNavToggle } from "./mobile-nav-toggle";
 
 const navLinks = [
-  // { href: "/kamar", label: "Kamar" },
-  { href: "/#tur-360", label: "Tur 360°" },
-  { href: "/#fasilitas", label: "Fasilitas" },
-  { href: "/#lokasi", label: "Lokasi" },
-  { href: "/#pemilik-kost", label: "Untuk Pemilik Kost" },
+  { href: "/#katalog", label: "Katalog Kost" },
+  { href: "/#kalkulator", label: "Hitung Cuan" },
+  { href: "/#pemilik-kost", label: "Paket SaaS" },
+  { href: "/radar", label: "✨ Radar Spasial" },
+  { href: "/#fasilitas", label: "Fitur Unggulan" },
+  { href: "/#faq", label: "Tanya Jawab" },
 ];
 
 export function Navbar() {
@@ -44,7 +44,7 @@ export function Navbar() {
                 OsKost
               </span>
               <span className="hidden md:inline-block px-2.5 py-0.5 rounded-full bg-[#C7EBD4] text-[#2C4C3B] text-[10px] font-bold tracking-wider uppercase">
-                Residences
+                SaaS Platform
               </span>
             </div>
           </Link>
@@ -55,7 +55,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-[#757069] hover:text-[#1E1B18] hover:bg-[#A45A3D]/30 px-4 py-1.5 rounded-full transition-all duration-200 text-xs font-semibold tracking-wide"
+                className="text-[#757069] hover:text-[#1E1B18] hover:bg-[#A45A3D]/20 px-4 py-1.5 rounded-full transition-all duration-200 text-xs font-semibold tracking-wide"
               >
                 {link.label}
               </Link>
@@ -68,23 +68,15 @@ export function Navbar() {
               href="/login"
               className="text-[#54433D] hover:text-[#A45A3D] text-xs font-semibold tracking-wide transition-colors px-2 py-1"
             >
-              Portal Penghuni
+              Masuk Owner
             </Link>
 
             <Link
-              href="/kamar"
-              className="inline-flex items-center justify-center gap-2 bg-[#A45A3D] hover:bg-[#864327] text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow-[0_4px_14px_rgba(164,90,61,0.25)] hover:shadow-[0_6px_20px_rgba(164,90,61,0.35)] transition-all duration-200"
+              href="/#pemilik-kost"
+              className="inline-flex items-center justify-center gap-2 bg-[#A45A3D] hover:bg-[#864327] text-white text-xs font-semibold px-4 py-2.5 rounded-xl shadow-[0_4px_14px_rgba(164,90,61,0.25)] hover:shadow-[0_6px_20px_rgba(164,90,61,0.35)] transition-all duration-200"
             >
-              <span>Properti</span>
+              <span>Coba Gratis 14 Hari</span>
             </Link>
-
-            {/* <Link
-              href="/login"
-              className="w-9 h-9 rounded-full bg-[#EFE7DE] hover:bg-[#A45A3D]/20 text-[#54433D] flex items-center justify-center transition-colors"
-              title="Akun Saya"
-            >
-              <User className="w-4 h-4" />
-            </Link> */}
           </div>
 
           {/* Mobile Menu Button + Navigation */}

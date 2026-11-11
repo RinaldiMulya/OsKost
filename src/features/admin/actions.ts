@@ -24,7 +24,7 @@ export interface ActionResult {
 
 async function getAdminId(): Promise<string> {
     const session = await auth();
-    if (!session?.user?.id || session.user.role !== "ADMIN") {
+    if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "PROPERTY_OWNER" && session.user.role !== "SUPER_ADMIN")) {
         throw new Error("Unauthorized");
     }
     return session.user.id;
@@ -124,7 +124,7 @@ export async function updatePropertyProfileAction(
         }
 
         const { updatePropertyProfile, getPropertyProfile } = await import("./admin-service");
-        const existing = await getPropertyProfile();
+        const existing = await getPropertyProfile(id);
         const existingFeatures = (existing?.features as Record<string, unknown>) || {};
 
         await updatePropertyProfile(id, name, address, {

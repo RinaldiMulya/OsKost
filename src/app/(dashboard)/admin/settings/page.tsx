@@ -22,7 +22,7 @@ export default async function AdminSettingsPage() {
   // Fetch all settings data concurrently
   const [admin, property, notificationStats] = await Promise.all([
     getAdminProfile(session.user.id),
-    getPropertyProfile(),
+    getPropertyProfile(session.user.propertyId),
     getNotificationStats(),
   ]);
 

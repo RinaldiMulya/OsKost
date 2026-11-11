@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, Pencil, BedDouble, Key, Wrench, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { requireOwnerSession } from "@/lib/auth-guard";
 import {
   getRoomsForAdmin,
   getAdminRoomStats,
@@ -57,9 +58,11 @@ export default async function AdminRoomsPage({ searchParams }: PageProps) {
   const page = Number(resolvedParams.page) || 1;
   const limit = 10;
 
+  const user = await requireOwnerSession();
+
   const [stats, { data: rooms, totalCount }] = await Promise.all([
-    getAdminRoomStats(),
-    getRoomsForAdmin({ search, status, type, page, limit }),
+    getAdminRoomStats(user.propertyId),
+    getRoomsForAdmin({ search, status, type, page, limit, propertyId: user.propertyId }),
   ]);
 
   const totalPages = Math.ceil(totalCount / limit);

@@ -1,6 +1,6 @@
 "use server";
 
-import { auth } from "@/auth";
+import { requireOwnerSession } from "@/lib/auth-guard";
 import { prisma } from "@/lib/db";
 
 /**
@@ -8,10 +8,8 @@ import { prisma } from "@/lib/db";
  * Mengambil data stats, aktivitas terbaru (3 hari), dan kamar habis kontrak.
  */
 export async function exportDashboardDataAction() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
+  const user = await requireOwnerSession();
+  const propertyId = user.propertyId;
 
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -165,13 +163,19 @@ export async function exportDashboardDataAction() {
  * Server Action: Export data seluruh penghuni untuk admin.
  */
 export async function exportTenantsDataAction() {
-  const session = await auth();
-  if (!session?.user || session.user.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
+  const user = await requireOwnerSession();
+  const propertyId = user.propertyId;
 
   const tenants = await prisma.user.findMany({
-    where: { role: "TENANT" },
+    where: {
+      role: "TENANT",
+      leases: {
+        some: {
+          isActive: true,
+          ...(propertyId ? { propertyId } : {}),
+        },
+      },
+    },
     select: {
       id: true,
       email: true,

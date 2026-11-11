@@ -4,12 +4,13 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { playNotificationSound } from "@/lib/sound";
 
 /**
  * Custom hook untuk Admin Dashboard yang berlangganan (subscribe) ke Supabase Realtime
- * pada tabel Invoice dan Report.
- * Begitu ada pembayaran baru atau laporan kerusakan baru dari tenant,
- * data di Admin Dashboard otomatis ter-update secara instan milidetik.
+ * pada tabel Notification, Invoice, dan Report.
+ * Begitu ada pembayaran baru, laporan keluhan, atau notifikasi dari tenant,
+ * suara lonceng berbunyi, pop-up Toast muncul, dan data di Admin Dashboard ter-refresh otomatis.
  */
 export function useAdminRealtime() {
   const router = useRouter();
@@ -17,7 +18,38 @@ export function useAdminRealtime() {
   useEffect(() => {
     const supabase = createClient();
 
-    // 1. Subscribe ke tabel Invoice
+    // 1. Subscribe ke tabel Notification (In-App Notifikasi Khusus Owner)
+    const notifChannel = supabase
+      .channel("admin-notifications-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "Notification",
+        },
+        (payload) => {
+          const newNotif = payload.new as {
+            title?: string;
+            message?: string;
+            type?: string;
+          };
+
+          playNotificationSound();
+
+          if (newNotif.title) {
+            toast.info(newNotif.title, {
+              description: newNotif.message,
+              duration: 5000,
+            });
+          }
+
+          router.refresh();
+        }
+      )
+      .subscribe();
+
+    // 2. Subscribe ke tabel Invoice (Pembayaran Sewa Tenant)
     const invoiceChannel = supabase
       .channel("admin-invoices-realtime")
       .on(
@@ -31,7 +63,10 @@ export function useAdminRealtime() {
           if (payload.eventType === "UPDATE") {
             const newStatus = (payload.new as { status?: string })?.status;
             if (newStatus === "PAID") {
-              toast.success("Pembayaran tagihan baru berhasil dikonfirmasi!");
+              playNotificationSound();
+              toast.success("Pembayaran tagihan baru berhasil dikonfirmasi!", {
+                duration: 5000,
+              });
             }
           }
           router.refresh();
@@ -39,7 +74,7 @@ export function useAdminRealtime() {
       )
       .subscribe();
 
-    // 2. Subscribe ke tabel Report
+    // 3. Subscribe ke tabel Report (Laporan Kerusakan / Keluhan Tenant)
     const reportChannel = supabase
       .channel("admin-reports-realtime")
       .on(
@@ -49,14 +84,20 @@ export function useAdminRealtime() {
           schema: "public",
           table: "Report",
         },
-        () => {
-          toast.info("Laporan keluhan baru diterima dari tenant!");
+        (payload) => {
+          const report = payload.new as { title?: string };
+          playNotificationSound();
+          toast.info("Laporan keluhan baru diterima dari tenant!", {
+            description: report?.title,
+            duration: 5000,
+          });
           router.refresh();
         }
       )
       .subscribe();
 
     return () => {
+      supabase.removeChannel(notifChannel);
       supabase.removeChannel(invoiceChannel);
       supabase.removeChannel(reportChannel);
     };

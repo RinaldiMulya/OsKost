@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { requireOwnerSession } from "@/lib/auth-guard";
 import { getAllTenants } from "@/features/tenants/tenant-service";
 import { DashboardStats } from "@/features/tenants/components/DashboardStats";
 import { TenantTable } from "@/features/tenants/components/TenantTable";
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminTenantsPage() {
-  const tenants = await getAllTenants();
+  const user = await requireOwnerSession();
+  const tenants = await getAllTenants(user.propertyId);
 
   // Hitung statistik hanya dari penyewa yang memiliki lease aktif
   let totalCount = 0;

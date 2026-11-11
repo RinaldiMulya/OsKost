@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag, updateTag } from "next/cache";
 import { CACHE_TAGS } from "@/lib/cache-tags";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { requireOwnerSession } from "@/lib/auth-guard";
 import {
     tenantFormSchema,
     checkInFormSchema,
@@ -36,10 +37,7 @@ export async function createTenantAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         const raw = Object.fromEntries(formData);
         const parsed = checkInFormSchema.safeParse(raw);
@@ -108,10 +106,7 @@ export async function updateTenantAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         const raw = Object.fromEntries(formData);
         const userId = raw.id as string;
@@ -176,10 +171,7 @@ export async function checkoutTenantAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         const userId = formData.get("id") as string;
 
@@ -219,10 +211,7 @@ export async function resetTenantPasswordAction(
     formData: FormData
 ): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         const raw = Object.fromEntries(formData);
         const parsed = resetPasswordSchema.safeParse(raw);
@@ -251,16 +240,13 @@ export async function resetTenantPasswordAction(
 
 export async function markInvoicePaidAction(invoiceId: string): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        const user = await requireOwnerSession();
 
         if (!invoiceId) {
             return { success: false, error: "Invoice ID is required" };
         }
 
-        const result = await markInvoicePaid(invoiceId, session.user.id);
+        const result = await markInvoicePaid(invoiceId, user.id);
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
@@ -287,10 +273,7 @@ export async function markInvoicePaidAction(invoiceId: string): Promise<ActionRe
 
 export async function rejectInvoicePaymentAction(invoiceId: string, reason: string): Promise<ActionResult> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        const user = await requireOwnerSession();
 
         if (!invoiceId) {
             return { success: false, error: "Invoice ID is required" };
@@ -299,7 +282,7 @@ export async function rejectInvoicePaymentAction(invoiceId: string, reason: stri
             return { success: false, error: "Alasan penolakan wajib diisi" };
         }
 
-        const result = await rejectInvoicePayment(invoiceId, reason, session.user.id);
+        const result = await rejectInvoicePayment(invoiceId, reason, user.id);
 
         revalidatePath("/admin/tenants");
         revalidatePath("/admin");
@@ -330,10 +313,7 @@ export async function rejectInvoicePaymentAction(invoiceId: string, reason: stri
 
 export async function sendBillingReminderAction(userId: string): Promise<ActionResult & { tenantName?: string }> {
     try {
-        const session = await auth();
-        if (!session?.user || session.user.role !== "ADMIN") {
-            return { success: false, error: "Akses ditolak: Memerlukan hak akses Admin." };
-        }
+        await requireOwnerSession();
 
         if (!userId) {
             return { success: false, error: "User ID is required" };

@@ -40,10 +40,12 @@ export function SettingsTabs({
     { id: "notifications", label: "Status Notifikasi", icon: Bell },
   ] as const;
 
+  const currentPlanTier = property?.subscription?.planTier ?? "STARTER";
+
   return (
     <div className="space-y-6">
       {/* Tabs Selector Bar */}
-      <div className="flex border-b border-[#2C2825]/10 gap-2 pb-px overflow-x-auto scrollbar-hide">
+      <div className="flex border-b border-border gap-2 pb-px overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -53,11 +55,11 @@ export function SettingsTabs({
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-all shrink-0 cursor-pointer ${
                 isActive
-                  ? "border-[#714A23] text-[#714A23]"
-                  : "border-transparent text-[#4A453F] hover:text-[#1E1B18]"
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="size-4 shrink-0" />
               <span>{tab.label}</span>
             </button>
           );
@@ -79,6 +81,7 @@ export function SettingsTabs({
               <SubscriptionCard
                 subscription={property?.subscription}
                 roomsCount={property?.roomsCount ?? 11}
+                features={property?.features}
               />
             </motion.div>
           )}
@@ -90,11 +93,12 @@ export function SettingsTabs({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="max-w-4xl mx-auto w-full"
+              className="max-w-6xl mx-auto w-full"
             >
               {property ? (
                 <PaymentSettingsForm
                   propertyId={property.id}
+                  currentPlanTier={currentPlanTier}
                   initialBankName={property.bankName}
                   initialBankAccountNumber={property.bankAccountNumber}
                   initialBankAccountHolder={property.bankAccountHolder}
@@ -105,10 +109,13 @@ export function SettingsTabs({
                   initialMidtransClientKey={property.midtransClientKey}
                   hasMidtransServerKey={property.hasMidtransServerKey}
                   maskedMidtransServerKey={property.maskedMidtransServerKey}
+                  onNavigateToTab={(tab) => setActiveTab(tab as any)}
                 />
               ) : (
-                <div className="text-center py-10 bg-white border border-[#2C2825]/10 rounded-2xl shadow-sm">
-                  <p className="text-sm font-medium text-[#4A453F]">Properti belum dikonfigurasi.</p>
+                <div className="text-center py-10 bg-card border border-border rounded-2xl shadow-xs">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Properti belum dikonfigurasi.
+                  </p>
                 </div>
               )}
             </motion.div>
@@ -140,8 +147,10 @@ export function SettingsTabs({
               {property ? (
                 <PropertyForm property={property} />
               ) : (
-                <div className="text-center py-10 bg-white border border-[#2C2825]/10 rounded-2xl shadow-sm">
-                  <p className="text-sm font-medium text-[#4A453F]">Properti utama belum dikonfigurasi.</p>
+                <div className="text-center py-10 bg-card border border-border rounded-2xl shadow-xs">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Properti utama belum dikonfigurasi.
+                  </p>
                 </div>
               )}
             </motion.div>
